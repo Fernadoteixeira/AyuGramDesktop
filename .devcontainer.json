@@ -1,16 +1,21 @@
 {
   "name": "AyuGram Desktop - Rocky Linux 8",
-  "image": "ghcr.io/telegramdesktop/tdesktop/centos_env@sha256:94a14999adb4b9b34d4f0b758b890474c51ceb35c5c327a682e3e3fc830062ae",
+  "build": {
+    "dockerfile": ".devcontainer/Dockerfile",
+    "context": "."
+  },
   "remoteUser": "user",
   "containerUser": "user",
-  "updateRemoteUserUID": true,
+  "updateRemoteUserUID": false,
   "shutdownAction": "stopContainer",
+  "overrideCommand": true,
   "hostRequirements": {
     "cpus": 16,
     "memory": "24gb",
     "storage": "100gb"
   },
   "runArgs": [
+    "--init",
     "--cap-drop=ALL",
     "--security-opt=no-new-privileges=true",
     "--read-only",
@@ -24,10 +29,24 @@
     "--tmpfs=/var/tmp:rw,noexec,nosuid,size=1g"
   ],
   "mounts": ["source=ayugram-dev-home,target=/home/user,type=volume"],
+  "forwardPorts": [6080],
+  "portsAttributes": {
+    "6080": {
+      "label": "AyuGram Linux Desktop",
+      "onAutoForward": "openBrowser",
+      "requireLocalPort": true
+    }
+  },
   "containerEnv": {
     "CMAKE_BUILD_PARALLEL_LEVEL": "16",
-    "XDG_CACHE_HOME": "/home/user/.cache"
+    "XDG_CACHE_HOME": "/home/user/.cache",
+    "XDG_RUNTIME_DIR": "/home/user/.local/run",
+    "DISPLAY": ":1",
+    "QT_QPA_PLATFORM": "xcb",
+    "QT_X11_NO_MITSHM": "1",
+    "LIBGL_ALWAYS_SOFTWARE": "1"
   },
+  "postStartCommand": "/usr/local/bin/start-ayugram-desktop",
   "customizations": {
     "vscode": {
       "settings": {

@@ -1,10 +1,7 @@
 #!/bin/bash
 
 set -e
-FullExecPath=$PWD
-pushd `dirname $0` > /dev/null
-FullScriptPath=`pwd`
-popd > /dev/null
+FullScriptPath="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
 
 if [ ! -d "$FullScriptPath/../../../../../DesktopPrivate" ]; then
   echo ""
@@ -21,6 +18,7 @@ if [ ${#Command[@]} -eq 0 ]; then
 fi
 
 docker run -it --rm \
+  --init \
   --cpus="${DOCKER_CPUS:-16}" \
   --memory="${DOCKER_MEMORY:-24g}" \
   --memory-swap="${DOCKER_MEMORY_SWAP:-32g}" \

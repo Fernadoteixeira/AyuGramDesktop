@@ -16,7 +16,7 @@ Install [poetry](https://python-poetry.org), [docker](https://www.docker.com/) a
 Go to **_BuildPath_/tdesktop** and run
 
     docker run --rm -it \
-        -u $(id -u) \
+        -u "$(id -u):$(id -g)" \
         -v "$PWD:/usr/src/tdesktop" \
         ghcr.io/telegramdesktop/tdesktop/centos_env@sha256:94a14999adb4b9b34d4f0b758b890474c51ceb35c5c327a682e3e3fc830062ae \
         /usr/src/tdesktop/Telegram/build/docker/centos_env/build.sh \
@@ -26,7 +26,7 @@ Go to **_BuildPath_/tdesktop** and run
 Or, to create a debug build, run
 
     docker run --rm -it \
-        -u $(id -u) \
+        -u "$(id -u):$(id -g)" \
         -v "$PWD:/usr/src/tdesktop" \
         -e CONFIG=Debug \
         ghcr.io/telegramdesktop/tdesktop/centos_env@sha256:94a14999adb4b9b34d4f0b758b890474c51ceb35c5c327a682e3e3fc830062ae \

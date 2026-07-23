@@ -11,7 +11,7 @@ The Docker development environment provides a reproducible Rocky Linux 8 toolcha
 | Read-only container layer | Rocky Linux toolchain and native dependencies            | Recreated from the published image |
 | Temporary filesystems     | `/tmp`, `/run`, and `/var/tmp`                           | Removed with the container         |
 
-The build directory inside the named home volume avoids the bind-mount I/O penalty on Docker Desktop. Build products remain available across container rebuilds but are intentionally kept outside the Git worktree. Dev Containers remaps the home volume and build directory together when the host UID differs from the image UID.
+The build directory inside the named home volume avoids the bind-mount I/O penalty on Docker Desktop. Build products remain available across container rebuilds but are intentionally kept outside the Git worktree. The image user remains UID 1000 because mutating `/etc/passwd` is incompatible with the read-only root filesystem. Docker Desktop bind mounts do not require host UID remapping.
 
 ## Resource profile
 
@@ -33,6 +33,7 @@ On Windows, `%UserProfile%\.wslconfig` carries the WSL2 ceiling. Apply changes w
 The default container:
 
 - runs as the non-root `user` account;
+- uses Docker's minimal init process to reap build subprocesses;
 - drops every Linux capability;
 - enables `no-new-privileges`;
 - uses a read-only root filesystem;
@@ -44,6 +45,8 @@ The default container:
 
 Native debugging requires an explicitly weakened local container profile. Do not add `SYS_PTRACE` or `seccomp=unconfined` to the shared configuration.
 
+The container retains outbound network access for VS Code extensions and dependency tooling. Treat source code and build scripts as trusted inputs. Network egress filtering, when required, belongs in a dedicated Docker network or host firewall policy and should not be bypassed by mounting the Docker socket.
+
 ## Bootstrap
 
 1. Start Docker Desktop with the WSL2 engine.
@@ -51,7 +54,7 @@ Native debugging requires an explicitly weakened local container profile. Do not
 3. Open the repository in VS Code.
 4. Run `Dev Containers: Reopen in Container`.
 
-The container pulls the upstream Telegram Desktop environment by immutable digest, so bootstrap does not depend on a mutable tag or on the first AyuGram publication. Every successful AyuGram pipeline publication emits `ghcr.io/ayugram/ayugramdesktop-dev:dev`, an immutable `sha-<commit>` tag, SBOM, and provenance attestation. Adopt an AyuGram image in `.devcontainer.json` only by digest after its first successful publication and scan.
+The container pulls the upstream Telegram Desktop environment by immutable digest, so bootstrap does not depend on a mutable tag or on the first AyuGram publication. A push to `dev` publishes an immutable `sha-<full-commit>` image with SBOM and provenance. The workflow promotes that digest to `ghcr.io/ayugram/ayugramdesktop-dev:dev` only after the critical-vulnerability gate passes. Adopt an AyuGram image in `.devcontainer.json` only by digest after its first successful publication and scan.
 
 ## Persistence operations
 
@@ -86,11 +89,12 @@ Stop the Dev Container before removing a volume. Source code and Git state are n
 The `Development container` workflow has two trust boundaries:
 
 - pull requests receive read-only repository permissions and run Dockerfile rendering plus BuildKit validation;
-- pushes to `dev` and manual dispatches receive package publication permissions after validation succeeds.
+- manual dispatches run validation only;
+- pushes to `dev` receive package, attestation, and security-report permissions after validation succeeds.
 
-Published images use GitHub Actions cache storage, OCI metadata, BuildKit SBOM generation, maximum provenance, immutable commit tags, and Trivy scanning. SARIF upload is non-blocking so the image remains recoverable while findings are visible in GitHub code scanning.
+Published images use a digest-pinned Rocky Linux base, GitHub Actions cache storage, OCI metadata, BuildKit SBOM generation, maximum provenance, immutable full-commit tags, and Trivy scanning. SARIF upload is non-blocking so findings remain visible when GitHub code scanning is unavailable. Promotion to the mutable `dev` tag is blocked when Trivy finds a fixed critical vulnerability.
 
-All third-party Actions are pinned to full commit SHAs. Dependabot checks those pins weekly and groups compatible updates.
+All third-party Actions are pinned to full commit SHAs. Dependabot checks those pins and the Rocky Linux base digest weekly.
 
 ## Rollback
 

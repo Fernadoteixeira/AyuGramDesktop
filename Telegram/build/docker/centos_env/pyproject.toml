@@ -8,8 +8,6 @@ authors = []
 python = "^3.7"
 Jinja2 = "^3.1.6"
 
-[tool.poetry.dev-dependencies]
-
 [tool.poetry.scripts]
 gen_dockerfile = "gen_dockerfile:main"
 
