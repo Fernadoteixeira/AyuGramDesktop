@@ -18,7 +18,9 @@ Release/
 *.xcodeproj
 ipch/
 .vs/
-.vscode/
+.vscode/*
+!.vscode/extensions.json
+!.vscode/settings.json
 .cache/
 compile_commands.json
 

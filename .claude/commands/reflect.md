@@ -20,6 +20,7 @@ If `$ARGUMENTS` is empty, skip the task context step — just work from the diff
 ## Context
 
 The workflow is:
+
 1. An AI agent implemented something and its changes were staged (`git add`).
 2. The user reviewed and corrected the agent's work. These corrections are unstaged.
 3. You are now invoked to reflect on what went wrong and whether it reveals a pattern.
@@ -45,6 +46,7 @@ The task name is `$ARGUMENTS`. Read the task's project context:
 3. Read `.ai/$ARGUMENTS/<latest-letter>/context.md` — the detailed implementation context the agent was working from.
 
 This helps you distinguish between:
+
 - **Task-specific mistakes** — the agent misunderstood this particular feature's requirements or made a wrong choice within the specific problem. These are NOT documentation-worthy.
 - **General convention mistakes** — the agent did something that violates a pattern the codebase follows broadly, regardless of which feature is being implemented. These ARE potentially documentation-worthy.
 
@@ -53,6 +55,7 @@ Having the task context makes this distinction much sharper. Without it, you mig
 ## Step 2: Read the Current Guidelines
 
 Read both files:
+
 - `AGENTS.md` — development guidelines: build system, coding style, API usage patterns, UI styling, localization, rpl, architectural conventions, "how to do things"
 - `REVIEW.md` — mechanical style and formatting rules: brace placement, operator position, type checks, variable initialization, call formatting
 
@@ -81,6 +84,7 @@ The corrections are purely task-specific, or the existing documentation clearly 
 ### Conclusion B: New insight found
 
 You can articulate a **concise, general rule** that:
+
 - Applies broadly (not just to this one task)
 - Is not already documented
 - Would genuinely help a future agent avoid the same class of mistake
@@ -95,9 +99,10 @@ A rule already exists in AGENTS.md or REVIEW.md, but its **scope is too narrow**
 This is NOT the same as Conclusion A. The test: would a careful agent, reading the existing rule, clearly know it applies to this specific situation? If no — the rule needs to be broadened, its examples expanded, or its title/scope adjusted. Proceed to Step 5.
 
 **Common signs of an ineffective rule:**
+
 - The rule's title or scope restricts it to a context narrower than the actual principle (e.g., "in localization calls" when the pattern applies generally)
 - The examples only show one usage pattern, and the agent encountered a different one
-- The wording describes *what* to use but not *when* — so agents only apply it in situations that look like the examples
+- The wording describes _what_ to use but not _when_ — so agents only apply it in situations that look like the examples
 
 ## Step 5: Categorize and Check for Contradictions
 
@@ -109,6 +114,7 @@ This is NOT the same as Conclusion A. The test: would a careful agent, reading t
 ### Does it contradict existing content?
 
 Read the target file again carefully. Check if:
+
 1. The new insight **contradicts** an existing rule — if so, do NOT just append or just remove. Instead, use AskUserQuestion to present both the existing rule and the new insight to the user, explain the contradiction, and ask how to reconcile them.
 2. The new insight **overlaps** with an existing rule — if so, consider whether the existing rule should be extended/refined rather than adding a separate entry.
 3. The new insight is **complementary** — it adds something new without conflicting. This is the simplest case.

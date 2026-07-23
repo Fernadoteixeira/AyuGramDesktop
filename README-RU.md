@@ -2,7 +2,7 @@
 
 ![AyuGram Лого](.github/AyuGram.png) ![AyuChan](.github/AyuChan.png)
 
-[ [English](README.md)  | Русский ]
+[ [English](README.md) | Русский ]
 
 ## Функции и Фишки
 
@@ -104,6 +104,7 @@ brew install --cask ayugram
 Инструкцию по установке можно найти в [этом репозитории](https://codeberg.org/OverLessArtem/ayugram-ebuild-gentoo).
 
 ### Void Linux
+
 Инструкцию по установке можно найти в [этом репозитории](https://codeberg.org/OverLessArtem/ayugram-template-void)
 
 ### EPM
@@ -120,7 +121,7 @@ dnf install ayugram-desktop
 
 ### Любой другой Линукс дистрибутив
 
-Flatpak: https://github.com/0FL01/AyuGramDesktop-flatpak
+Flatpak: <https://github.com/0FL01/AyuGramDesktop-flatpak>
 
 Или следуйте [официальному руководству](https://github.com/AyuGram/AyuGramDesktop/blob/dev/docs/building-linux.md).
 

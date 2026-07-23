@@ -10,6 +10,7 @@ Full release flow: generate changelog entry, run `set_version`, and commit.
 **Arguments:** `$ARGUMENTS` = "$ARGUMENTS"
 
 Parse `$ARGUMENTS` for two optional parts (in any order):
+
 - A **version number** like `6.7` or `6.7.0` — if provided, use it as the new version exactly.
 - The word **"beta"** — if present, mark the release as beta.
 
@@ -86,6 +87,7 @@ Once approved, run the `set_version` script from the repository root. On Windows
 ```
 
 Where `<version_arg>` is formatted as the `set_version` script expects:
+
 - Stable: `6.7.0` or `6.7`
 - Beta: `6.7.0.beta`
 
@@ -96,12 +98,14 @@ Verify the script exits successfully (exit code 0). If it fails, show the error 
 Stage all changes and create a commit. The commit message format:
 
 **First line:**
+
 - For stable: `Version <major>.<minor>.` if patch is 0, otherwise `Version <major>.<minor>.<patch>.`
 - For beta: `Beta version <major>.<minor>.<patch>.`
 
 **Then an empty line, then the changelog bullets.** Copy bullet lines from the changelog as-is. Only wrap lines that exceed 72 characters; shorter lines must stay on a single line. When wrapping is needed, break at logically correct places (between words/phrases) and indent continuation lines with two spaces.
 
 Example commit message:
+
 ```
 Beta version 6.6.3.
 

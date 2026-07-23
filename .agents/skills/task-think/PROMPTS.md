@@ -76,6 +76,7 @@ Record the current time now and store it as `$START_TIME`. You will use this at 
 Before running any phase prompts, determine whether this is a new project or a follow-up task.
 
 Follow-up detection:
+
 1. Extract the first word or token from the task description. Call it `FIRST_TOKEN`.
 2. Check `.ai/` to see existing project names.
 3. Check whether `.ai/<FIRST_TOKEN>/about.md` exists.
@@ -85,11 +86,13 @@ Follow-up detection:
 Do not proceed until you have determined follow-up vs new.
 
 For new projects:
+
 - Using the list of existing projects, pick a unique short name (1-2 lowercase words, hyphen-separated) that does not collide.
 - Create `.ai/<PROJECT>/`, `.ai/<PROJECT>/a/`, and `.ai/<PROJECT>/a/logs/`.
 - Set `<LETTER>` = `a`.
 
 For follow-up tasks:
+
 - Scan `.ai/<PROJECT>/` for existing task folders (`a/`, `b/`, ...). Find the latest one (highest letter).
 - The previous task letter = that highest letter.
 - The new task letter = next letter in sequence.
@@ -324,6 +327,7 @@ When finished, report what you did, which files you changed, and any issues enco
 ```
 
 After each implementation phase:
+
 1. Use a narrow read or search to confirm the status line was updated.
 2. Verify the owned write set and touched files with a small diff summary such as `git diff --name-only`.
 3. If more phases remain, run the next implementation phase.
@@ -513,6 +517,7 @@ When finished:
 ## Completion
 
 When all phases, including build verification, code review, and Windows line ending normalization when applicable, are done:
+
 1. Read the final `plan.md` and report the summary to the user.
 2. Show which files were modified or created.
 3. Note any issues encountered during implementation.
@@ -531,12 +536,14 @@ When all phases, including build verification, code review, and Windows line end
 ## Prompt Delivery And Logs
 
 For each phase:
+
 1. Write the full prompt to `.ai/<PROJECT>/<LETTER>/logs/phase-<name>.prompt.md`
 2. Delegate by sending that prompt text to a fresh subagent, or use it as a same-session checklist only for the designated main-session phases or when delegation was unavailable from the start
 3. For delegated phases, expect a matching `.ai/<PROJECT>/<LETTER>/logs/phase-<name>.progress.md` heartbeat while work is in flight
 4. Save a concise completion note to `.ai/<PROJECT>/<LETTER>/logs/phase-<name>.result.md`
 
 For review iterations, include the iteration in the file name, for example:
+
 - `phase-6a-review-1.prompt.md`
 - `phase-6a-review-1.result.md`
 - `phase-6b-fix-1.prompt.md`

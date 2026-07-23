@@ -9,18 +9,18 @@
 
 The build is done in **Visual Studio 2022** with **10.0.26100.0** SDK version.
 
-Choose an empty folder for the future build, for example **D:\\TBuild**. It will be named ***BuildPath*** in the rest of this document. Create two folders there, ***BuildPath*\\ThirdParty** and ***BuildPath*\\Libraries**.
+Choose an empty folder for the future build, for example **D:\\TBuild**. It will be named **_BuildPath_** in the rest of this document. Create two folders there, **_BuildPath_\\ThirdParty** and **_BuildPath_\\Libraries**.
 
 All commands (if not stated otherwise) will be launched from **x64 Native Tools Command Prompt for VS 2022.bat** (should be in **Start Menu > Visual Studio 2022** menu folder). Pay attention not to use any other Command Prompt.
 
 ## Install third party software
 
-* Download **Python 3.10** installer from [https://www.python.org/downloads/](https://www.python.org/downloads/) and install it with adding to PATH.
-* Download **Git** installer from [https://git-scm.com/download/win](https://git-scm.com/download/win) and install it.
+- Download **Python 3.10** installer from [https://www.python.org/downloads/](https://www.python.org/downloads/) and install it with adding to PATH.
+- Download **Git** installer from [https://git-scm.com/download/win](https://git-scm.com/download/win) and install it.
 
 ## Clone source code and prepare libraries
 
-Open **x64 Native Tools Command Prompt for VS 2022.bat**, go to ***BuildPath*** and run
+Open **x64 Native Tools Command Prompt for VS 2022.bat**, go to **_BuildPath_** and run
 
     git clone --recursive https://github.com/AyuGram/AyuGramDesktop.git tdesktop
     tdesktop\Telegram\build\prepare\win.bat
@@ -29,13 +29,13 @@ You may encounter an error saying that your IP is not allowed - simply turn on V
 
 ## Build the project
 
-Go to ***BuildPath*\\tdesktop\\Telegram** and run
+Go to **_BuildPath_\\tdesktop\\Telegram** and run
 
     configure.bat x64 -D TDESKTOP_API_ID=2040 -D TDESKTOP_API_HASH=b18441a1ff607e10a989891a5462e627
 
-* Open ***BuildPath*\\tdesktop\\out\\Telegram.slnx** in Visual Studio 2022
-* Select Telegram project and press Build > Build Telegram (Debug and Release configurations)
-* The result AyuGram.exe will be located in **D:\TBuild\tdesktop\out\Debug** (and **Release**)
+- Open **_BuildPath_\\tdesktop\\out\\Telegram.slnx** in Visual Studio 2022
+- Select Telegram project and press Build > Build Telegram (Debug and Release configurations)
+- The result AyuGram.exe will be located in **D:\TBuild\tdesktop\out\Debug** (and **Release**)
 
 If you encounter issue like `error C1090: PDB API call failed, error code '12'` on Release build, apply the following patch in `tdesktop/cmake` folder (via pwsh or manually):
 

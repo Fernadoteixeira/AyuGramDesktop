@@ -16,6 +16,7 @@ If `$ARGUMENTS` is provided, it's the task description. If empty, ask the user w
 The workflow is organized around **projects**. Each project lives in `.ai/<project-name>/` and can contain multiple sequential **tasks** (labeled `a`, `b`, `c`, ... `z`).
 
 Project structure:
+
 ```
 .ai/<project-name>/
   about.md              # Single source of truth for the entire project
@@ -47,10 +48,12 @@ Project structure:
 Extract the first word/token from `$ARGUMENTS` (everything before the first space or newline). Call it `FIRST_TOKEN`.
 
 Then run these TWO commands using the Bash tool, IN PARALLEL, right now:
+
 1. `ls .ai/` — to see all existing project names
 2. `ls .ai/<FIRST_TOKEN>/about.md` — to check if this specific project exists
 
 **Evaluate the results:**
+
 - If command 2 **succeeds** (the file exists): this is a **follow-up task**. The project name is `FIRST_TOKEN`. The task description is everything in `$ARGUMENTS` AFTER `FIRST_TOKEN` (strip leading whitespace).
 - If command 2 **fails** (file not found): this is a **new project**. The full `$ARGUMENTS` is the task description.
 
@@ -59,11 +62,13 @@ Then run these TWO commands using the Bash tool, IN PARALLEL, right now:
 ### Step 0b: Project setup
 
 **For new projects:**
+
 - Using the list from command 1, pick a unique short name (1-2 lowercase words, hyphen-separated) that doesn't collide with existing projects.
 - Create `.ai/<project-name>/` and `.ai/<project-name>/a/`.
 - Set current task letter = `a`.
 
 **For follow-up tasks:**
+
 - Scan `.ai/<project-name>/` for existing task folders (`a/`, `b/`, ...). Find the latest one (highest letter).
 - The previous task letter = that highest letter.
 - The new task letter = next letter in sequence.
@@ -314,6 +319,7 @@ When finished, report what you did and any issues encountered.
 ```
 
 After each implementation agent returns:
+
 1. Read `plan.md` to check the status was updated.
 2. If more phases remain, spawn the next implementation agent.
 3. If all phases are done, proceed to build verification.
@@ -491,6 +497,7 @@ After the fix agent returns, increment R and loop back to Step 6a (unless R > 3,
 ## Completion
 
 When all phases including build verification and code review are done:
+
 1. Read the final `plan.md` and report the summary to the user.
 2. Show which files were modified/created.
 3. Note any issues encountered during implementation.

@@ -2,7 +2,7 @@
 
 ![AyuGram Logo](.github/AyuGram.png) ![AyuChan](.github/AyuChan.png)
 
-[ English  |   [Русский](README-RU.md) ]
+[ English | [Русский](README-RU.md) ]
 
 ## Features
 
@@ -105,6 +105,7 @@ Install `ayugram-desktop` from [nixpkgs](https://search.nixos.org/packages?chann
 See [this repository](https://codeberg.org/OverLessArtem/ayugram-ebuild-gentoo) for installation manual.
 
 ### Void Linux
+
 See [this repository](https://codeberg.org/OverLessArtem/ayugram-template-void) for installation manual.
 
 ### EPM
@@ -121,7 +122,7 @@ dnf install ayugram-desktop
 
 ### Any other Linux distro
 
-Flatpak: https://github.com/0FL01/AyuGramDesktop-flatpak
+Flatpak: <https://github.com/0FL01/AyuGramDesktop-flatpak>
 
 Or follow the [official guide](https://github.com/AyuGram/AyuGramDesktop/blob/dev/docs/building-linux.md).
 

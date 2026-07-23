@@ -29,9 +29,11 @@ If there is an image attached to the user's message:
 
 1. Generate a random 8-character hex string for `HASH` (use `openssl rand -hex 4` or similar).
 2. **IMMEDIATELY** — before any other processing — run this Bash command to save the clipboard image:
+
    ```bash
    HASH=$(openssl rand -hex 4) && if [[ "$OSTYPE" == darwin* ]]; then bash .claude/grab_clipboard.sh ".ai/icon_${HASH}.png"; else powershell -ExecutionPolicy Bypass -File .claude/grab_clipboard.ps1 ".ai/icon_${HASH}.png"; fi
    ```
+
    On macOS `.claude/grab_clipboard.sh` is used; on Windows `.claude/grab_clipboard.ps1`. Both grab the current clipboard image and save it to the specified path.
 
 3. If the command fails (exit 1 / no image on clipboard):
@@ -51,9 +53,11 @@ If NO image is attached to the message, skip this step entirely.
 Check that the `mcp__vectosolve__vectorize` tool is available by looking at your available tools list. If it is NOT available, fail immediately with:
 
 > vectosolve MCP is not configured. Set it up with:
+>
 > ```
 > claude mcp add vectosolve --scope user -e VECTOSOLVE_API_KEY=vs_xxx -- npx @vectosolve/mcp
 > ```
+>
 > Then restart Claude Code.
 
 ### Step 0c: Follow-up detection
@@ -61,10 +65,12 @@ Check that the `mcp__vectosolve__vectorize` tool is available by looking at your
 Extract the first word/token from `$ARGUMENTS` (everything before the first space or newline). Call it `FIRST_TOKEN`.
 
 Run these TWO commands using the Bash tool, **IN PARALLEL**:
+
 1. `ls .ai/` — to see all existing icon project names
 2. `ls .ai/icon_{FIRST_TOKEN}/context.md` — to check if this specific icon project exists
 
 **Evaluate the results:**
+
 - If command 2 **succeeds** (context.md exists): this is a **follow-up**. The icon name is `FIRST_TOKEN`. The follow-up description is everything in `$ARGUMENTS` after `FIRST_TOKEN`.
 - If command 2 **fails** (not found): this is a **new icon**. The full `$ARGUMENTS` is the icon description.
 
@@ -84,6 +90,7 @@ Run these TWO commands using the Bash tool, **IN PARALLEL**:
 3. Create `.ai/icon_{name}/` and `.ai/icon_{name}/a/`.
 
 4. Write `.ai/icon_{name}/context.md` with:
+
    ```
    ## Icon: {icon_name}
    Type: {menu/other}
@@ -105,6 +112,7 @@ Run these TWO commands using the Bash tool, **IN PARALLEL**:
 3. Set `LETTER` to the next letter after the latest.
 4. Create `.ai/icon_{name}/{LETTER}/`.
 5. Update `.ai/icon_{name}/context.md` — append the follow-up description to the `## Follow-ups` section:
+
    ```
    ### Follow-up (starting at letter {LETTER})
    {follow-up description}
@@ -113,11 +121,13 @@ Run these TWO commands using the Bash tool, **IN PARALLEL**:
 ### Step 0f: Place source image
 
 If a clipboard image was grabbed in Step 0a:
+
 1. Copy (or move) `.ai/icon_HASH.png` → `.ai/icon_{name}/source.png` (overwrite if exists — this is always the latest source).
 2. Copy it to `.ai/icon_{name}/{LETTER}/source.png` (archive per-iteration source).
 3. Delete the temp `.ai/icon_HASH.png` if it was copied (not moved).
 
 If NO image was grabbed:
+
 - **New icon with no image**: Ask the user to provide a screenshot. STOP.
 - **Follow-up with no image**: The existing `source.png` in the icon root carries forward. Copy it to `.ai/icon_{name}/{LETTER}/source.png`. If no source.png exists at all, ask the user for an image.
 
@@ -136,6 +146,7 @@ fi
 If missing, build it: `cmake --build out --config Debug --target codegen_style`
 
 Test on a known good SVG (use the appropriate binary path for the OS):
+
 ```bash
 CODEGEN=$(if [[ "$OSTYPE" == darwin* ]]; then echo out/Telegram/codegen/codegen/style/Debug/codegen_style; else echo out/Telegram/codegen/codegen/style/Debug/codegen_style.exe; fi)
 $CODEGEN --render-svg Telegram/Resources/icons/menu/tag_add.svg .ai/icon_{name}/test_render.png 512
@@ -180,6 +191,7 @@ Before touching the SVG, determine these from the user's request and context.md:
 #### Sub-step 3: Compute the content bounding box
 
 Estimate the bounding box of the content paths (after removing the background). You can either:
+
 - Eyeball it from the path coordinates (look at first/last M commands and extremes of curves)
 - Or for precision, write a quick script to parse the paths and find min/max X/Y
 
@@ -213,6 +225,7 @@ The new viewBox is: `viewBox="VB_X VB_Y VB_W VB_H"`.
 #### Sub-step 6: Determine path composition
 
 Look at the icon's visual structure and decide how paths should combine:
+
 - **Outlined shape** (e.g., circle outline with something inside): combine outer + inner cutout into one `<path>` with `fill-rule="evenodd"`.
 - **Separate distinct parts** (e.g., magnifying glass + checkmark): keep as separate `<path>` elements.
 - **Filled shape with cutout** (e.g., filled circle with checkmark punched out): combine into one path with `fill-rule="evenodd"`.
@@ -239,6 +252,7 @@ Write the final SVG to `.ai/icon_{name}/{LETTER}.svg`.
 ### Step 1c: Render
 
 If `RENDER_AVAILABLE`:
+
 ```bash
 $CODEGEN --render-svg ".ai/icon_{name}/{LETTER}.svg" ".ai/icon_{name}/render_{LETTER}.png" 512
 ```
@@ -259,6 +273,7 @@ If the result looks good → proceed to Phase 3 (Output).
 If there are fixable issues (stray element, missed color, etc.) → fix the SVG directly, re-render, and re-check.
 
 If the result is poor (vectosolve couldn't handle the input well) → report to the user and suggest:
+
 - Trying a cleaner/larger crop of the icon
 - Providing a different screenshot
 - Following up: `/icon {icon_name} <description of what to change>`
@@ -270,6 +285,7 @@ If the result is poor (vectosolve couldn't handle the input well) → report to 
 2. Copy the final SVG to that target path (e.g., `Telegram/Resources/icons/menu/{icon_name}.svg`).
 
 3. Update `.ai/icon_{name}/context.md` — append to the end:
+
    ```
    ## Latest Output
    Letter: {LETTER}

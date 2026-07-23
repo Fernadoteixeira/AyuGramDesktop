@@ -1,0 +1,22 @@
+{
+  "C_Cpp.default.configurationProvider": "ms-vscode.cmake-tools",
+  "cmake.configureOnOpen": false,
+  "cmake.sourceDirectory": "${workspaceFolder}",
+  "cmake.buildDirectory": "${workspaceFolder}/out",
+  "cmake.copyCompileCommands": "${workspaceFolder}/compile_commands.json",
+  "git.detectSubmodules": true,
+  "git.detectSubmodulesLimit": 64,
+  "terminal.integrated.shellIntegration.enabled": true,
+  "files.watcherExclude": {
+    "**/.git/objects/**": true,
+    "**/.git/subtree-cache/**": true,
+    "**/.cache/**": true,
+    "**/.vs/**": true,
+    "**/out/**": true
+  },
+  "search.exclude": {
+    "**/.cache": true,
+    "**/.vs": true,
+    "**/out": true
+  }
+}

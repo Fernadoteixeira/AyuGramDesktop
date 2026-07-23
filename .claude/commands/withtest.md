@@ -14,6 +14,7 @@ If `$ARGUMENTS` is provided, it's the task description. If empty, ask the user w
 ## Overview
 
 The workflow produces `.ai/<feature-name>/` containing:
+
 - `context.md` - Gathered codebase context relevant to the task
 - `plan.md` - Detailed implementation plan with phases and status
 - `testN.md` - Test plan for iteration N
@@ -22,6 +23,7 @@ The workflow produces `.ai/<feature-name>/` containing:
 - `screenshots/` - Screenshots captured during test runs
 
 Two major stages:
+
 1. **Implementation** (Phases 0-5) - same as `/task`
 2. **Testing Loop** (Phase 6) - iterative test-plan → test-do → test-run → test-check cycle
 
@@ -274,6 +276,7 @@ When finished, report what you did and any issues encountered.
 ```
 
 After each implementation agent returns:
+
 1. Read `plan.md` to check the status was updated.
 2. If more phases remain, spawn the next implementation agent.
 3. If all phases are done, proceed to build verification.
@@ -322,15 +325,20 @@ This stage iteratively tests the implementation in-app and fixes issues. It main
 ### Git Submodule Awareness
 
 Before ANY git operation (commit, stash, stash pop), the agent must:
+
 1. Run `git submodule status` to check for modified submodules.
 2. If submodules have changes, commit/stash those submodules FIRST, individually:
+
    ```
    cd <submodule-path> && git add -A && git commit -m "[wip-N] test changes" && cd <repo-root>
    ```
+
    or for stash:
+
    ```
    cd <submodule-path> && git stash && cd <repo-root>
    ```
+
 3. Then operate on the main repo.
 
 ### Step 6a: Test Plan (test-plan agent)
@@ -640,6 +648,7 @@ When finished, report what was fixed.
 ## Completion
 
 When the testing loop finishes (ALL_TESTS_PASS or user stops it):
+
 1. Read the final `plan.md` and report full summary to the user.
 2. List all files modified/created by the implementation.
 3. Summarize test iterations: how many rounds, what was found and fixed.

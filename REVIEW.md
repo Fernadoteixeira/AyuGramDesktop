@@ -34,25 +34,25 @@ When splitting an expression across multiple lines, place operators (like `&&`, 
 ```cpp
 // BAD - continuation looks like scope code:
 if (const auto &lottie = animation->lottie;
-	lottie && lottie->valid() && lottie->framesCount() > 1) {
-	lottie->animate([=] {
+ lottie && lottie->valid() && lottie->framesCount() > 1) {
+ lottie->animate([=] {
 
 // GOOD - semicolon at start signals continuation:
 if (const auto &lottie = animation->lottie
-	; lottie && lottie->valid() && lottie->framesCount() > 1) {
-	lottie->animate([=] {
+ ; lottie && lottie->valid() && lottie->framesCount() > 1) {
+ lottie->animate([=] {
 
 // BAD - trailing && makes next line look like independent code:
 if (veryLongExpression() &&
-	anotherLongExpression() &&
-	anotherOne()) {
-	doSomething();
+ anotherLongExpression() &&
+ anotherOne()) {
+ doSomething();
 
 // GOOD - leading && clearly marks continuation:
 if (veryLongExpression()
-	&& anotherLongExpression()
-	&& anotherOne()) {
-	doSomething();
+ && anotherLongExpression()
+ && anotherOne()) {
+ doSomething();
 ```
 
 ## Minimize type checks — prefer direct cast over is + as
@@ -62,11 +62,11 @@ Don't check a type and then cast — just cast and check for null. `asUser()` al
 ```cpp
 // BAD - redundant isUser() check, then asUser():
 if (peer && peer->isUser()) {
-	peer->asUser()->setNoForwardFlags(
+ peer->asUser()->setNoForwardFlags(
 
 // GOOD - just cast and null-check:
 if (const auto user = peer->asUser()) {
-	user->setNoForwardFlags(
+ user->setNoForwardFlags(
 ```
 
 When you need a specific subtype, look up the specific subtype directly instead of loading a generic type and then casting:
@@ -74,25 +74,25 @@ When you need a specific subtype, look up the specific subtype directly instead 
 ```cpp
 // BAD - loads generic peer, then casts:
 if (const auto peer = session().data().peerLoaded(peerId)
-	; peer && peer->isUser()) {
-	peer->asUser()->setNoForwardFlags(
+ ; peer && peer->isUser()) {
+ peer->asUser()->setNoForwardFlags(
 
 // GOOD - look up the specific subtype directly:
 const auto userId = peerToUser(peerId);
 if (const auto user = session().data().userLoaded(userId)) {
-	user->setNoForwardFlags(
+ user->setNoForwardFlags(
 ```
 
 Avoid C++17 `if` with initializer (`;` inside the condition) when the code can be written more clearly with simple nested `if` statements or by extracting the value beforehand:
 
-```cpp
+````cpp
 // BAD - complex if-with-initializer:
 if (const auto peer = session().data().peerLoaded(peerId)
-	; peer && peer->isUser()) {
+ ; peer && peer->isUser()) {
 
 // GOOD - simple nested ifs when direct lookup isn't available:
 if (const auto peer = session().data().peerLoaded(peerId)) {
-	if (const auto user = peer->asUser()) {
+ if (const auto user = peer->asUser()) {
 
 ## Always initialize variables of basic types
 
@@ -112,18 +112,18 @@ int _bulletLeft = 0;
 int _bulletTop = 0;
 bool _expanded = false;
 SomeType *_pointer = nullptr;
-```
+````
 
 ## Use tr:: projections for TextWithEntities
 
 Inside `tr::lng_...()` calls, always use the `tr::` projection helpers instead of their `Ui::Text::` equivalents. The `tr::` helpers are shorter and work uniformly as both placeholder wrappers and final projectors.
 
-| Instead of | Use |
-|---|---|
-| `Ui::Text::Bold(x)` | `tr::bold(x)` |
-| `Ui::Text::Italic(x)` | `tr::italic(x)` |
-| `Ui::Text::RichLangValue` | `tr::rich` |
-| `Ui::Text::WithEntities` | `tr::marked` |
+| Instead of                | Use             |
+| ------------------------- | --------------- |
+| `Ui::Text::Bold(x)`       | `tr::bold(x)`   |
+| `Ui::Text::Italic(x)`     | `tr::italic(x)` |
+| `Ui::Text::RichLangValue` | `tr::rich`      |
+| `Ui::Text::WithEntities`  | `tr::marked`    |
 
 ```cpp
 // BAD - verbose Ui::Text:: functions:
@@ -363,17 +363,17 @@ When working with raw resources (Win32 HANDLEs, file descriptors, COM objects), 
 // BAD - manual cleanup, fragile with early returns:
 const auto snapshot = CreateToolhelp32Snapshot(...);
 if (snapshot != INVALID_HANDLE_VALUE) {
-	// ... logic that might grow early returns ...
-	CloseHandle(snapshot);
+ // ... logic that might grow early returns ...
+ CloseHandle(snapshot);
 }
 
 // GOOD - RAII guard, cleanup runs on any exit path:
 const auto snapshot = CreateToolhelp32Snapshot(...);
 if (snapshot == INVALID_HANDLE_VALUE) {
-	return;
+ return;
 }
 const auto guard = gsl::finally([&] {
-	CloseHandle(snapshot);
+ CloseHandle(snapshot);
 });
 // ... logic, early returns are safe ...
 ```
@@ -385,26 +385,26 @@ When a lambda grows beyond a few lines of self-contained logic, extract it into 
 ```cpp
 // BAD - substantial logic buried in a lambda:
 crl::async([=] {
-	auto found = false;
-	auto pe = PROCESSENTRY32();
-	pe.dwSize = sizeof(PROCESSENTRY32);
-	const auto snapshot = CreateToolhelp32Snapshot(...);
-	if (snapshot != INVALID_HANDLE_VALUE) {
-		for (...) {
-			if (/* match */) {
-				found = true;
-				break;
-			}
-		}
-		CloseHandle(snapshot);
-	}
-	crl::on_main(weak, [=] { handle(found); });
+ auto found = false;
+ auto pe = PROCESSENTRY32();
+ pe.dwSize = sizeof(PROCESSENTRY32);
+ const auto snapshot = CreateToolhelp32Snapshot(...);
+ if (snapshot != INVALID_HANDLE_VALUE) {
+  for (...) {
+   if (/* match */) {
+    found = true;
+    break;
+   }
+  }
+  CloseHandle(snapshot);
+ }
+ crl::on_main(weak, [=] { handle(found); });
 });
 
 // GOOD - logic extracted, lambda is just glue:
 crl::async([=] {
-	const auto found = FindRunningReader();
-	crl::on_main(weak, [=] { handle(found); });
+ const auto found = FindRunningReader();
+ crl::on_main(weak, [=] { handle(found); });
 });
 ```
 
@@ -415,21 +415,21 @@ When comparing a value against multiple known constants, store them in a collect
 ```cpp
 // BAD - repetitive chain, hard to extend:
 if (_wcsicmp(name, L"Narrator.exe") == 0
-	|| _wcsicmp(name, L"nvda.exe") == 0
-	|| _wcsicmp(name, L"jfw.exe") == 0
-	|| _wcsicmp(name, L"Zt.exe") == 0) {
+ || _wcsicmp(name, L"nvda.exe") == 0
+ || _wcsicmp(name, L"jfw.exe") == 0
+ || _wcsicmp(name, L"Zt.exe") == 0) {
 
 // GOOD - data-driven, easy to extend:
 const auto list = std::array{
-	L"Narrator.exe",
-	L"nvda.exe",
-	L"jfw.exe",
-	L"Zt.exe",
+ L"Narrator.exe",
+ L"nvda.exe",
+ L"jfw.exe",
+ L"Zt.exe",
 };
 for (const auto &entry : list) {
-	if (_wcsicmp(name, entry) == 0) {
-		return true;
-	}
+ if (_wcsicmp(name, entry) == 0) {
+  return true;
+ }
 }
 ```
 
@@ -464,8 +464,8 @@ const auto count = lifetime.make_state<int>(0);
 
 // GOOD - one allocation:
 struct State {
-	bool shown = false;
-	int count = 0;
+ bool shown = false;
+ int count = 0;
 };
 const auto state = lifetime.make_state<State>();
 ```
