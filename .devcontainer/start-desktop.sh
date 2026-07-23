@@ -12,6 +12,11 @@ WebPort="${AYUGRAM_DESKTOP_PORT:-6080}"
 mkdir -p "$StateDirectory" "$RuntimeDirectory" "$HOME/.vnc" "$HOME/out"
 chmod 700 "$StateDirectory" "$RuntimeDirectory" "$HOME/.vnc"
 
+if [ "$(cat "$StateDirectory/container" 2>/dev/null || true)" != "${HOSTNAME:-unknown}" ]; then
+	rm -f "$StateDirectory"/*.pid "$RuntimeDirectory/bus"
+	printf '%s\n' "${HOSTNAME:-unknown}" >"$StateDirectory/container"
+fi
+
 startProcess() {
 	local Name="$1"
 	shift
@@ -33,6 +38,18 @@ if [ ! -s "$StateDirectory/vnc.passwd" ]; then
 fi
 
 startProcess xvfb Xvfb "$Display" -screen 0 "$Geometry" -dpi 96 -nolisten tcp -ac
+
+DisplayNumber="${Display#:}"
+for Attempt in $(seq 1 50); do
+	if [ -S "/tmp/.X11-unix/X$DisplayNumber" ]; then
+		break
+	fi
+	if [ "$Attempt" -eq 50 ]; then
+		printf 'Xvfb did not become ready.\n' >&2
+		exit 1
+	fi
+	sleep 0.1
+done
 
 export DISPLAY="$Display"
 export XDG_RUNTIME_DIR="$RuntimeDirectory"
@@ -59,4 +76,4 @@ startProcess xterm xterm -geometry 120x36+24+24 -title "AyuGram Development Envi
 /usr/local/bin/launch-ayugram --if-present
 
 printf 'Desktop URL: http://localhost:%s/vnc.html?autoconnect=true&resize=scale\n' "$WebPort"
-printf 'VNC password: %s\n' "$(cat "$StateDirectory/password")"
+printf 'Retrieve the VNC password with: cat %s/password\n' "$StateDirectory"

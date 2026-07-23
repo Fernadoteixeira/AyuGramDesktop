@@ -10,6 +10,7 @@ The Docker development environment provides a reproducible Rocky Linux 8 toolcha
 | `ayugram-dev-home`        | VS Code state, caches, and `/home/user/out` build output | Docker named volume                |
 | Read-only container layer | Rocky Linux toolchain and native dependencies            | Recreated from the published image |
 | Temporary filesystems     | `/tmp`, `/run`, and `/var/tmp`                           | Removed with the container         |
+| noVNC desktop             | Xvfb, Fluxbox, xterm, and AyuGram UI                     | Loopback port `6080`               |
 
 The build directory inside the named home volume avoids the bind-mount I/O penalty on Docker Desktop. Build products remain available across container rebuilds but are intentionally kept outside the Git worktree. The image user remains UID 1000 because mutating `/etc/passwd` is incompatible with the read-only root filesystem. Docker Desktop bind mounts do not require host UID remapping.
 
@@ -38,7 +39,7 @@ The default container:
 - enables `no-new-privileges`;
 - uses a read-only root filesystem;
 - exposes no Docker socket;
-- publishes no network ports;
+- publishes the authenticated noVNC desktop only through a host-loopback forwarded port;
 - mounts only the workspace and named development volumes;
 - uses `noexec` and `nosuid` temporary filesystems;
 - does not permit `ptrace` debugging.
@@ -54,7 +55,37 @@ The container retains outbound network access for VS Code extensions and depende
 3. Open the repository in VS Code.
 4. Run `Dev Containers: Reopen in Container`.
 
-The container pulls the upstream Telegram Desktop environment by immutable digest, so bootstrap does not depend on a mutable tag or on the first AyuGram publication. A push to `dev` publishes an immutable `sha-<full-commit>` image with SBOM and provenance. The workflow promotes that digest to `ghcr.io/ayugram/ayugramdesktop-dev:dev` only after the critical-vulnerability gate passes. Adopt an AyuGram image in `.devcontainer.json` only by digest after its first successful publication and scan.
+The container builds its graphical layer from the upstream Telegram Desktop environment by immutable digest, so bootstrap does not depend on a mutable tag or on the first AyuGram publication. A push to `dev` publishes immutable toolchain and UI images with SBOM and provenance. The workflow promotes both digests to their `:dev` tags only after both critical-vulnerability gates pass. Adopt published AyuGram images only by digest after successful publication and scan.
+
+## Graphical desktop
+
+The Dev Container starts an isolated software-rendered X11 desktop and forwards noVNC through VS Code. It does not require WSLg or a Windows X server.
+
+Open:
+
+```text
+http://127.0.0.1:6080/vnc.html?autoconnect=true&resize=scale
+```
+
+Retrieve the persistent VNC password from the Dev Container terminal:
+
+```bash
+cat ~/.local/state/ayugram-desktop/password
+```
+
+The desktop starts Fluxbox and an xterm immediately. If a Telegram binary exists under `/home/user/out/Debug`, `/home/user/out/Release`, or `/home/user/out`, it starts automatically. Launch an existing build manually with:
+
+```bash
+launch-ayugram
+```
+
+Inspect desktop and application logs with:
+
+```bash
+ls -1 ~/.local/state/ayugram-desktop/*.log
+```
+
+The graphical layer uses software rendering and intentionally does not mount host audio, GPU, Wayland, Docker, or D-Bus sockets.
 
 ## Persistence operations
 
@@ -92,7 +123,7 @@ The `Development container` workflow has two trust boundaries:
 - manual dispatches run validation only;
 - pushes to `dev` receive package, attestation, and security-report permissions after validation succeeds.
 
-Published images use a digest-pinned Rocky Linux base, GitHub Actions cache storage, OCI metadata, BuildKit SBOM generation, maximum provenance, immutable full-commit tags, and Trivy scanning. SARIF upload is non-blocking so findings remain visible when GitHub code scanning is unavailable. Promotion to the mutable `dev` tag is blocked when Trivy finds a fixed critical vulnerability.
+Published toolchain and UI images use digest-pinned bases, GitHub Actions cache storage, OCI metadata, BuildKit SBOM generation, maximum provenance, immutable full-commit tags, and Trivy scanning. SARIF upload is non-blocking so findings remain visible when GitHub code scanning is unavailable. Promotion of both mutable `dev` tags is blocked when either image contains a fixed critical vulnerability.
 
 All third-party Actions are pinned to full commit SHAs. Dependabot checks those pins and the Rocky Linux base digest weekly.
 
