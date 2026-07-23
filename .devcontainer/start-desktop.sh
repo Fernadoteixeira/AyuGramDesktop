@@ -20,9 +20,17 @@ fi
 startProcess() {
 	local Name="$1"
 	shift
+	local Command="$1"
 	local PidFile="$StateDirectory/$Name.pid"
-	if [ -s "$PidFile" ] && kill -0 "$(cat "$PidFile")" 2>/dev/null; then
-		return
+	local Pid
+	if [ -s "$PidFile" ]; then
+		Pid="$(cat "$PidFile")"
+		if [[ "$Pid" != *[!0-9]* ]] &&
+			kill -0 "$Pid" 2>/dev/null &&
+			[ "$(cat "/proc/$Pid/comm" 2>/dev/null || true)" = "${Command##*/}" ]; then
+			return
+		fi
+		rm -f "$PidFile"
 	fi
 	"$@" >"$StateDirectory/$Name.log" 2>&1 &
 	echo $! >"$PidFile"
@@ -40,11 +48,11 @@ fi
 startProcess xvfb Xvfb "$Display" -screen 0 "$Geometry" -dpi 96 -nolisten tcp -ac
 
 DisplayNumber="${Display#:}"
-for Attempt in $(seq 1 50); do
+for ((Attempt = 1; Attempt <= 100; ++Attempt)); do
 	if [ -S "/tmp/.X11-unix/X$DisplayNumber" ]; then
 		break
 	fi
-	if [ "$Attempt" -eq 50 ]; then
+	if [ "$Attempt" -eq 100 ]; then
 		printf 'Xvfb did not become ready.\n' >&2
 		exit 1
 	fi
