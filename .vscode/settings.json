@@ -1,6 +1,7 @@
 {
   "C_Cpp.default.configurationProvider": "ms-vscode.cmake-tools",
   "cmake.configureOnOpen": false,
+  "cmake.configureOnEdit": false,
   "cmake.sourceDirectory": "${workspaceFolder}",
   "cmake.buildDirectory": "${workspaceFolder}/out",
   "cmake.copyCompileCommands": "${workspaceFolder}/compile_commands.json",
@@ -9,6 +10,8 @@
   "terminal.integrated.shellIntegration.enabled": true,
   "files.watcherExclude": {
     "**/.git/objects/**": true,
+    "**/.git/modules/**/objects/**": true,
+    "**/.git/modules/**/logs/**": true,
     "**/.git/subtree-cache/**": true,
     "**/.cache/**": true,
     "**/.vs/**": true,

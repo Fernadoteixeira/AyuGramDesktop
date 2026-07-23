@@ -1,4 +1,4 @@
-## API credentials
+# API credentials
 
 Official Telegram keys:
 

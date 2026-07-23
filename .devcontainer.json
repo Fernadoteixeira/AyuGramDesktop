@@ -1,10 +1,39 @@
 {
-  "name": "CentOS",
-  "image": "tdesktop:centos_env",
+  "name": "AyuGram Desktop - Rocky Linux 8",
+  "image": "ghcr.io/telegramdesktop/tdesktop/centos_env@sha256:94a14999adb4b9b34d4f0b758b890474c51ceb35c5c327a682e3e3fc830062ae",
+  "remoteUser": "user",
+  "containerUser": "user",
+  "updateRemoteUserUID": true,
+  "shutdownAction": "stopContainer",
+  "hostRequirements": {
+    "cpus": 16,
+    "memory": "24gb",
+    "storage": "100gb"
+  },
+  "runArgs": [
+    "--cap-drop=ALL",
+    "--security-opt=no-new-privileges=true",
+    "--read-only",
+    "--pids-limit=4096",
+    "--cpus=16",
+    "--memory=24g",
+    "--memory-swap=32g",
+    "--shm-size=2g",
+    "--tmpfs=/tmp:rw,noexec,nosuid,size=4g",
+    "--tmpfs=/run:rw,noexec,nosuid,size=64m",
+    "--tmpfs=/var/tmp:rw,noexec,nosuid,size=1g"
+  ],
+  "mounts": ["source=ayugram-dev-home,target=/home/user,type=volume"],
+  "containerEnv": {
+    "CMAKE_BUILD_PARALLEL_LEVEL": "16",
+    "XDG_CACHE_HOME": "/home/user/.cache"
+  },
   "customizations": {
     "vscode": {
       "settings": {
         "C_Cpp.intelliSenseEngine": "disabled",
+        "cmake.configureOnOpen": false,
+        "cmake.configureOnEdit": false,
         "clangd.arguments": [
           "--background-index",
           "--compile-commands-dir=${workspaceFolder}",
@@ -14,7 +43,7 @@
           "--limit-references=1000"
         ],
         "cmake.generator": "Ninja Multi-Config",
-        "cmake.buildDirectory": "${workspaceFolder}/out",
+        "cmake.buildDirectory": "/home/user/out",
         "cmake.copyCompileCommands": "${workspaceFolder}/compile_commands.json"
       },
       "extensions": [
@@ -27,8 +56,6 @@
       ]
     }
   },
-  "capAdd": ["SYS_PTRACE"],
-  "securityOpt": ["seccomp=unconfined"],
   "workspaceMount": "source=${localWorkspaceFolder},target=/usr/src/tdesktop,type=bind,consistency=cached",
   "workspaceFolder": "/usr/src/tdesktop"
 }
