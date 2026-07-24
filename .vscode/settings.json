@@ -21,5 +21,6 @@
     "**/.cache": true,
     "**/.vs": true,
     "**/out": true
-  }
+  },
+  "workbench.editor.alwaysShowEditorActions": true
 }
