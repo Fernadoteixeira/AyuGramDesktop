@@ -37,13 +37,15 @@ startProcess() {
 	echo $! >"$PidFile"
 }
 
-if [ ! -s "$StateDirectory/password" ]; then
+if [ -s "$StateDirectory/password" ]; then
+	VncPassword="$(cat "$StateDirectory/password")"
+else
 	umask 077
 	printf '%s\n' "$VncPassword" >"$StateDirectory/password"
 fi
 
 if [ ! -s "$StateDirectory/vnc.passwd" ]; then
-	x11vnc -storepasswd "$(cat "$StateDirectory/password")" "$StateDirectory/vnc.passwd" >/dev/null
+	x11vnc -storepasswd "$VncPassword" "$StateDirectory/vnc.passwd" >/dev/null
 fi
 
 startProcess xvfb Xvfb "$Display" -screen 0 "$Geometry" -dpi 96 -nolisten tcp -ac
