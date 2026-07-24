@@ -7,7 +7,7 @@ USER root
 RUN dnf -y install epel-release \
 	&& dnf config-manager --set-enabled powertools \
 	&& dnf -y install dbus-x11 fluxbox novnc python3-websockify \
-		x11vnc xorg-x11-server-Xvfb xterm \
+		x11vnc xorg-x11-server-Xvfb xterm mesa-dri-drivers xcb-util-cursor \
 	&& dnf clean all \
 	&& rm -rf /var/cache/dnf
 
