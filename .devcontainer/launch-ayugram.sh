@@ -13,12 +13,23 @@ if [ -f "$StateDirectory/session.env" ]; then
 	source "$StateDirectory/session.env"
 fi
 
+export DISPLAY="${DISPLAY:-:99}"
+
 Candidates=(
+	"$HOME/out/Debug/AyuGram"
+	"$HOME/out/Release/AyuGram"
+	"$HOME/out/AyuGram"
+	"/usr/src/tdesktop/out/Debug/AyuGram"
+	"/usr/src/tdesktop/out/Release/AyuGram"
+	"/usr/src/tdesktop/out/AyuGram"
 	"$HOME/out/Debug/Telegram"
 	"$HOME/out/Release/Telegram"
 	"$HOME/out/Telegram"
 	"/usr/src/tdesktop/out/Debug/Telegram"
 	"/usr/src/tdesktop/out/Release/Telegram"
+	"/usr/src/tdesktop/out/Telegram"
+	"/usr/src/tdesktop/Telegram/build/out/Debug/Telegram"
+	"/usr/src/tdesktop/Telegram/build/out/Release/Telegram"
 )
 
 for Binary in "${Candidates[@]}"; do
@@ -33,9 +44,14 @@ for Binary in "${Candidates[@]}"; do
 	fi
 done
 
+printf 'No AyuGram binary found.\n' >&2
+printf 'Candidates checked:\n' >&2
+for Binary in "${Candidates[@]}"; do
+	printf ' - %s\n' "$Binary" >&2
+done
+
 if [ "$IfPresent" = true ]; then
 	exit 0
 fi
 
-printf 'No AyuGram binary found under %s or /usr/src/tdesktop/out.\n' "$HOME/out" >&2
 exit 1
