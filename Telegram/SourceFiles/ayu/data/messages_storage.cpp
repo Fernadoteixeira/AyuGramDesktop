@@ -1,4 +1,4 @@
-﻿// This is the source code of AyuGram for Desktop.
+// This is the source code of AyuGram for Desktop.
 //
 // We do not and cannot prevent the use of our code,
 // but be respectful and credit the original author.
@@ -55,9 +55,7 @@ void map(not_null<HistoryItem*> item, AyuMessageBase &message) {
 	message.views = item->viewsCount();
 	message.fwdFlags = 0;
 	message.fwdFromId = 0;
-	// message.fwdName
 	message.fwdDate = 0;
-	// message.fwdPostAuthor
 	if (const auto msgsigned = item->Get<HistoryMessageSigned>()) {
 		message.postAuthor = msgsigned->author.toStdString();
 	}
@@ -66,22 +64,14 @@ void map(not_null<HistoryItem*> item, AyuMessageBase &message) {
 	message.replyPeerId = 0;
 	message.replyTopId = 0;
 	message.replyForumTopic = false;
-	// message.replySerialized
-	// message.replyMarkupSerialized
 	message.entityCreateDate = base::unixtime::now();
 
 	auto serializedText = AyuMapper::serializeTextWithEntities(item);
 	message.text = serializedText.first;
 	message.textEntities = serializedText.second;
 
-	// todo: implement mapping
 	message.mediaPath = "/";
-	// message.hqThumbPath
-	message.documentType = 0; // document type none
-	// message.documentSerialized
-	// message.thumbsSerialized
-	// message.documentAttributesSerialized
-	// message.mimeType
+	message.documentType = 0;
 }
 
 void addEditedMessage(not_null<HistoryItem *> item) {
