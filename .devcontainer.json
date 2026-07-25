@@ -24,7 +24,7 @@
     "--memory=24g",
     "--memory-swap=32g",
     "--shm-size=2g",
-    "--tmpfs=/tmp:rw,noexec,nosuid,size=4g",
+    "--tmpfs=/tmp:rw,nosuid,size=4g",
     "--tmpfs=/run:rw,noexec,nosuid,size=64m",
     "--tmpfs=/var/tmp:rw,noexec,nosuid,size=1g"
   ],
@@ -41,7 +41,7 @@
     "CMAKE_BUILD_PARALLEL_LEVEL": "16",
     "XDG_CACHE_HOME": "/home/user/.cache",
     "XDG_RUNTIME_DIR": "/home/user/.local/run",
-    "DISPLAY": ":1",
+    "DISPLAY": ":99",
     "QT_QPA_PLATFORM": "xcb",
     "QT_X11_NO_MITSHM": "1",
     "LIBGL_ALWAYS_SOFTWARE": "1"

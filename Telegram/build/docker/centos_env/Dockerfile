@@ -10,8 +10,10 @@ ENV PKG_CONFIG_PATH=/opt/rh/$TOOLSET/root/usr/lib64/pkgconfig:/opt/rh/$TOOLSET/r
 
 RUN dnf -y install epel-release \
 	&& dnf config-manager --set-enabled powertools \
-	&& dnf -y install cmake autoconf automake libtool pkgconfig make patch git \
-		python3.11-pip python3.11-devel gperf flex bison clang clang-tools-extra \
+	&& dnf -y module disable python36 \
+	&& (dnf -y remove python36 python36-devel python36-libs || true) \
+	&& dnf -y install --exclude="python36*" cmake autoconf automake libtool pkgconfig make patch git \
+		python3.11 python3.11-pip python3.11-devel gperf flex bison clang clang-tools-extra \
 		lld nasm file which wget perl-open perl-XML-Parser perl-IPC-Cmd \
 		xorg-x11-util-macros $TOOLSET-gcc $TOOLSET-gcc-c++ $TOOLSET-binutils \
 		$TOOLSET-gdb $TOOLSET-libasan-devel libffi-devel fontconfig-devel \
@@ -23,7 +25,12 @@ RUN dnf -y install epel-release \
 	&& dnf clean all
 
 RUN alternatives --set python3 /usr/bin/python3.11
-RUN python3 -m pip install meson ninja
+RUN python3.11 -m pip install --upgrade --no-cache-dir \
+	"setuptools>=75.8.0" \
+	"urllib3>=2.3.0" \
+	"cryptography>=44.0.0" \
+	"numpy>=2.2.0" \
+	meson ninja
 RUN cat <<EOF > /usr/local/bin/pkg-config && chmod +x /usr/local/bin/pkg-config
 #!/bin/sh
 for i in "\$@"; do
