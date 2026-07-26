@@ -8,6 +8,7 @@ RUN dnf -y install epel-release \
 	&& dnf config-manager --set-enabled powertools \
 	&& dnf -y install dbus-x11 fluxbox novnc python3-websockify \
 		x11vnc xorg-x11-server-Xvfb xterm mesa-dri-drivers xcb-util-cursor \
+		xdotool wmctrl xorg-x11-utils ImageMagick \
 	&& dnf clean all \
 	&& rm -rf /var/cache/dnf
 
@@ -15,3 +16,5 @@ COPY --chmod=0755 .devcontainer/start-desktop.sh /usr/local/bin/start-ayugram-de
 COPY --chmod=0755 .devcontainer/launch-ayugram.sh /usr/local/bin/launch-ayugram
 
 USER user
+
+CMD ["/usr/local/bin/start-ayugram-desktop"]

@@ -43,7 +43,7 @@ Wait-Until -TimeoutSeconds $TimeoutSeconds -FailureMessage "O container não ati
 }
 
 Write-Host "Verificando processo AyuGram..."
-$processCheck = docker exec $ContainerName bash -lc 'pgrep -f AyuGram >/dev/null; echo $?'
+$processCheck = docker exec $ContainerName bash -lc 'pgrep -x AyuGram >/dev/null; echo $?'
 if ($processCheck -ne "0") {
     Write-Host "Iniciando launcher do AyuGram dentro do container..."
     docker exec $ContainerName bash -lc '
@@ -58,8 +58,14 @@ if ($processCheck -ne "0") {
 
 Write-Host "Aguardando inicialização do processo..."
 Wait-Until -TimeoutSeconds $TimeoutSeconds -FailureMessage "O processo AyuGram não permaneceu ativo." -Condition {
-    $check = docker exec $ContainerName bash -lc 'pgrep -f AyuGram >/dev/null; echo $?'
+    $check = docker exec $ContainerName bash -lc 'pgrep -x AyuGram >/dev/null; echo $?'
     $check -eq "0"
+}
+
+Write-Host "Aguardando janela X11 ser renderizada..."
+Wait-Until -TimeoutSeconds $TimeoutSeconds -FailureMessage "A janela do AyuGram não foi encontrada no display X11." -Condition {
+    docker exec $ContainerName bash -lc 'DISPLAY=:1 wmctrl -lx | grep -iE "AyuGram|Telegram" >/dev/null 2>&1'
+    $LASTEXITCODE -eq 0
 }
 
 Write-Host "Aguardando socket 6080 (noVNC)..."

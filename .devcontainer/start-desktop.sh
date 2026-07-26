@@ -4,7 +4,7 @@ set -euo pipefail
 
 StateDirectory="${XDG_STATE_HOME:-$HOME/.local/state}/ayugram-desktop"
 RuntimeDirectory="${XDG_RUNTIME_DIR:-$HOME/.local/run}"
-Display="${DISPLAY:-:99}"
+Display="${DISPLAY:-:1}"
 Geometry="${AYUGRAM_DESKTOP_GEOMETRY:-1920x1080x24}"
 VncPort="${AYUGRAM_VNC_PORT:-5900}"
 WebPort="${AYUGRAM_DESKTOP_PORT:-6080}"
@@ -110,3 +110,5 @@ startProcess xterm xterm -u8 -geometry 120x36+24+24 -title "AyuGram Development 
 
 printf 'Desktop URL: http://localhost:%s/vnc.html?autoconnect=true&resize=scale&password=%s\n' "$WebPort" "$VncPassword"
 printf 'VNC Password: %s\n' "$VncPassword"
+
+wait

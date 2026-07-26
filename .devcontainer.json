@@ -8,7 +8,7 @@
   "containerUser": "user",
   "updateRemoteUserUID": false,
   "shutdownAction": "stopContainer",
-  "overrideCommand": true,
+  "overrideCommand": false,
   "hostRequirements": {
     "cpus": 16,
     "memory": "24gb",
@@ -41,12 +41,11 @@
     "CMAKE_BUILD_PARALLEL_LEVEL": "16",
     "XDG_CACHE_HOME": "/home/user/.cache",
     "XDG_RUNTIME_DIR": "/home/user/.local/run",
-    "DISPLAY": ":99",
+    "DISPLAY": ":1",
     "QT_QPA_PLATFORM": "xcb",
     "QT_X11_NO_MITSHM": "1",
     "LIBGL_ALWAYS_SOFTWARE": "1"
   },
-  "postStartCommand": "/usr/local/bin/start-ayugram-desktop",
   "customizations": {
     "vscode": {
       "settings": {
