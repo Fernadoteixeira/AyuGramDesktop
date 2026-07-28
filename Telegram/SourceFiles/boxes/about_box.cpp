@@ -66,7 +66,7 @@ void AboutBox(not_null<Ui::GenericBox*> box, Window::SessionController* controll
 			st::aboutVersionLink),
 		QMargins(
 			st::boxRowPadding.left(),
-			-st::lineWidth * 3,
+			st::aboutVersionTop,
 			st::boxRowPadding.right(),
 			st::boxRowPadding.bottom()));
 	version->setClickedCallback([=] {
@@ -261,4 +261,3 @@ void ArchiveHintBox(
 		box->addButton(std::move(button));
 	}
 }
-

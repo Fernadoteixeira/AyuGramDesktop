@@ -348,19 +348,19 @@ themeWarningWidth: boxWideWidth;
 themeWarningHeight: 150px;
 themeWarningTextTop: 60px;
 
-aboutWidth: 390px;
+aboutWidth: 400px;
 aboutVersionTop: -3px;
 aboutVersionLink: LinkButton(defaultLinkButton) {
 	color: windowSubTextFg;
 	overColor: windowSubTextFg;
 }
-aboutTopSkip: 19px;
-aboutSkip: 14px;
+aboutTopSkip: 20px;
+aboutSkip: 16px;
 aboutLabel: FlatLabel(defaultFlatLabel) {
-	minWidth: 300px;
+	minWidth: 320px;
 	align: align(topleft);
 	style: TextStyle(defaultTextStyle) {
-		lineHeight: 22px;
+		lineHeight: 24px;
 	}
 }
 
