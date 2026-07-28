@@ -111,17 +111,40 @@ var IV = {
 	},
 	lastScrollTop: 0,
 	frameScrolled: function (e) {
+		if (IV.scrollFrameRequested) {
+			return;
+		}
+		IV.scrollFrameRequested = true;
+		const schedule = window.requestAnimationFrame
+			? window.requestAnimationFrame.bind(window)
+			: function (callback) { return setTimeout(callback, 16); };
+		schedule(function () {
+			IV.scrollFrameRequested = false;
+			IV.performFrameScrolled();
+		});
+	},
+	performFrameScrolled: function () {
+		const scroll = IV.findPageScroll();
+		if (!scroll) {
+			return;
+		}
 		const was = IV.lastScrollTop;
-		IV.lastScrollTop = IV.findPageScroll().scrollTop;
+		IV.lastScrollTop = scroll.scrollTop;
 		IV.updateJumpToTop(was < IV.lastScrollTop);
 		IV.checkVideos();
 	},
 	updateJumpToTop: function (scrolledDown) {
-		if (IV.lastScrollTop < 100) {
+		const showAfter = IV.usesCoarsePointer() ? 140 : 200;
+		const hideBefore = IV.usesCoarsePointer() ? 80 : 100;
+		if (IV.lastScrollTop < hideBefore) {
 			document.getElementById('bottom_up').classList.add('hidden');
-		} else if (scrolledDown && IV.lastScrollTop > 200) {
+		} else if (scrolledDown && IV.lastScrollTop > showAfter) {
 			document.getElementById('bottom_up').classList.remove('hidden');
 		}
+	},
+	usesCoarsePointer: function() {
+		return !!(window.matchMedia
+			&& window.matchMedia('(pointer: coarse)').matches);
 	},
 	updateStyles: function (styles) {
 		if (IV.styles !== styles) {
@@ -245,8 +268,25 @@ var IV = {
 		const buttons = document.getElementsByClassName('fixed_button');
 		for (let i = 0; i < buttons.length; ++i) {
 			const button = buttons[i];
+			if (button.tagName !== 'BUTTON') {
+				button.setAttribute('tabindex', '0');
+				button.setAttribute('role', 'button');
+			}
+			if (!button.getAttribute('aria-label')) {
+				const label = IV.buttonLabel(button.id);
+				if (label) {
+					button.setAttribute('aria-label', label);
+					button.setAttribute('title', label);
+				}
+			}
 			button.addEventListener('mousedown', function (e) {
 				IV.addRipple(e.currentTarget, e.clientX, e.clientY);
+			});
+			button.addEventListener('keydown', function (e) {
+				if (e.key === 'Enter' || e.key === ' ') {
+					e.preventDefault();
+					button.click();
+				}
 			});
 			button.addEventListener('mouseup', function (e) {
 				const id = e.currentTarget.id;
@@ -263,6 +303,12 @@ var IV = {
 
 		IV.forceScrollFocus();
 		IV.frameScrolled();
+	},
+	buttonLabel: function(id) {
+		if (id === 'bottom_up') {
+			return 'Back to top';
+		}
+		return '';
 	},
 	initMedia: function () {
 		var scroll = IV.findPageScroll();
@@ -303,8 +349,12 @@ var IV = {
 		}
 	},
 	checkVideos: function () {
+		const scroll = IV.findPageScroll();
+		if (!scroll) {
+			return;
+		}
 		const visibleTop = IV.lastScrollTop;
-		const visibleBottom = visibleTop + IV.findPageScroll().offsetHeight;
+		const visibleBottom = visibleTop + scroll.offsetHeight;
 		const videos = IV.videos;
 		for (let i = 0; i < videos.length; ++i) {
 			const video = videos[i];
@@ -356,6 +406,8 @@ var IV = {
 	showTooltip: function (text) {
 		var toast = document.createElement('div');
 		toast.classList.add('toast');
+		toast.setAttribute('role', 'status');
+		toast.setAttribute('aria-live', 'polite');
 		toast.textContent = text;
 		document.body.appendChild(toast);
 		setTimeout(function () {
@@ -375,7 +427,7 @@ var IV = {
 		});
 	},
 	computeCurrentState: function () {
-		var now = IV.findPageScroll();
+		const now = IV.findPageScroll();
 		return {
 			position: IV.position,
 			index: IV.index,
@@ -519,13 +571,21 @@ var IV = {
 		IV.showDOM(index, hash);
 	},
 	findPageScroll: function () {
-		var all = document.getElementsByClassName('page-scroll');
-		for (i = 0; i < all.length; ++i) {
+		if (IV.activePageScroll
+			&& IV.activePageScroll.parentNode
+			&& !IV.activePageScroll.classList.contains('hidden-left')
+			&& !IV.activePageScroll.classList.contains('hidden-right')) {
+			return IV.activePageScroll;
+		}
+		const all = document.getElementsByClassName('page-scroll');
+		for (let i = 0; i < all.length; ++i) {
 			if (!all[i].classList.contains('hidden-left')
 				&& !all[i].classList.contains('hidden-right')) {
+				IV.activePageScroll = all[i];
 				return all[i];
 			}
 		}
+		IV.activePageScroll = null;
 		return null;
 	},
 	showDOM: function (index, hash, scroll) {
@@ -578,6 +638,7 @@ var IV = {
 
 			was.classList.add(back ? 'hidden-right' : 'hidden-left');
 			now.classList.remove(back ? 'hidden-left' : 'hidden-right');
+			IV.activePageScroll = now;
 
 			IV.index = index;
 			IV.notify({
@@ -604,6 +665,7 @@ var IV = {
 			IV.lastScrollTop = scroll;
 			IV.updateJumpToTop(true);
 		} else {
+			IV.activePageScroll = IV.findPageScroll();
 			IV.jumpToHash(hash);
 		}
 
@@ -638,6 +700,8 @@ var IV = {
 
 	videos: {},
 	videosPlaying: {},
+	scrollFrameRequested: false,
+	activePageScroll: null,
 
 	cache: {},
 	channelsJoined: {},

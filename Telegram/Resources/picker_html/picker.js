@@ -32,8 +32,15 @@ var LocationPicker = {
 		}
 	},
 	isNight: function() {
-		var html = document.getElementsByTagName('html')[0];
+		var html = LocationPicker.root();
 		return html.style.getPropertyValue('--td-night') == '1';
+	},
+	root: function() {
+		if (!LocationPicker.rootElement) {
+			LocationPicker.rootElement = document.documentElement
+				|| document.getElementsByTagName('html')[0];
+		}
+		return LocationPicker.rootElement;
 	},
 	lightPreset: function() {
 		return LocationPicker.isNight() ? 'night' : 'day';
@@ -41,7 +48,7 @@ var LocationPicker = {
 	updateStyles: function (styles) {
 		if (LocationPicker.styles !== styles) {
 			LocationPicker.styles = styles;
-			document.getElementsByTagName('html')[0].style = styles;
+			LocationPicker.root().style = styles;
 
 			LocationPicker.map.setConfigProperty(
 				'basemap',
@@ -75,9 +82,13 @@ var LocationPicker = {
 		LocationPicker.initSearchVenueRipple();
 	},
 	marker: function() {
-		return document.getElementById('marker_drop');
+		if (!LocationPicker.markerElement) {
+			LocationPicker.markerElement = document.getElementById('marker_drop');
+		}
+		return LocationPicker.markerElement;
 	},
 	createMarker: function(center) {
+		LocationPicker.marker();
 		document.getElementById('marker').style.display = 'flex';
 	},
 	clearMovingTimer: function() {
@@ -94,6 +105,7 @@ var LocationPicker = {
 		LocationPicker.map.on('movestart', function() {
 			LocationPicker.marker().classList.add('moving');
 			LocationPicker.clearMovingTimer();
+			LocationPicker.setSearchVenuesBusy(false);
 			LocationPicker.toggleSearchVenues(false);
 			LocationPicker.notify({ event: 'move_start' });
 		});
@@ -168,6 +180,10 @@ var LocationPicker = {
 	},
 	initSearchVenueRipple: function() {
 		var button = document.getElementById('search_venues_inner');
+		button.setAttribute('tabindex', '0');
+		button.setAttribute('role', 'button');
+		button.setAttribute('aria-label', 'Search venues in this area');
+		button.setAttribute('title', 'Search venues in this area');
 		button.addEventListener('mousedown', function (e) {
 			LocationPicker.addRipple(e.currentTarget, e.clientX, e.clientY);
 			LocationPicker.searchVenuesPressed = true;
@@ -179,12 +195,13 @@ var LocationPicker = {
 			}, 0);
 			if (LocationPicker.searchVenuesPressed) {
 				LocationPicker.searchVenuesPressed = false;
-				LocationPicker.toggleSearchVenues(false);
-				LocationPicker.notify({
-					event: 'search_venues',
-					latitude: LocationPicker.map.getCenter().lat,
-					longitude: LocationPicker.map.getCenter().lng
-				});
+				LocationPicker.triggerSearchVenues();
+			}
+		});
+		button.addEventListener('keydown', function (e) {
+			if (e.key === 'Enter' || e.key === ' ') {
+				e.preventDefault();
+				LocationPicker.triggerSearchVenues();
 			}
 		});
 		button.addEventListener('mouseleave', function (e) {
@@ -192,8 +209,36 @@ var LocationPicker = {
 			LocationPicker.searchVenuesPressed = false;
 		});
 	},
+	triggerSearchVenues: function() {
+		if (LocationPicker.searchVenuesBusy) {
+			return;
+		}
+		LocationPicker.setSearchVenuesBusy(true);
+		LocationPicker.toggleSearchVenues(false);
+		LocationPicker.notify({
+			event: 'search_venues',
+			latitude: LocationPicker.map.getCenter().lat,
+			longitude: LocationPicker.map.getCenter().lng
+		});
+		if (LocationPicker.searchVenuesBusyTimeoutId) {
+			clearTimeout(LocationPicker.searchVenuesBusyTimeoutId);
+		}
+		LocationPicker.searchVenuesBusyTimeoutId = setTimeout(function () {
+			LocationPicker.setSearchVenuesBusy(false);
+		}, 1200);
+	},
+	setSearchVenuesBusy: function(busy) {
+		LocationPicker.searchVenuesBusy = busy;
+		var button = document.getElementById('search_venues_inner');
+		button.classList.toggle('busy', busy);
+		button.setAttribute('aria-busy', busy ? 'true' : 'false');
+		button.setAttribute('aria-disabled', busy ? 'true' : 'false');
+	},
 	toggleSearchVenues: function(shown) {
-		var button = document.getElementById('search_venues');
+		if (!LocationPicker.searchVenuesButton) {
+			LocationPicker.searchVenuesButton = document.getElementById('search_venues');
+		}
+		var button = LocationPicker.searchVenuesButton;
 		button.classList.toggle('shown', shown);
 	},
 };

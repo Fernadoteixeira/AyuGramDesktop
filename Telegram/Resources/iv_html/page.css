@@ -44,7 +44,6 @@ html.custom_scroll ::-webkit-scrollbar-thumb:hover {
 	height: 32px;
 	box-shadow: 0 0 3px 0px var(--td-history-to-down-shadow);
 	cursor: pointer;
-	outline: none;
 	z-index: 1000;
 	overflow: hidden;
 	user-select: none;
@@ -52,6 +51,10 @@ html.custom_scroll ::-webkit-scrollbar-thumb:hover {
 	justify-content: center;
 	align-items: center;
 	padding: 0px;
+}
+.fixed_button:focus-visible {
+	outline: 2px solid var(--td-window-active-text-fg);
+	outline-offset: 2px;
 }
 .fixed_button:hover {
 	background-color: var(--td-history-to-down-bg-over);
@@ -132,12 +135,16 @@ html.custom_scroll ::-webkit-scrollbar-thumb:hover {
 .page-scroll:focus {
 	outline: none;
 }
+.page-scroll:focus-visible {
+	outline: 2px solid var(--td-window-active-text-fg);
+	outline-offset: -2px;
+}
 .page-slide {
 	position: relative;
 	width: 100%;
 	min-height: 100%;
-	margin-left: 0%;
-	transition: margin 240ms ease-in-out;
+	transform: translateX(0);
+	transition: transform 240ms ease-in-out;
 }
 .page-footer {
 	height: 32px;
@@ -166,10 +173,10 @@ html.custom_scroll ::-webkit-scrollbar-thumb:hover {
 	pointer-events: none;
 }
 .hidden-left .page-slide {
-	margin-left: -100%;
+	transform: translateX(-100%);
 }
 .hidden-right .page-slide {
-	margin-left: 100%;
+	transform: translateX(100%);
 }
 article {
 	padding-bottom: 40px;
@@ -511,6 +518,16 @@ article summary:hover {
 article summary:focus {
 	outline: none;
 }
+article summary:focus-visible {
+	outline: 2px solid var(--td-window-active-text-fg);
+	outline-offset: -2px;
+}
+article a[href]:focus-visible,
+.page-footer .wrong:focus-visible {
+	outline: 2px solid var(--td-window-active-text-fg);
+	outline-offset: 2px;
+	border-radius: 3px;
+}
 article summary::-webkit-details-marker {
 	display: none;
 }
@@ -661,7 +678,7 @@ figure.slideshow {
 	overflow: hidden;
 }
 figure.slideshow a {
-	transition: margin 200ms ease-in-out;
+	transition: opacity 200ms ease-in-out;
 }
 figure.slideshow .photo-wrap,
 figure.slideshow .video-wrap {
@@ -756,6 +773,96 @@ figure.slideshow .video-wrap {
 .slideshow-next path {
 	stroke-width: 1.4;
 	stroke: #fff;
+}
+
+@media (pointer: coarse) {
+	.fixed_button {
+		width: 44px;
+		height: 44px;
+	}
+}
+
+@media (prefers-reduced-motion: reduce) {
+	*,
+	*::before,
+	*::after {
+		animation-duration: 0.01ms !important;
+		animation-iteration-count: 1 !important;
+		transition-duration: 0.01ms !important;
+		scroll-behavior: auto !important;
+	}
+}
+
+@media (max-width: 900px) {
+	article {
+		max-width: 100%;
+	}
+}
+
+@media (max-width: 768px) {
+	article h1,
+	article h2 {
+		font-size: 24px;
+		line-height: 28px;
+		margin: 18px 14px 10px;
+	}
+	article h3 {
+		font-size: 22px;
+		line-height: 28px;
+		margin: 16px 14px 8px;
+	}
+	article h4 {
+		font-size: 18px;
+		margin: 16px 14px 8px;
+	}
+	article p,
+	article ul,
+	article ol,
+	article pre,
+	article pre.hljs,
+	article address,
+	article blockquote,
+	article aside,
+	article summary,
+	section.embed-post,
+	section.related h4,
+	section.related a.related-link {
+		margin-left: 14px;
+		margin-right: 14px;
+	}
+	figure.nowide {
+		margin-left: 14px;
+		margin-right: 14px;
+	}
+	section.related .related-link-thumb {
+		width: 72px;
+		height: 72px;
+	}
+}
+
+@media (max-width: 520px) {
+	#bottom_up {
+		right: max(10px, env(safe-area-inset-right));
+		bottom: max(10px, env(safe-area-inset-bottom));
+	}
+	article {
+		padding-bottom: 48px;
+	}
+	article td,
+	article th {
+		font-size: 14px;
+		line-height: 19px;
+		padding: 5px 4px;
+	}
+	figure.table {
+		display: block;
+		padding: 0 12px;
+	}
+	section.related .related-link-thumb {
+		width: 64px;
+		height: 64px;
+		margin-left: 10px;
+	}
 }
 
 figure.collage-wrap {

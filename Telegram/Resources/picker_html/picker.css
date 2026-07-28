@@ -55,11 +55,11 @@ html.custom_scroll ::-webkit-scrollbar-thumb:hover {
 	align-items: center;
 }
 #marker_drop {
-	margin-bottom: 0px;
-	transition: margin 160ms ease-in-out;
+	transform: translateY(0);
+	transition: transform 160ms ease-in-out;
 }
 #marker_drop.moving {
-	margin-bottom: 24px;
+	transform: translateY(-24px);
 }
 #marker_shadow {
 	position: absolute;
@@ -67,13 +67,13 @@ html.custom_scroll ::-webkit-scrollbar-thumb:hover {
 #search_venues {
 	position: absolute;
 	left: 50%;
-	transform: translateX(-50%);
+	transform: translate(-50%, -36px);
 	z-index: 2;
-	top: -30px;
-	transition: top 200ms ease-in-out;
+	top: 6px;
+	transition: transform 200ms ease-in-out;
 }
 #search_venues.shown {
-	top: 6px;
+	transform: translate(-50%, 0);
 }
 #search_venues_inner {
 	position: relative;
@@ -87,8 +87,16 @@ html.custom_scroll ::-webkit-scrollbar-thumb:hover {
 	padding: 5px 12px 6px;
 	box-shadow: 0 0 3px 0px var(--td-history-to-down-shadow);
 }
+#search_venues_inner:focus-visible {
+	outline: 2px solid var(--td-window-active-text-fg);
+	outline-offset: 2px;
+}
 #search_venues_inner:hover {
 	background: var(--td-window-bg-over);
+}
+#search_venues_inner.busy {
+	opacity: 0.75;
+	cursor: default;
 }
 #search_venues_content {
 	position: relative;
@@ -116,5 +124,27 @@ html.custom_scroll ::-webkit-scrollbar-thumb:hover {
 @keyframes fadeOut {
 	to {
 		opacity: 0;
+	}
+}
+
+@media (prefers-reduced-motion: reduce) {
+	#marker_drop,
+	#search_venues {
+		transition: none;
+	}
+	#search_venues_inner .ripple .inner,
+	#search_venues_inner .ripple.hiding {
+		animation: none;
+	}
+}
+
+@media (max-width: 520px) {
+	#search_venues {
+		top: max(6px, env(safe-area-inset-top));
+	}
+	#search_venues_inner {
+		font-size: 14px;
+		padding: 8px 14px;
+		border-radius: 16px;
 	}
 }
