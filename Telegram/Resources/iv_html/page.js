@@ -132,6 +132,14 @@ var IV = {
 		IV.lastScrollTop = scroll.scrollTop;
 		IV.updateJumpToTop(was < IV.lastScrollTop);
 		IV.checkVideos();
+
+		const scrollable = scroll.scrollHeight - scroll.clientHeight;
+		if (scrollable > 0) {
+			const depthPct = Math.round((IV.lastScrollTop / scrollable) * 100);
+			if (depthPct > (IV.metricsMaxScrollDepth || 0)) {
+				IV.metricsMaxScrollDepth = depthPct;
+			}
+		}
 	},
 	updateJumpToTop: function (scrolledDown) {
 		const showAfter = IV.coarsePointer ? 140 : 200;
@@ -283,6 +291,18 @@ var IV = {
 			}
 		}
 	},
+	sendMetrics: function () {
+		if (IV.metricsSent) {
+			return;
+		}
+		IV.metricsSent = true;
+		IV.notify({
+			event: 'ux_metrics',
+			timeOnPageMs: Date.now() - (IV.metricsStart || Date.now()),
+			maxScrollDepthPct: IV.metricsMaxScrollDepth || 0,
+			backToTopCount: IV.metricsBackToTopCount || 0,
+		});
+	},
 	init: function () {
 		var current = IV.computeCurrentState();
 		window.history.replaceState(current, '', IV.pageUrl(0));
@@ -295,6 +315,12 @@ var IV = {
 
 		IV.lastScrollTop = window.history.state.scroll;
 		IV.findPageScroll().onscroll = IV.frameScrolled;
+
+		IV.metricsStart = Date.now();
+		IV.metricsMaxScrollDepth = 0;
+		IV.metricsBackToTopCount = 0;
+		window.addEventListener('pagehide', IV.sendMetrics);
+		window.addEventListener('beforeunload', IV.sendMetrics);
 
 		const buttons = document.getElementsByClassName('fixed_button');
 		for (let i = 0; i < buttons.length; ++i) {
@@ -449,6 +475,9 @@ var IV = {
 		}, 3000);
 	},
 	scrollTo: function (y, instant) {
+		if (y === 0 && !instant && IV.lastScrollTop > 0) {
+			IV.metricsBackToTopCount = (IV.metricsBackToTopCount || 0) + 1;
+		}
 		if (y < 200) {
 			if (IV.bottomUpButton && !IV.bottomUpHidden) {
 				IV.bottomUpButton.classList.add('hidden');

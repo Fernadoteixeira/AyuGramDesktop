@@ -108,6 +108,9 @@ DeclareSetting(bool, PasswordRecovered);
 
 DeclareSetting(int32, PasscodeBadTries);
 DeclareSetting(crl::time, PasscodeLastTry);
+DeclareSetting(int32, PasscodeLockoutsSession);
+DeclareSetting(int32, PasscodeUnlocksSession);
+DeclareSetting(int32, PasscodeChangesSession);
 
 inline constexpr auto kLocalPasscodeMinLength = 6;
 

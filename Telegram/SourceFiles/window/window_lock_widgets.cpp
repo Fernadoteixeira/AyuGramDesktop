@@ -263,7 +263,8 @@ void PasscodeLockWidget::submit() {
 		return;
 	}
 	if (!passcodeCanTry()) {
-		LOG(("Security: Local passcode attempt blocked by rate limiter."));
+		cSetPasscodeLockoutsSession(cPasscodeLockoutsSession() + 1);
+		LOG(("Security: Local passcode attempt blocked by rate limiter. session_lockouts=%1").arg(cPasscodeLockoutsSession()));
 		_error = tr::lng_flood_error(tr::now);
 		_passcode->showError();
 		update();
@@ -284,6 +285,9 @@ void PasscodeLockWidget::submit() {
 		return;
 	}
 
+	cSetPasscodeUnlocksSession(cPasscodeUnlocksSession() + 1);
+	LOG(("Security: Passcode unlock successful. session_unlocks=%1, session_bad_lockouts=%2"
+		).arg(cPasscodeUnlocksSession()).arg(cPasscodeLockoutsSession()));
 	Core::App().unlockPasscode(); // Destroys this widget.
 }
 

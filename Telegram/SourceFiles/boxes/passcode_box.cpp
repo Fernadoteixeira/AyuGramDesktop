@@ -729,6 +729,8 @@ void PasscodeBox::save(bool force) {
 		closeReplacedBy();
 		const auto weak = base::make_weak(this);
 		cSetPasscodeBadTries(0);
+		cSetPasscodeChangesSession(cPasscodeChangesSession() + 1);
+		LOG(("Security: Local passcode changed. session_changes=%1").arg(cPasscodeChangesSession()));
 		auto pwdUtf = pwd.toUtf8();
 		_session->domain().local().setPasscode(pwdUtf);
 		OPENSSL_cleanse(pwdUtf.data(), pwdUtf.size());
