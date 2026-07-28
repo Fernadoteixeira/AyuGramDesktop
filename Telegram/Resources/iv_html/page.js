@@ -200,26 +200,46 @@ var IV = {
 	},
 	initEmbedBlocks: function() {
 		var iframes = document.getElementsByTagName('iframe');
+		IV.embedFrames = [];
 		for (var i = 0; i < iframes.length; i++) {
-			(function(iframe) {
-				window.addEventListener('message', function(event) {
-					if (event.source !== iframe.contentWindow ||
-							event.origin != window.origin) {
-						return;
-					}
-					try {
-						var data = JSON.parse(event.data);
-					} catch(e) {
-						var data = {};
-					}
-					if (data.eventType == 'resize_frame') {
-						if (data.eventData.height) {
-							iframe.style.height = data.eventData.height + 'px';
-						}
-					}
-				}, false);
-			})(iframes[i]);
+			var iframe = iframes[i];
+			if (iframe.contentWindow) {
+				IV.embedFrames.push({
+					source: iframe.contentWindow,
+					iframe: iframe,
+				});
+			}
 		}
+		if (!IV.embedListenerInstalled) {
+			IV.embedListenerInstalled = true;
+			window.addEventListener('message', IV.handleEmbedMessage, false);
+		}
+	},
+	handleEmbedMessage: function(event) {
+		if (event.origin != window.origin) {
+			return;
+		}
+		const frame = IV.findEmbedFrame(event.source);
+		if (!frame) {
+			return;
+		}
+		try {
+			var data = JSON.parse(event.data);
+		} catch(e) {
+			var data = {};
+		}
+		if (data.eventType == 'resize_frame' && data.eventData.height) {
+			frame.style.height = data.eventData.height + 'px';
+		}
+	},
+	findEmbedFrame: function(source) {
+		const frames = IV.embedFrames;
+		for (let i = 0; i < frames.length; ++i) {
+			if (frames[i].source === source) {
+				return frames[i].iframe;
+			}
+		}
+		return null;
 	},
 	addRipple: function (button, x, y) {
 		const ripple = document.createElement('span');
@@ -719,6 +739,8 @@ var IV = {
 	bottomUpButton: null,
 	bottomUpHidden: true,
 	coarsePointer: false,
+	embedFrames: [],
+	embedListenerInstalled: false,
 
 	cache: {},
 	channelsJoined: {},

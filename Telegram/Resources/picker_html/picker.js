@@ -6,6 +6,17 @@ var LocationPicker = {
 			window.external.invoke(JSON.stringify(message));
 		}
 	},
+	notifyEvent: function(event, payload) {
+		LocationPicker.notify(Object.assign({ event: event }, payload || {}));
+	},
+	centerPayload: function(event) {
+		const center = LocationPicker.map.getCenter();
+		return {
+			event: event,
+			latitude: center.lat,
+			longitude: center.lng,
+		};
+	},
 	frameKeyDown: function (e) {
 		const keyW = (e.key === 'w')
 			|| (e.code === 'KeyW')
@@ -18,15 +29,13 @@ var LocationPicker = {
 			|| (e.keyCode === 77);
 		if ((e.metaKey || e.ctrlKey) && (keyW || keyQ || keyM)) {
 			e.preventDefault();
-			LocationPicker.notify({
-				event: 'keydown',
+			LocationPicker.notifyEvent('keydown', {
 				modifier: e.ctrlKey ? 'ctrl' : 'cmd',
 				key: keyW ? 'w' : keyQ ? 'q' : 'm',
 			});
 		} else if (e.key === 'Escape' || e.keyCode === 27) {
 			e.preventDefault();
-			LocationPicker.notify({
-				event: 'keydown',
+			LocationPicker.notifyEvent('keydown', {
 				key: 'escape',
 			});
 		}
@@ -107,16 +116,12 @@ var LocationPicker = {
 			LocationPicker.clearMovingTimer();
 			LocationPicker.setSearchVenuesBusy(false);
 			LocationPicker.toggleSearchVenues(false);
-			LocationPicker.notify({ event: 'move_start' });
+			LocationPicker.notifyEvent('move_start');
 		});
 		LocationPicker.map.on('moveend', function() {
 			LocationPicker.startMovingTimer(function() {
 				LocationPicker.marker().classList.remove('moving');
-				LocationPicker.notify({
-					event: 'move_end',
-					latitude: LocationPicker.map.getCenter().lat,
-					longitude: LocationPicker.map.getCenter().lng
-				});
+				LocationPicker.notify(LocationPicker.centerPayload('move_end'));
 			});
 		});
 	},
@@ -128,11 +133,7 @@ var LocationPicker = {
 		});
 	},
 	send: function () {
-		LocationPicker.notify({
-			event: 'send',
-			latitude: LocationPicker.map.getCenter().lat,
-			longitude: LocationPicker.map.getCenter().lng
-		});
+		LocationPicker.notify(LocationPicker.centerPayload('send'));
 	},
 	addRipple: function (button, x, y) {
 		const ripple = document.createElement('span');
@@ -214,14 +215,9 @@ var LocationPicker = {
 		if (LocationPicker.searchVenuesBusy) {
 			return;
 		}
-		const center = LocationPicker.map.getCenter();
 		LocationPicker.setSearchVenuesBusy(true);
 		LocationPicker.toggleSearchVenues(false);
-		LocationPicker.notify({
-			event: 'search_venues',
-			latitude: center.lat,
-			longitude: center.lng
-		});
+		LocationPicker.notify(LocationPicker.centerPayload('search_venues'));
 		if (LocationPicker.searchVenuesBusyTimeoutId) {
 			clearTimeout(LocationPicker.searchVenuesBusyTimeoutId);
 		}
