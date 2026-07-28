@@ -180,6 +180,7 @@ var LocationPicker = {
 	},
 	initSearchVenueRipple: function() {
 		var button = document.getElementById('search_venues_inner');
+		LocationPicker.searchVenuesInnerButton = button;
 		button.setAttribute('tabindex', '0');
 		button.setAttribute('role', 'button');
 		button.setAttribute('aria-label', 'Search venues in this area');
@@ -213,12 +214,13 @@ var LocationPicker = {
 		if (LocationPicker.searchVenuesBusy) {
 			return;
 		}
+		const center = LocationPicker.map.getCenter();
 		LocationPicker.setSearchVenuesBusy(true);
 		LocationPicker.toggleSearchVenues(false);
 		LocationPicker.notify({
 			event: 'search_venues',
-			latitude: LocationPicker.map.getCenter().lat,
-			longitude: LocationPicker.map.getCenter().lng
+			latitude: center.lat,
+			longitude: center.lng
 		});
 		if (LocationPicker.searchVenuesBusyTimeoutId) {
 			clearTimeout(LocationPicker.searchVenuesBusyTimeoutId);
@@ -229,7 +231,8 @@ var LocationPicker = {
 	},
 	setSearchVenuesBusy: function(busy) {
 		LocationPicker.searchVenuesBusy = busy;
-		var button = document.getElementById('search_venues_inner');
+		var button = LocationPicker.searchVenuesInnerButton
+			|| document.getElementById('search_venues_inner');
 		button.classList.toggle('busy', busy);
 		button.setAttribute('aria-busy', busy ? 'true' : 'false');
 		button.setAttribute('aria-disabled', busy ? 'true' : 'false');

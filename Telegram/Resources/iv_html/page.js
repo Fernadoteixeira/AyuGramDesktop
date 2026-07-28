@@ -134,17 +134,23 @@ var IV = {
 		IV.checkVideos();
 	},
 	updateJumpToTop: function (scrolledDown) {
-		const showAfter = IV.usesCoarsePointer() ? 140 : 200;
-		const hideBefore = IV.usesCoarsePointer() ? 80 : 100;
-		if (IV.lastScrollTop < hideBefore) {
-			document.getElementById('bottom_up').classList.add('hidden');
-		} else if (scrolledDown && IV.lastScrollTop > showAfter) {
-			document.getElementById('bottom_up').classList.remove('hidden');
+		const showAfter = IV.coarsePointer ? 140 : 200;
+		const hideBefore = IV.coarsePointer ? 80 : 100;
+		const button = IV.bottomUpButton;
+		if (!button) {
+			return;
 		}
-	},
-	usesCoarsePointer: function() {
-		return !!(window.matchMedia
-			&& window.matchMedia('(pointer: coarse)').matches);
+		if (IV.lastScrollTop < hideBefore) {
+			if (!IV.bottomUpHidden) {
+				button.classList.add('hidden');
+				IV.bottomUpHidden = true;
+			}
+		} else if (scrolledDown && IV.lastScrollTop > showAfter) {
+			if (IV.bottomUpHidden) {
+				button.classList.remove('hidden');
+				IV.bottomUpHidden = false;
+			}
+		}
 	},
 	updateStyles: function (styles) {
 		if (IV.styles !== styles) {
@@ -261,6 +267,11 @@ var IV = {
 		var current = IV.computeCurrentState();
 		window.history.replaceState(current, '', IV.pageUrl(0));
 		IV.jumpToHash(current.hash, true);
+		IV.bottomUpButton = document.getElementById('bottom_up');
+		IV.coarsePointer = !!(window.matchMedia
+			&& window.matchMedia('(pointer: coarse)').matches);
+		IV.bottomUpHidden = !!(IV.bottomUpButton
+			&& IV.bottomUpButton.classList.contains('hidden'));
 
 		IV.lastScrollTop = window.history.state.scroll;
 		IV.findPageScroll().onscroll = IV.frameScrolled;
@@ -419,7 +430,10 @@ var IV = {
 	},
 	scrollTo: function (y, instant) {
 		if (y < 200) {
-			document.getElementById('bottom_up').classList.add('hidden');
+			if (IV.bottomUpButton && !IV.bottomUpHidden) {
+				IV.bottomUpButton.classList.add('hidden');
+				IV.bottomUpHidden = true;
+			}
 		}
 		IV.findPageScroll().scrollTo({
 			top: y || 0,
@@ -702,6 +716,9 @@ var IV = {
 	videosPlaying: {},
 	scrollFrameRequested: false,
 	activePageScroll: null,
+	bottomUpButton: null,
+	bottomUpHidden: true,
+	coarsePointer: false,
 
 	cache: {},
 	channelsJoined: {},

@@ -116,6 +116,10 @@ function InitAccessibility() {
 }
 
 function AddClass(element, name) {
+    if (element.classList) {
+        element.classList.add(name);
+        return;
+    }
     var current = element.className;
     var expression = new RegExp('(^|\\s)' + name + '(\\s|$)', 'g');
     if (expression.test(current)) {
@@ -125,6 +129,10 @@ function AddClass(element, name) {
 }
 
 function RemoveClass(element, name) {
+    if (element.classList) {
+        element.classList.remove(name);
+        return;
+    }
     var current = element.className;
     var expression = new RegExp('(^|\\s)' + name + '(\\s|$)', '');
     var match = expression.exec(current);
@@ -183,7 +191,9 @@ function ScrollTo(top, callback) {
         transition = EaseInOutQuad;
     }
     var duration = 150;
-    var interval = 7;
+    var schedule = window.requestAnimationFrame
+        ? window.requestAnimationFrame.bind(window)
+        : function (next) { return setTimeout(next, 16); };
     var time = window.performance.now();
     var animate = function () {
         var now = window.performance.now();
@@ -193,9 +203,9 @@ function ScrollTo(top, callback) {
         }
         var dt = (now - time) / duration;
         html.scrollTop = Math.round(current + delta * transition(dt));
-        setTimeout(animate, interval);
+        schedule(animate);
     };
-    setTimeout(animate, interval);
+    schedule(animate);
 }
 
 function ScrollToElement(element, callback) {
