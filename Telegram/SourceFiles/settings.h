@@ -109,6 +109,12 @@ DeclareSetting(bool, PasswordRecovered);
 DeclareSetting(int32, PasscodeBadTries);
 DeclareSetting(crl::time, PasscodeLastTry);
 
+inline constexpr auto kLocalPasscodeMinLength = 6;
+
+inline bool localPasscodeStrongEnough(const QString &passcode) {
+	return passcode.size() >= kLocalPasscodeMinLength;
+}
+
 DeclareRefSetting(QList<QUrl>, StartUrls);
 
 DeclareSetting(int, OtherOnline);
@@ -116,14 +122,13 @@ DeclareSetting(int, OtherOnline);
 inline bool passcodeCanTry() {
 	if (cPasscodeBadTries() < 3) return true;
 	auto dt = crl::now() - cPasscodeLastTry();
-	switch (cPasscodeBadTries()) {
-	case 3: return dt >= 5000;
-	case 4: return dt >= 10000;
-	case 5: return dt >= 15000;
-	case 6: return dt >= 20000;
-	case 7: return dt >= 25000;
+	auto waitSeconds = (cPasscodeBadTries() <= 7)
+		? ((cPasscodeBadTries() - 2) * 5)
+		: (25 + ((cPasscodeBadTries() - 7) * 15));
+	if (waitSeconds > 300) {
+		waitSeconds = 300;
 	}
-	return dt >= 30000;
+	return dt >= (waitSeconds * 1000);
 }
 
 inline int cEvalScale(int scale) {

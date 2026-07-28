@@ -637,6 +637,7 @@ void PasscodeBox::save(bool force) {
 	const auto has = currentlyHave();
 	if (!_cloudPwd && (_turningOff || has)) {
 		if (!passcodeCanTry()) {
+			LOG(("Security: Local passcode attempt blocked by rate limiter in passcode box flow."));
 			_oldError = tr::lng_flood_error(tr::now);
 			_oldPasscode->setFocus();
 			_oldPasscode->showError();
@@ -648,6 +649,7 @@ void PasscodeBox::save(bool force) {
 			cSetPasscodeBadTries(0);
 			if (_turningOff) pwd = conf = QString();
 		} else {
+			LOG(("Security: Local passcode verification failed from passcode box flow. tries=%1").arg(cPasscodeBadTries() + 1));
 			cSetPasscodeBadTries(cPasscodeBadTries() + 1);
 			cSetPasscodeLastTry(crl::now());
 			badOldPasscode();
@@ -658,6 +660,15 @@ void PasscodeBox::save(bool force) {
 	if (!onlyCheck && pwd.isEmpty()) {
 		_newPasscode->setFocus();
 		_newPasscode->showError();
+		closeReplacedBy();
+		return;
+	}
+	if (!_cloudPwd && !onlyCheck && !localPasscodeStrongEnough(pwd)) {
+		_newPasscode->setFocus();
+		_newPasscode->showError();
+		_newPasscode->selectAll();
+		_newError = tr::lng_passcode_too_short(tr::now);
+		update();
 		closeReplacedBy();
 		return;
 	}

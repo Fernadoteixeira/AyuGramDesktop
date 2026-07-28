@@ -221,6 +221,12 @@ void LocalPasscodeEnter::setupContent() {
 			if (newText.isEmpty()) {
 				newPasscode->setFocus();
 				newPasscode->showError();
+			} else if (!localPasscodeStrongEnough(newText)) {
+				newPasscode->setFocus();
+				newPasscode->showError();
+				newPasscode->selectAll();
+				error->show();
+				error->setText(tr::lng_passcode_too_short(tr::now));
 			} else if (reenterText.isEmpty()) {
 				reenterPasscode->setFocus();
 				reenterPasscode->showError();
@@ -255,6 +261,7 @@ void LocalPasscodeEnter::setupContent() {
 			}
 		} else if (isCheck) {
 			if (!passcodeCanTry()) {
+				LOG(("Security: Local passcode attempt blocked by rate limiter in settings flow."));
 				newPasscode->setFocus();
 				newPasscode->showError();
 				error->show();
@@ -266,6 +273,7 @@ void LocalPasscodeEnter::setupContent() {
 				cSetPasscodeBadTries(0);
 				_showOther.fire(LocalPasscodeManageId());
 			} else {
+				LOG(("Security: Local passcode verification failed from settings flow. tries=%1").arg(cPasscodeBadTries() + 1));
 				cSetPasscodeBadTries(cPasscodeBadTries() + 1);
 				cSetPasscodeLastTry(crl::now());
 

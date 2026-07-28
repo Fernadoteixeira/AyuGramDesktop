@@ -262,6 +262,7 @@ void PasscodeLockWidget::submit() {
 		return;
 	}
 	if (!passcodeCanTry()) {
+		LOG(("Security: Local passcode attempt blocked by rate limiter."));
 		_error = tr::lng_flood_error(tr::now);
 		_passcode->showError();
 		update();
@@ -274,6 +275,7 @@ void PasscodeLockWidget::submit() {
 		? domain.local().checkPasscode(passcode)
 		: (domain.start(passcode) == Storage::StartResult::Success);
 	if (!correct) {
+		LOG(("Security: Local passcode verification failed from lock widget. tries=%1").arg(cPasscodeBadTries() + 1));
 		cSetPasscodeBadTries(cPasscodeBadTries() + 1);
 		cSetPasscodeLastTry(crl::now());
 		error();
