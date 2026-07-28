@@ -8,6 +8,7 @@ https://github.com/telegramdesktop/tdesktop/blob/master/LEGAL
 #include "boxes/passcode_box.h"
 
 #include "base/bytes.h"
+#include "base/openssl_help.h"
 #include "lang/lang_keys.h"
 #include "ui/boxes/confirm_box.h"
 #include "base/unixtime.h"
@@ -645,7 +646,12 @@ void PasscodeBox::save(bool force) {
 			return;
 		}
 
-		if (_session->domain().local().checkPasscode(old.toUtf8())) {
+		if ([&] {
+			auto oldUtf = old.toUtf8();
+			const auto ok = _session->domain().local().checkPasscode(oldUtf);
+			OPENSSL_cleanse(oldUtf.data(), oldUtf.size());
+			return ok;
+		}()) {
 			cSetPasscodeBadTries(0);
 			if (_turningOff) pwd = conf = QString();
 		} else {
@@ -723,7 +729,9 @@ void PasscodeBox::save(bool force) {
 		closeReplacedBy();
 		const auto weak = base::make_weak(this);
 		cSetPasscodeBadTries(0);
-		_session->domain().local().setPasscode(pwd.toUtf8());
+		auto pwdUtf = pwd.toUtf8();
+		_session->domain().local().setPasscode(pwdUtf);
+		OPENSSL_cleanse(pwdUtf.data(), pwdUtf.size());
 		Core::App().localPasscodeChanged();
 		if (weak) {
 			closeBox();

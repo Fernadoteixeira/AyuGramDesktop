@@ -302,7 +302,7 @@ MTP::AuthKeyPtr CreateLocalKey(
 		const QByteArray &passcode,
 		const QByteArray &salt) {
 	const auto s = bytes::make_span(salt);
-	const auto hash = openssl::Sha512(s, bytes::make_span(passcode), s);
+	auto hash = openssl::Sha512(s, bytes::make_span(passcode), s);
 	const auto iterationsCount = passcode.isEmpty()
 		? 1 // Don't slow down for no password.
 		: kStrongIterationsCount;
@@ -317,7 +317,10 @@ MTP::AuthKeyPtr CreateLocalKey(
 		EVP_sha512(),
 		key.size(),
 		reinterpret_cast<unsigned char*>(key.data()));
-	return std::make_shared<MTP::AuthKey>(key);
+	OPENSSL_cleanse(hash.data(), hash.size());
+	auto result = std::make_shared<MTP::AuthKey>(key);
+	OPENSSL_cleanse(key.data(), key.size());
+	return result;
 }
 
 MTP::AuthKeyPtr CreateLegacyLocalKey(

@@ -7,6 +7,7 @@ https://github.com/telegramdesktop/tdesktop/blob/master/LEGAL
 */
 #include "settings/sections/settings_local_passcode.h"
 
+#include "base/openssl_help.h"
 #include "base/platform/base_platform_last_input.h"
 #include "base/platform/base_platform_info.h"
 #include "base/system_unlock.h"
@@ -44,7 +45,9 @@ void SetPasscode(
 		not_null<Window::SessionController*> controller,
 		const QString &pass) {
 	cSetPasscodeBadTries(0);
-	controller->session().domain().local().setPasscode(pass.toUtf8());
+	auto passUtf = pass.toUtf8();
+	controller->session().domain().local().setPasscode(passUtf);
+	OPENSSL_cleanse(passUtf.data(), passUtf.size());
 	Core::App().localPasscodeChanged();
 }
 
@@ -239,7 +242,10 @@ void LocalPasscodeEnter::setupContent() {
 			} else {
 				if (isChange) {
 					const auto &domain = controller()->session().domain();
-					if (domain.local().checkPasscode(newText.toUtf8())) {
+					auto checkUtf = newText.toUtf8();
+					const auto isSame = domain.local().checkPasscode(checkUtf);
+					OPENSSL_cleanse(checkUtf.data(), checkUtf.size());
+					if (isSame) {
 						newPasscode->setFocus();
 						newPasscode->showError();
 						newPasscode->selectAll();
@@ -269,10 +275,13 @@ void LocalPasscodeEnter::setupContent() {
 				return;
 			}
 			const auto &domain = controller()->session().domain();
-			if (domain.local().checkPasscode(newText.toUtf8())) {
-				cSetPasscodeBadTries(0);
-				_showOther.fire(LocalPasscodeManageId());
-			} else {
+				auto checkUtf = newText.toUtf8();
+				const auto correct = domain.local().checkPasscode(checkUtf);
+				OPENSSL_cleanse(checkUtf.data(), checkUtf.size());
+				if (correct) {
+					cSetPasscodeBadTries(0);
+					_showOther.fire(LocalPasscodeManageId());
+				} else {
 				LOG(("Security: Local passcode verification failed from settings flow. tries=%1").arg(cPasscodeBadTries() + 1));
 				cSetPasscodeBadTries(cPasscodeBadTries() + 1);
 				cSetPasscodeLastTry(crl::now());

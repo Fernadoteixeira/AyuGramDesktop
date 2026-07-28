@@ -7,6 +7,7 @@ https://github.com/telegramdesktop/tdesktop/blob/master/LEGAL
 */
 #include "window/window_lock_widgets.h"
 
+#include "base/openssl_help.h"
 #include "base/platform/base_platform_info.h"
 #include "base/call_delayed.h"
 #include "base/system_unlock.h"
@@ -269,11 +270,12 @@ void PasscodeLockWidget::submit() {
 		return;
 	}
 
-	const auto passcode = _passcode->text().toUtf8();
+	auto passcode = _passcode->text().toUtf8();
 	auto &domain = Core::App().domain();
 	const auto correct = domain.started()
 		? domain.local().checkPasscode(passcode)
 		: (domain.start(passcode) == Storage::StartResult::Success);
+	OPENSSL_cleanse(passcode.data(), passcode.size());
 	if (!correct) {
 		LOG(("Security: Local passcode verification failed from lock widget. tries=%1").arg(cPasscodeBadTries() + 1));
 		cSetPasscodeBadTries(cPasscodeBadTries() + 1);
