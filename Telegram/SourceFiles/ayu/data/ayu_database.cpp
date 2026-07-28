@@ -10,6 +10,8 @@
 #include "ayu/libs/sqlite/sqlite_orm.h"
 #include "base/unixtime.h"
 
+#include <limits>
+
 using namespace sqlite_orm;
 auto storage = make_storage(
 	"./tdata/ayudata.db",
@@ -23,10 +25,25 @@ auto storage = make_storage(
 			   column<DeletedMessage>(&DeletedMessage::dialogId),
 			   column<DeletedMessage>(&DeletedMessage::topicId),
 			   column<DeletedMessage>(&DeletedMessage::messageId)),
+	make_index("idx_deleted_message_userId_dialogId_messageId",
+			   column<DeletedMessage>(&DeletedMessage::userId),
+			   column<DeletedMessage>(&DeletedMessage::dialogId),
+			   column<DeletedMessage>(&DeletedMessage::messageId)),
 	make_index("idx_edited_message_userId_dialogId_messageId",
 			   column<EditedMessage>(&EditedMessage::userId),
 			   column<EditedMessage>(&EditedMessage::dialogId),
 			   column<EditedMessage>(&EditedMessage::messageId)),
+	make_index("idx_edited_message_userId_dialogId_messageId_fakeId",
+			   column<EditedMessage>(&EditedMessage::userId),
+			   column<EditedMessage>(&EditedMessage::dialogId),
+			   column<EditedMessage>(&EditedMessage::messageId),
+			   column<EditedMessage>(&EditedMessage::fakeId)),
+	make_index("idx_regex_filter_dialogId",
+			   column<RegexFilter>(&RegexFilter::dialogId)),
+	make_index("idx_regex_filter_global_exclusion_dialogId",
+			   column<RegexFilterGlobalExclusion>(&RegexFilterGlobalExclusion::dialogId)),
+	make_index("idx_regex_filter_global_exclusion_filterId",
+			   column<RegexFilterGlobalExclusion>(&RegexFilterGlobalExclusion::filterId)),
 	make_table<DeletedMessage>(
 		"DeletedMessage",
 		make_column("fakeId", &DeletedMessage::fakeId, primary_key().autoincrement()),
@@ -257,13 +274,15 @@ void addEditedMessage(const EditedMessage &message) {
 }
 
 std::vector<EditedMessage> getEditedMessages(ID userId, ID dialogId, ID messageId, ID minId, ID maxId, int totalLimit) {
+	const auto lowerFakeId = (minId == 0) ? std::numeric_limits<ID>::lowest() : minId;
+	const auto upperFakeId = (maxId == 0) ? std::numeric_limits<ID>::max() : maxId;
 	return storage.get_all<EditedMessage>(
 		where(
 			column<EditedMessage>(&EditedMessage::userId) == userId and
 			column<EditedMessage>(&EditedMessage::dialogId) == dialogId and
 			column<EditedMessage>(&EditedMessage::messageId) == messageId and
-			(column<EditedMessage>(&EditedMessage::fakeId) > minId or minId == 0) and
-			(column<EditedMessage>(&EditedMessage::fakeId) < maxId or maxId == 0)
+			column<EditedMessage>(&EditedMessage::fakeId) > lowerFakeId and
+			column<EditedMessage>(&EditedMessage::fakeId) < upperFakeId
 		),
 		order_by(column<EditedMessage>(&EditedMessage::fakeId)).desc(),
 		limit(totalLimit)
@@ -302,14 +321,28 @@ void addDeletedMessage(const DeletedMessage &message) {
 }
 
 std::vector<DeletedMessage> getDeletedMessages(ID userId, ID dialogId, ID topicId, ID minId, ID maxId, int totalLimit, const std::string &searchQuery) {
+	const auto lowerMessageId = (minId == 0) ? std::numeric_limits<ID>::lowest() : minId;
+	const auto upperMessageId = (maxId == 0) ? std::numeric_limits<ID>::max() : maxId;
 	if (searchQuery.empty()) {
+		if (topicId == 0) {
+			return storage.get_all<DeletedMessage>(
+				where(
+					column<DeletedMessage>(&DeletedMessage::userId) == userId and
+					column<DeletedMessage>(&DeletedMessage::dialogId) == dialogId and
+					column<DeletedMessage>(&DeletedMessage::messageId) > lowerMessageId and
+					column<DeletedMessage>(&DeletedMessage::messageId) < upperMessageId
+				),
+				order_by(column<DeletedMessage>(&DeletedMessage::messageId)).desc(),
+				limit(totalLimit)
+			);
+		}
 		return storage.get_all<DeletedMessage>(
 			where(
 				column<DeletedMessage>(&DeletedMessage::userId) == userId and
 				column<DeletedMessage>(&DeletedMessage::dialogId) == dialogId and
-				(column<DeletedMessage>(&DeletedMessage::topicId) == topicId or topicId == 0) and
-				(column<DeletedMessage>(&DeletedMessage::messageId) > minId or minId == 0) and
-				(column<DeletedMessage>(&DeletedMessage::messageId) < maxId or maxId == 0)
+				column<DeletedMessage>(&DeletedMessage::topicId) == topicId and
+				column<DeletedMessage>(&DeletedMessage::messageId) > lowerMessageId and
+				column<DeletedMessage>(&DeletedMessage::messageId) < upperMessageId
 			),
 			order_by(column<DeletedMessage>(&DeletedMessage::messageId)).desc(),
 			limit(totalLimit)
@@ -325,13 +358,26 @@ std::vector<DeletedMessage> getDeletedMessages(ID userId, ID dialogId, ID topicI
 		escaped += c;
 	}
 	const auto pattern = "%" + escaped + "%";
+	if (topicId == 0) {
+		return storage.get_all<DeletedMessage>(
+			where(
+				column<DeletedMessage>(&DeletedMessage::userId) == userId and
+				column<DeletedMessage>(&DeletedMessage::dialogId) == dialogId and
+				column<DeletedMessage>(&DeletedMessage::messageId) > lowerMessageId and
+				column<DeletedMessage>(&DeletedMessage::messageId) < upperMessageId and
+				like(column<DeletedMessage>(&DeletedMessage::text), pattern, "\\")
+			),
+			order_by(column<DeletedMessage>(&DeletedMessage::messageId)).desc(),
+			limit(totalLimit)
+		);
+	}
 	return storage.get_all<DeletedMessage>(
 		where(
 			column<DeletedMessage>(&DeletedMessage::userId) == userId and
 			column<DeletedMessage>(&DeletedMessage::dialogId) == dialogId and
-			(column<DeletedMessage>(&DeletedMessage::topicId) == topicId or topicId == 0) and
-			(column<DeletedMessage>(&DeletedMessage::messageId) > minId or minId == 0) and
-			(column<DeletedMessage>(&DeletedMessage::messageId) < maxId or maxId == 0) and
+			column<DeletedMessage>(&DeletedMessage::topicId) == topicId and
+			column<DeletedMessage>(&DeletedMessage::messageId) > lowerMessageId and
+			column<DeletedMessage>(&DeletedMessage::messageId) < upperMessageId and
 			like(column<DeletedMessage>(&DeletedMessage::text), pattern, "\\")
 		),
 		order_by(column<DeletedMessage>(&DeletedMessage::messageId)).desc(),
@@ -341,12 +387,22 @@ std::vector<DeletedMessage> getDeletedMessages(ID userId, ID dialogId, ID topicI
 
 bool hasDeletedMessages(ID userId, ID dialogId, ID topicId) {
 	try {
+		if (topicId == 0) {
+			return !storage.select(
+				columns(column<DeletedMessage>(&DeletedMessage::dialogId)),
+				where(
+					column<DeletedMessage>(&DeletedMessage::userId) == userId and
+					column<DeletedMessage>(&DeletedMessage::dialogId) == dialogId
+				),
+				limit(1)
+			).empty();
+		}
 		return !storage.select(
 			columns(column<DeletedMessage>(&DeletedMessage::dialogId)),
 			where(
 				column<DeletedMessage>(&DeletedMessage::userId) == userId and
 				column<DeletedMessage>(&DeletedMessage::dialogId) == dialogId and
-				(column<DeletedMessage>(&DeletedMessage::topicId) == topicId or topicId == 0)
+				column<DeletedMessage>(&DeletedMessage::topicId) == topicId
 			),
 			limit(1)
 		).empty();
@@ -358,11 +414,20 @@ bool hasDeletedMessages(ID userId, ID dialogId, ID topicId) {
 
 void clearDeletedMessages(ID userId, ID dialogId, ID topicId) {
 	try {
+		if (topicId == 0) {
+			storage.remove_all<DeletedMessage>(
+				where(
+					column<DeletedMessage>(&DeletedMessage::userId) == userId and
+					column<DeletedMessage>(&DeletedMessage::dialogId) == dialogId
+				)
+			);
+			return;
+		}
 		storage.remove_all<DeletedMessage>(
 			where(
 				column<DeletedMessage>(&DeletedMessage::userId) == userId and
 				column<DeletedMessage>(&DeletedMessage::dialogId) == dialogId and
-				(column<DeletedMessage>(&DeletedMessage::topicId) == topicId or topicId == 0)
+				column<DeletedMessage>(&DeletedMessage::topicId) == topicId
 			)
 		);
 	} catch (std::exception &) {
