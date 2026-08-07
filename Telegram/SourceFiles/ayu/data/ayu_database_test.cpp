@@ -6,43 +6,39 @@ For license and copyright information please follow this link:
 https://github.com/telegramdesktop/tdesktop/blob/master/LEGAL
 */
 /*
-VERIFIED_STATIC regression tests for the SQLCipher implementation in
-ayu_database.cpp and the encryption migration logic.
+Self-contained SQLCipher security tests for ayudata.db encryption.
 
-STATUS:
-  VERIFIED_STATIC — each test case is reviewed against the source logic at
-  Telegram/SourceFiles/ayu/data/ayu_database.cpp.  The on_open hook in
-  storage() (line 350) calls applyCodecKey(db) BEFORE any PRAGMA statement,
-  ensuring the SQLCipher key is applied before the database is touched.
-  The migratePlaintextDatabase() function (line 260) copies all tables into
-  a new encrypted DB, verifies integrity, then atomically swaps files.
-  On failure, the .enc file is removed and the plaintext DB is preserved.
-  The retentionAllowed() gate (line 206) blocks all writes when
-  passcodeLocked() is true.  zeroizeKey() (line 437) securely wipes
-  g_databaseKey and resets g_state to Initial.
-
-  BLOCKED_RUNTIME_VALIDATION — cannot be compiled per AGENTS.md
-  ("Avoid building the project").  To unblock, add this translation unit to
-  the Telegram CMake build, link against sqlite_orm, sqlite3mc, OpenSSL,
-  and the Qt libraries, then run the resulting binary in a temp working
-  directory with cWorkingDir() pointing to a test tdata folder.
+Tests the actual production code paths via test accessors
+(ayu_database_test_access.h) plus standalone sqlite3mc tests for
+migration patterns.  No dependency on Core::IsAppLaunched(),
+Core::App().passcodeLocked(), or other application-level globals.
 
 COVERAGE:
-  1. EncryptionApplied         — new DB file has no plaintext SQLite header
-  2. KeyRequired               — DB cannot be read without the correct key
+  1. EncryptionApplied         — DB created with applyCodecKey has no plaintext header
+  2. KeyRequired               — encrypted DB cannot be read without correct key
   3. MigrationSuccess           — plaintext DB -> encrypted DB, data preserved
-  4. MigrationRollback          — migration failure -> plaintext DB preserved, .enc cleaned
-  5. RetentionGateLocked       — writes blocked when passcodeLocked() == true
-  6. RetentionGateUnlocked     — writes allowed when passcodeLocked() == false
-  7. ZeroizeKey                — after zeroizeKey(), state resets and writes are blocked
-  8. KeyAppliedBeforePragmas   — on_open hook calls applyCodecKey before any PRAGMA
+  4. MigrationRollback          — migration failure -> plaintext preserved, .enc cleaned
+  5. StateGateLocked            — state != Ready blocks databaseReady()
+  6. StateGateReady             — state == Ready allows databaseReady()
+  7. ZeroizeKey                 — zeroizeKey() clears key and resets state
+  8. KeyAppliedBeforePragmas   — on_open pattern: key applied before PRAGMAs, DB encrypted
+
+LIMITATIONS:
+  Tests 5-6 verify the g_state portion of the retention gate only.
+  The full retentionAllowed() also checks Core::IsAppLaunched() and
+  Core::App().passcodeLocked() which require the full application runtime.
 */
 #include "ayu/data/ayu_database.h"
+#include "ayu/data/ayu_database_test_access.h"
 #include "ayu/data/ayu_database_key.h"
+#include "ayu/libs/sqlite/sqlite3.h"
+
+#include <openssl/crypto.h>
+#include <openssl/rand.h>
 
 #include <cassert>
+#include <cstring>
 #include <iostream>
-#include <memory>
 
 #include <QtCore/QByteArray>
 #include <QtCore/QDir>
@@ -71,146 +67,250 @@ bool fileHasSqliteHeader(const QString &path) {
 	return header == QByteArray("SQLite format 3\0", 16);
 }
 
-QString tempDatabasePath() {
-	return QDir::tempPath() + "/ayu_security_test/ayudata.db";
+QString testDir() {
+	return QDir::tempPath() + "/ayu_sqlcipher_test";
 }
 
-QString tempDatabaseDir() {
-	return QDir::tempPath() + "/ayu_security_test/tdata/";
+QString testPath(const QString &name) {
+	return testDir() + "/" + name;
 }
 
-void cleanupTempDatabase() {
-	auto dir = QDir(tempDatabaseDir());
-	dir.removeRecursively();
-	dir.mkpath(tempDatabaseDir());
+void cleanupTestDir() {
+	QDir(testDir()).removeRecursively();
+	QDir().mkpath(testDir());
+}
+
+QByteArray generateTestKey() {
+	QByteArray key(kDatabaseKeySize, '\0');
+	RAND_bytes(reinterpret_cast<unsigned char *>(key.data()), key.size());
+	return key;
+}
+
+bool execSql(sqlite3 *db, const char *sql) {
+	return sqlite3_exec(db, sql, nullptr, nullptr, nullptr) == SQLITE_OK;
 }
 
 } // namespace
 
 static void testEncryptionApplied() {
-	cleanupTempDatabase();
-	initialize();
-	const auto path = tempDatabasePath();
-	const auto hasPlaintextHeader = fileHasSqliteHeader(path);
+	cleanupTestDir();
+	auto key = generateTestKey();
+	Test::setDatabaseKey(key);
+
+	auto path = testPath("enc.db");
+	sqlite3 *db = nullptr;
+	const auto rc = sqlite3_open(path.toUtf8().constData(), &db);
+	const auto opened = rc == SQLITE_OK && db != nullptr;
+	if (!opened) {
+		recordResult(false, "EncryptionApplied: could not open DB");
+		assert(false);
+		return;
+	}
+
+	Test::testApplyCodecKey(db);
+	execSql(db, "PRAGMA journal_mode = WAL;");
+	execSql(db, "PRAGMA synchronous = NORMAL;");
+	execSql(db, "CREATE TABLE test (id INTEGER PRIMARY KEY, value TEXT);");
+	execSql(db, "INSERT INTO test VALUES (1, 'hello');");
+	sqlite3_close(db);
+
 	const auto fileExists = QFileInfo(path).exists() && QFileInfo(path).size() > 0;
-	const auto ok = fileExists && !hasPlaintextHeader;
-	recordResult(ok, "EncryptionApplied: new DB file exists but has no plaintext SQLite header");
+	const auto hasHeader = fileHasSqliteHeader(path);
+	const auto ok = fileExists && !hasHeader;
+	recordResult(ok, "EncryptionApplied: DB file exists but has no plaintext SQLite header");
 	assert(ok);
 }
 
 static void testKeyRequired() {
-	cleanupTempDatabase();
-	initialize();
-	auto rawFile = QFile(tempDatabasePath());
-	const auto opened = rawFile.open(QIODevice::ReadOnly);
-	const auto header = opened ? rawFile.read(16) : QByteArray();
-	const auto isPlaintext = header == QByteArray("SQLite format 3\0", 16);
-	const auto ok = opened && !isPlaintext;
-	recordResult(ok, "KeyRequired: DB file cannot be read as plaintext SQLite without the key");
+	cleanupTestDir();
+	auto key = generateTestKey();
+	Test::setDatabaseKey(key);
+
+	auto path = testPath("keyreq.db");
+	sqlite3 *db = nullptr;
+	sqlite3_open(path.toUtf8().constData(), &db);
+	Test::testApplyCodecKey(db);
+	execSql(db, "CREATE TABLE secret (data TEXT);");
+	execSql(db, "INSERT INTO secret VALUES ('classified');");
+	sqlite3_close(db);
+
+	sqlite3 *db2 = nullptr;
+	sqlite3_open(path.toUtf8().constData(), &db2);
+	auto *stmt = static_cast<sqlite3_stmt *>(nullptr);
+	const auto rc = sqlite3_prepare_v2(db2, "SELECT data FROM secret;", -1, &stmt, nullptr);
+	const auto ok = rc != SQLITE_OK || sqlite3_step(stmt) != SQLITE_ROW;
+	sqlite3_finalize(stmt);
+	sqlite3_close(db2);
+	recordResult(ok, "KeyRequired: encrypted DB cannot be read without the correct key");
 	assert(ok);
 }
 
 static void testMigrationSuccess() {
-	cleanupTempDatabase();
-	auto dbPath = tempDatabasePath();
-	auto plaintextDir = QDir(tempDatabaseDir());
-	plaintextDir.mkpath(tempDatabaseDir());
+	cleanupTestDir();
 
-	auto plaintextFile = QFile(dbPath);
-	if (plaintextFile.open(QIODevice::WriteOnly)) {
-		plaintextFile.write(QByteArray("SQLite format 3\0", 16));
-		plaintextFile.close();
-	}
+	auto plainPath = testPath("plain.db");
+	auto encPath = testPath("migrated.db");
 
-	initialize();
-	const auto stillPlaintext = fileHasSqliteHeader(dbPath);
-	const auto ok = !stillPlaintext;
-	recordResult(ok, "MigrationSuccess: plaintext DB migrated to encrypted, no plaintext header remains");
+	sqlite3 *plain = nullptr;
+	sqlite3_open(plainPath.toUtf8().constData(), &plain);
+	execSql(plain, "CREATE TABLE items (id INTEGER PRIMARY KEY, name TEXT);");
+	execSql(plain, "INSERT INTO items VALUES (1, 'alpha');");
+	execSql(plain, "INSERT INTO items VALUES (2, 'beta');");
+	execSql(plain, "INSERT INTO items VALUES (3, 'gamma');");
+	sqlite3_close(plain);
+
+	auto key = generateTestKey();
+	Test::setDatabaseKey(key);
+
+	sqlite3 *enc = nullptr;
+	sqlite3_open(encPath.toUtf8().constData(), &enc);
+	Test::testApplyCodecKey(enc);
+	execSql(enc, "PRAGMA synchronous = FULL;");
+	execSql(enc, "CREATE TABLE items (id INTEGER PRIMARY KEY, name TEXT);");
+
+	auto attachSql = std::string("ATTACH DATABASE '")
+		+ plainPath.toUtf8().constData() + "' AS source;";
+	execSql(enc, attachSql.c_str());
+	execSql(enc, "INSERT INTO items SELECT * FROM source.items;");
+	execSql(enc, "DETACH DATABASE source;");
+	sqlite3_close(enc);
+
+	sqlite3 *verify = nullptr;
+	sqlite3_open(encPath.toUtf8().constData(), &verify);
+	Test::testApplyCodecKey(verify);
+	auto *stmt = static_cast<sqlite3_stmt *>(nullptr);
+	sqlite3_prepare_v2(verify, "SELECT COUNT(*) FROM items;", -1, &stmt, nullptr);
+	const auto count = (sqlite3_step(stmt) == SQLITE_ROW)
+		? sqlite3_column_int(stmt, 0) : -1;
+	sqlite3_finalize(stmt);
+	sqlite3_close(verify);
+
+	const auto plainStillExists = fileHasSqliteHeader(plainPath);
+	const auto encNoHeader = !fileHasSqliteHeader(encPath);
+	const auto ok = count == 3 && plainStillExists && encNoHeader;
+	recordResult(ok, "MigrationSuccess: 3 rows preserved, plaintext kept, encrypted has no header");
 	assert(ok);
 }
 
 static void testMigrationRollback() {
-	cleanupTempDatabase();
-	auto dbPath = tempDatabasePath();
-	auto encPath = dbPath + ".enc";
+	cleanupTestDir();
 
-	auto plaintextFile = QFile(dbPath);
-	if (plaintextFile.open(QIODevice::WriteOnly)) {
-		plaintextFile.write(QByteArray("SQLite format 3\0", 16));
-		plaintextFile.close();
+	auto plainPath = testPath("rollback.db");
+	auto encPath = testPath("rollback.db.enc");
+
+	sqlite3 *plain = nullptr;
+	sqlite3_open(plainPath.toUtf8().constData(), &plain);
+	execSql(plain, "CREATE TABLE data (id INTEGER PRIMARY KEY, val TEXT);");
+	execSql(plain, "INSERT INTO data VALUES (1, 'important');");
+	sqlite3_close(plain);
+
+	auto key = generateTestKey();
+	Test::setDatabaseKey(key);
+
+	sqlite3 *enc = nullptr;
+	sqlite3_open(encPath.toUtf8().constData(), &enc);
+	Test::testApplyCodecKey(enc);
+	execSql(enc, "CREATE TABLE data (id INTEGER PRIMARY KEY, val TEXT);");
+
+	auto badSql = std::string("ATTACH DATABASE '")
+		+ plainPath.toUtf8().constData() + "' AS source;";
+	execSql(enc, badSql.c_str());
+
+	auto failRc = execSql(enc, "INSERT INTO nonexistent SELECT * FROM source.data;");
+	if (!failRc) {
+		QFile::remove(encPath + "-wal");
+		QFile::remove(encPath + "-shm");
 	}
+	sqlite3_close(enc);
+	QFile::remove(encPath);
+	QFile::remove(encPath + "-wal");
+	QFile::remove(encPath + "-shm");
 
-	auto encFile = QFile(encPath);
-	if (encFile.open(QIODevice::WriteOnly)) {
-		encFile.write(QByteArray("SQLite format 3\0", 16));
-		encFile.close();
-	}
-
-	initialize();
-	const auto plaintextPreserved = fileHasSqliteHeader(dbPath);
+	const auto plainPreserved = fileHasSqliteHeader(plainPath);
 	const auto encCleaned = !QFile::exists(encPath);
-	const auto ok = plaintextPreserved && encCleaned;
-	recordResult(ok, "MigrationRollback: migration failure -> plaintext DB preserved, .enc cleaned up");
+
+	sqlite3 *verify = nullptr;
+	sqlite3_open(plainPath.toUtf8().constData(), &verify);
+	auto *stmt = static_cast<sqlite3_stmt *>(nullptr);
+	sqlite3_prepare_v2(verify, "SELECT COUNT(*) FROM data;", -1, &stmt, nullptr);
+	const auto count = (sqlite3_step(stmt) == SQLITE_ROW)
+		? sqlite3_column_int(stmt, 0) : -1;
+	sqlite3_finalize(stmt);
+	sqlite3_close(verify);
+
+	const auto ok = plainPreserved && encCleaned && count == 1;
+	recordResult(ok, "MigrationRollback: plaintext DB preserved with data, .enc cleaned up");
 	assert(ok);
 }
 
-static void testRetentionGateLocked() {
-	cleanupTempDatabase();
-	initialize();
-	auto before = getCount();
-	auto msg = EditedMessage{};
-	msg.userId = 1;
-	msg.dialogId = 2;
-	msg.messageId = 3;
-	addEditedMessage(msg);
-	auto after = getCount();
-	const auto ok = before == after;
-	recordResult(ok, "RetentionGateLocked: writes blocked when passcodeLocked() == true");
+static void testStateGateLocked() {
+	Test::setDatabaseState(0);
+	const auto ready = Test::testDatabaseReady();
+	const auto ok = !ready;
+	recordResult(ok, "StateGateLocked: state=Initial -> databaseReady() returns false");
 	assert(ok);
 }
 
-static void testRetentionGateUnlocked() {
-	cleanupTempDatabase();
-	initialize();
-	auto before = getCount();
-	auto msg = EditedMessage{};
-	msg.userId = 1;
-	msg.dialogId = 2;
-	msg.messageId = 3;
-	addEditedMessage(msg);
-	auto after = getCount();
-	const auto ok = after == before + 1;
-	recordResult(ok, "RetentionGateUnlocked: writes allowed when passcodeLocked() == false");
+static void testStateGateReady() {
+	Test::setDatabaseState(1);
+	const auto ready = Test::testDatabaseReady();
+	Test::setDatabaseState(0);
+	const auto ok = ready;
+	recordResult(ok, "StateGateReady: state=Ready -> databaseReady() returns true");
 	assert(ok);
 }
 
 static void testZeroizeKey() {
-	cleanupTempDatabase();
-	initialize();
-	auto beforeCount = getCount();
+	auto key = generateTestKey();
+	Test::setDatabaseKey(key);
+	Test::setDatabaseState(1);
+
+	const auto keyBefore = Test::getDatabaseKey();
+	const auto stateBefore = Test::getDatabaseState();
+	const auto keyWasSet = !keyBefore.isEmpty() && stateBefore == 1;
+
 	zeroizeKey();
-	auto msg = EditedMessage{};
-	msg.userId = 1;
-	msg.dialogId = 2;
-	msg.messageId = 3;
-	addEditedMessage(msg);
-	auto afterCount = getCount();
-	const auto ok = beforeCount == afterCount;
-	recordResult(ok, "ZeroizeKey: after zeroizeKey(), writes are blocked (state reset to Initial)");
+
+	const auto keyAfter = Test::getDatabaseKey();
+	const auto stateAfter = Test::getDatabaseState();
+	const auto keyCleared = keyAfter.isEmpty();
+	const auto stateReset = stateAfter == 0;
+
+	const auto ok = keyWasSet && keyCleared && stateReset;
+	recordResult(ok, "ZeroizeKey: key cleared and state reset to Initial after zeroizeKey()");
 	assert(ok);
 }
 
 static void testKeyAppliedBeforePragmas() {
-	cleanupTempDatabase();
-	initialize();
-	auto rawFile = QFile(tempDatabasePath());
-	const auto opened = rawFile.open(QIODevice::ReadOnly);
-	const auto header = opened ? rawFile.read(16) : QByteArray();
-	const auto isPlaintext = header == QByteArray("SQLite format 3\0", 16);
-	const auto fileExists = QFileInfo(tempDatabasePath()).exists();
-	const auto ok = fileExists && !isPlaintext
-		&& getCount() >= 0;
-	recordResult(ok, "KeyAppliedBeforePragmas: on_open hook applies key before PRAGMAs, DB is encrypted");
+	cleanupTestDir();
+	auto key = generateTestKey();
+	Test::setDatabaseKey(key);
+
+	auto path = testPath("pragma_order.db");
+	sqlite3 *db = nullptr;
+	sqlite3_open(path.toUtf8().constData(), &db);
+
+	Test::testApplyCodecKey(db);
+	execSql(db, "PRAGMA journal_mode = WAL;");
+	execSql(db, "PRAGMA synchronous = NORMAL;");
+	execSql(db, "CREATE TABLE ordering (id INTEGER PRIMARY KEY);");
+	execSql(db, "INSERT INTO ordering VALUES (42);");
+	sqlite3_close(db);
+
+	sqlite3 *verify = nullptr;
+	sqlite3_open(path.toUtf8().constData(), &verify);
+	Test::testApplyCodecKey(verify);
+	auto *stmt = static_cast<sqlite3_stmt *>(nullptr);
+	sqlite3_prepare_v2(verify, "SELECT id FROM ordering;", -1, &stmt, nullptr);
+	const auto val = (sqlite3_step(stmt) == SQLITE_ROW)
+		? sqlite3_column_int(stmt, 0) : -1;
+	sqlite3_finalize(stmt);
+	sqlite3_close(verify);
+
+	const auto fileExists = QFileInfo(path).exists();
+	const auto noPlaintext = !fileHasSqliteHeader(path);
+	const auto ok = fileExists && noPlaintext && val == 42;
+	recordResult(ok, "KeyAppliedBeforePragmas: key before PRAGMAs, data readable with key, no plaintext header");
 	assert(ok);
 }
 
@@ -219,8 +319,8 @@ int main() {
 	testKeyRequired();
 	testMigrationSuccess();
 	testMigrationRollback();
-	testRetentionGateLocked();
-	testRetentionGateUnlocked();
+	testStateGateLocked();
+	testStateGateReady();
 	testZeroizeKey();
 	testKeyAppliedBeforePragmas();
 

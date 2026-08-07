@@ -975,4 +975,36 @@ bool hasPerDialogFilters() {
 	}
 }
 
+namespace Test {
+
+QByteArray getDatabaseKey() {
+	return g_databaseKey;
+}
+
+void setDatabaseKey(const QByteArray &key) {
+	g_databaseKey = key;
+}
+
+int getDatabaseState() {
+	return g_state.load();
+}
+
+void setDatabaseState(int state) {
+	g_state = state;
+}
+
+bool testDatabaseReady() {
+	return databaseReady();
+}
+
+bool testHasPlaintextHeader(const QString &path) {
+	return hasPlaintextHeader(path);
+}
+
+void testApplyCodecKey(sqlite3 *db) {
+	applyCodecKey(db);
+}
+
+} // namespace Test
+
 }
