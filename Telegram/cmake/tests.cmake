@@ -53,6 +53,7 @@ if (UNIX AND NOT APPLE)
         storage/details/storage_file_utilities_kdf_test.cpp
     )
     target_compile_options(test_storage_kdf PRIVATE -ffunction-sections -fdata-sections)
+    target_compile_definitions(test_storage_kdf PRIVATE STORAGE_FILE_UTILITIES_TEST_BUILD)
     target_link_options(test_storage_kdf PRIVATE -Wl,--gc-sections -Wl,--wrap=EVP_PBE_scrypt)
     target_link_libraries(test_storage_kdf
     PRIVATE
