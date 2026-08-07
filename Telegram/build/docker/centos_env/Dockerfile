@@ -138,8 +138,11 @@ RUN git clone -b v30.2 --depth=1 --recursive --shallow-submodules https://github
 	&& rm -rf protobuf
 
 FROM builder AS lcms2
-RUN git clone -b lcms2.15 --depth=1 https://github.com/mm2/Little-CMS.git \
+RUN git init Little-CMS \
 	&& cd Little-CMS \
+	&& git remote add origin https://github.com/mm2/Little-CMS.git \
+	&& git fetch --depth=1 origin d0752309ff93f62be246ee9bf18338107f30d485 \
+	&& git reset --hard FETCH_HEAD \
 	&& meson build \
 		--buildtype=plain \
 		--default-library=static \
@@ -149,8 +152,11 @@ RUN git clone -b lcms2.15 --depth=1 https://github.com/mm2/Little-CMS.git \
 	&& rm -rf Little-CMS
 
 FROM builder AS brotli
-RUN git clone -b v1.1.0 --depth=1 https://github.com/google/brotli.git \
+RUN git init brotli \
 	&& cd brotli \
+	&& git remote add origin https://github.com/google/brotli.git \
+	&& git fetch --depth=1 origin ed738e842d2fbdf2d6459e39267a633c4a9b2f5d \
+	&& git reset --hard FETCH_HEAD \
 	&& cmake -B build . \
 		-DBUILD_SHARED_LIBS=OFF \
 		-DBROTLI_DISABLE_TESTS=ON \
@@ -160,8 +166,11 @@ RUN git clone -b v1.1.0 --depth=1 https://github.com/google/brotli.git \
 	&& rm -rf brotli
 
 FROM builder AS highway
-RUN git clone -b 1.0.7 --depth=1 https://github.com/google/highway.git \
+RUN git init highway \
 	&& cd highway \
+	&& git remote add origin https://github.com/google/highway.git \
+	&& git fetch --depth=1 origin ba0900a4957b929390ab73827235557959234fea \
+	&& git reset --hard FETCH_HEAD \
 	&& cmake -B build . \
 		-DBUILD_TESTING=OFF \
 		-DHWY_ENABLE_CONTRIB=OFF \
@@ -337,8 +346,11 @@ RUN git clone -b v0.11.2 --depth=1 https://github.com/libjxl/libjxl.git \
 	&& rm -rf libjxl
 
 FROM builder AS rnnoise
-RUN git clone -b v0.2 --depth=1 https://github.com/xiph/rnnoise.git \
+RUN git init rnnoise \
 	&& cd rnnoise \
+	&& git remote add origin https://github.com/xiph/rnnoise.git \
+	&& git fetch --depth=1 origin 904a876dce1f9ab8860c0a5000ed151f9f6eef58 \
+	&& git reset --hard FETCH_HEAD \
 	&& ./autogen.sh \
 	&& ./configure --enable-static --disable-shared \
 	&& make -j$(nproc) \
@@ -347,8 +359,11 @@ RUN git clone -b v0.2 --depth=1 https://github.com/xiph/rnnoise.git \
 	&& rm -rf rnnoise
 
 FROM builder AS xcb-proto
-RUN git clone -b xcb-proto-1.16.0 --depth=1 https://github.com/gitlab-freedesktop-mirrors/xcbproto.git \
+RUN git init xcbproto \
 	&& cd xcbproto \
+	&& git remote add origin https://github.com/gitlab-freedesktop-mirrors/xcbproto.git \
+	&& git fetch --depth=1 origin 98eeebfc2d7db5377b85437418fb942ea30ffc0d \
+	&& git reset --hard FETCH_HEAD \
 	&& ./autogen.sh \
 	&& make -j$(nproc) \
 	&& make DESTDIR=/usr/src/xcb-proto-cache install \
@@ -358,8 +373,11 @@ RUN git clone -b xcb-proto-1.16.0 --depth=1 https://github.com/gitlab-freedeskto
 FROM builder AS xcb
 COPY --link --from=xcb-proto /usr/src/xcb-proto-cache /
 
-RUN git clone -b libxcb-1.16 --depth=1 https://github.com/gitlab-freedesktop-mirrors/libxcb.git \
+RUN git init libxcb \
 	&& cd libxcb \
+	&& git remote add origin https://github.com/gitlab-freedesktop-mirrors/libxcb.git \
+	&& git fetch --depth=1 origin cc4b93c9cd93bad15b7106747b0213e4b9c53a1c \
+	&& git reset --hard FETCH_HEAD \
 	&& ./autogen.sh --enable-static --disable-shared \
 	&& make -j$(nproc) \
 	&& export DESTDIR=/usr/src/xcb-cache \
@@ -369,8 +387,12 @@ RUN git clone -b libxcb-1.16 --depth=1 https://github.com/gitlab-freedesktop-mir
 	&& rm -rf libxcb
 
 FROM builder AS xcb-wm
-RUN git clone -b xcb-util-wm-0.4.2 --depth=1 --recursive --shallow-submodules https://github.com/gitlab-freedesktop-mirrors/libxcb-wm.git \
+RUN git init libxcb-wm \
 	&& cd libxcb-wm \
+	&& git remote add origin https://github.com/gitlab-freedesktop-mirrors/libxcb-wm.git \
+	&& git fetch --depth=1 origin 0c6681e465c9cc7b1fbb60778ba1eaa61ab01a14 \
+	&& git reset --hard FETCH_HEAD \
+	&& git submodule update --init --recursive --depth=1 \
 	&& ./autogen.sh --enable-static --disable-shared \
 	&& make -j$(nproc) \
 	&& make DESTDIR=/usr/src/xcb-wm-cache install \
@@ -378,8 +400,12 @@ RUN git clone -b xcb-util-wm-0.4.2 --depth=1 --recursive --shallow-submodules ht
 	&& rm -rf libxcb-wm
 
 FROM builder AS xcb-util
-RUN git clone -b xcb-util-0.4.1-gitlab --depth=1 --recursive --shallow-submodules https://github.com/gitlab-freedesktop-mirrors/libxcb-util.git \
+RUN git init libxcb-util \
 	&& cd libxcb-util \
+	&& git remote add origin https://github.com/gitlab-freedesktop-mirrors/libxcb-util.git \
+	&& git fetch --depth=1 origin bffd8df1725c0fae9105a097e75b466e2f49d7bd \
+	&& git reset --hard FETCH_HEAD \
+	&& git submodule update --init --recursive --depth=1 \
 	&& ./autogen.sh --enable-static --disable-shared \
 	&& make -j$(nproc) \
 	&& make DESTDIR=/usr/src/xcb-util-cache install \
@@ -389,8 +415,12 @@ RUN git clone -b xcb-util-0.4.1-gitlab --depth=1 --recursive --shallow-submodule
 FROM builder AS xcb-image
 COPY --link --from=xcb-util /usr/src/xcb-util-cache /
 
-RUN git clone -b xcb-util-image-0.4.1-gitlab --depth=1 --recursive --shallow-submodules https://github.com/gitlab-freedesktop-mirrors/libxcb-image.git \
+RUN git init libxcb-image \
 	&& cd libxcb-image \
+	&& git remote add origin https://github.com/gitlab-freedesktop-mirrors/libxcb-image.git \
+	&& git fetch --depth=1 origin 1abfc17b1e08e46dbdf34b4ef36097a8c307a8ec \
+	&& git reset --hard FETCH_HEAD \
+	&& git submodule update --init --recursive --depth=1 \
 	&& ./autogen.sh --enable-static --disable-shared \
 	&& make -j$(nproc) \
 	&& make DESTDIR=/usr/src/xcb-image-cache install \
@@ -441,8 +471,11 @@ RUN git init libxcb-cursor \
 	&& rm -rf libxcb-cursor
 
 FROM builder AS xext
-RUN git clone -b libXext-1.3.5 --depth=1 https://github.com/gitlab-freedesktop-mirrors/libxext.git \
+RUN git init libxext \
 	&& cd libxext \
+	&& git remote add origin https://github.com/gitlab-freedesktop-mirrors/libxext.git \
+	&& git fetch --depth=1 origin 67e82cc395f44faddd83ec3d0d21624fe91c6fc0 \
+	&& git reset --hard FETCH_HEAD \
 	&& ./autogen.sh --enable-static --disable-shared \
 	&& make -j$(nproc) \
 	&& make DESTDIR=/usr/src/xext-cache install \
@@ -450,8 +483,11 @@ RUN git clone -b libXext-1.3.5 --depth=1 https://github.com/gitlab-freedesktop-m
 	&& rm -rf libxext
 
 FROM builder AS xtst
-RUN git clone -b libXtst-1.2.4 --depth=1 https://github.com/gitlab-freedesktop-mirrors/libxtst.git \
+RUN git init libxtst \
 	&& cd libxtst \
+	&& git remote add origin https://github.com/gitlab-freedesktop-mirrors/libxtst.git \
+	&& git fetch --depth=1 origin 99b89c3bcb0ebb0b6dd86bfdc9d276715eaea889 \
+	&& git reset --hard FETCH_HEAD \
 	&& ./autogen.sh --enable-static --disable-shared \
 	&& make -j$(nproc) \
 	&& make DESTDIR=/usr/src/xtst-cache install \
@@ -459,8 +495,11 @@ RUN git clone -b libXtst-1.2.4 --depth=1 https://github.com/gitlab-freedesktop-m
 	&& rm -rf libxtst
 
 FROM builder AS xfixes
-RUN git clone -b libXfixes-5.0.3 --depth=1 https://github.com/gitlab-freedesktop-mirrors/libxfixes.git \
+RUN git init libxfixes \
 	&& cd libxfixes \
+	&& git remote add origin https://github.com/gitlab-freedesktop-mirrors/libxfixes.git \
+	&& git fetch --depth=1 origin 84df9cb81cc31bbed27ba241a23ae04f61da57db \
+	&& git reset --hard FETCH_HEAD \
 	&& ./autogen.sh --enable-static --disable-shared \
 	&& make -j$(nproc) \
 	&& make DESTDIR=/usr/src/xfixes-cache install \
@@ -470,8 +509,11 @@ RUN git clone -b libXfixes-5.0.3 --depth=1 https://github.com/gitlab-freedesktop
 FROM builder AS xv
 COPY --link --from=xext /usr/src/xext-cache /
 
-RUN git clone -b libXv-1.0.12 --depth=1 https://github.com/gitlab-freedesktop-mirrors/libxv.git \
+RUN git init libxv \
 	&& cd libxv \
+	&& git remote add origin https://github.com/gitlab-freedesktop-mirrors/libxv.git \
+	&& git fetch --depth=1 origin d419928942dbf1897c9627475aa4a2828a81240f \
+	&& git reset --hard FETCH_HEAD \
 	&& ./autogen.sh --enable-static --disable-shared \
 	&& make -j$(nproc) \
 	&& make DESTDIR=/usr/src/xv-cache install \
@@ -479,8 +521,11 @@ RUN git clone -b libXv-1.0.12 --depth=1 https://github.com/gitlab-freedesktop-mi
 	&& rm -rf libxv
 
 FROM builder AS xrandr
-RUN git clone -b libXrandr-1.5.3 --depth=1 https://github.com/gitlab-freedesktop-mirrors/libxrandr.git \
+RUN git init libxrandr \
 	&& cd libxrandr \
+	&& git remote add origin https://github.com/gitlab-freedesktop-mirrors/libxrandr.git \
+	&& git fetch --depth=1 origin 3387129532899eaeee3477a2d92fa662d7292a84 \
+	&& git reset --hard FETCH_HEAD \
 	&& ./autogen.sh --enable-static --disable-shared \
 	&& make -j$(nproc) \
 	&& make DESTDIR=/usr/src/xrandr-cache install \
@@ -488,8 +533,11 @@ RUN git clone -b libXrandr-1.5.3 --depth=1 https://github.com/gitlab-freedesktop
 	&& rm -rf libxrandr
 
 FROM builder AS xrender
-RUN git clone -b libXrender-0.9.11 --depth=1 https://github.com/gitlab-freedesktop-mirrors/libxrender.git \
+RUN git init libxrender \
 	&& cd libxrender \
+	&& git remote add origin https://github.com/gitlab-freedesktop-mirrors/libxrender.git \
+	&& git fetch --depth=1 origin e5e23272394c90731debd7e18dd167e8c25b5c15 \
+	&& git reset --hard FETCH_HEAD \
 	&& ./autogen.sh --enable-static --disable-shared \
 	&& make -j$(nproc) \
 	&& make DESTDIR=/usr/src/xrender-cache install \
@@ -497,8 +545,11 @@ RUN git clone -b libXrender-0.9.11 --depth=1 https://github.com/gitlab-freedeskt
 	&& rm -rf libxrender
 
 FROM builder AS xdamage
-RUN git clone -b libXdamage-1.1.6 --depth=1 https://github.com/gitlab-freedesktop-mirrors/libxdamage.git \
+RUN git init libxdamage \
 	&& cd libxdamage \
+	&& git remote add origin https://github.com/gitlab-freedesktop-mirrors/libxdamage.git \
+	&& git fetch --depth=1 origin 1f20df4fd7c132f55e924dc5ec3f270cd54704d0 \
+	&& git reset --hard FETCH_HEAD \
 	&& ./autogen.sh --enable-static --disable-shared \
 	&& make -j$(nproc) \
 	&& make DESTDIR=/usr/src/xdamage-cache install \
@@ -506,8 +557,11 @@ RUN git clone -b libXdamage-1.1.6 --depth=1 https://github.com/gitlab-freedeskto
 	&& rm -rf libxdamage
 
 FROM builder AS xcomposite
-RUN git clone -b libXcomposite-0.4.6 --depth=1 https://github.com/gitlab-freedesktop-mirrors/libxcomposite.git \
+RUN git init libxcomposite \
 	&& cd libxcomposite \
+	&& git remote add origin https://github.com/gitlab-freedesktop-mirrors/libxcomposite.git \
+	&& git fetch --depth=1 origin cecff847395deb553b6331f31776f9cbfc809add \
+	&& git reset --hard FETCH_HEAD \
 	&& ./autogen.sh --enable-static --disable-shared \
 	&& make -j$(nproc) \
 	&& make DESTDIR=/usr/src/xcomposite-cache install \
@@ -515,7 +569,10 @@ RUN git clone -b libXcomposite-0.4.6 --depth=1 https://github.com/gitlab-freedes
 	&& rm -rf libxcomposite
 
 FROM builder AS nv-codec-headers
-RUN git clone -b n12.1.14.0 --depth=1 https://github.com/FFmpeg/nv-codec-headers.git \
+RUN git init nv-codec-headers \
+	&& git -C nv-codec-headers remote add origin https://github.com/FFmpeg/nv-codec-headers.git \
+	&& git -C nv-codec-headers fetch --depth=1 origin 1889e62e2d35ff7aa9baca2bceb14f053785e6f1 \
+	&& git -C nv-codec-headers reset --hard FETCH_HEAD \
 	&& DESTDIR=/usr/src/nv-codec-headers-cache make -C nv-codec-headers install \
 	&& rm -rf nv-codec-headers
 
@@ -528,8 +585,11 @@ COPY --link --from=xext /usr/src/xext-cache /
 COPY --link --from=xv /usr/src/xv-cache /
 COPY --link --from=nv-codec-headers /usr/src/nv-codec-headers-cache /
 
-RUN git clone -b n6.1.1 --depth=1 https://github.com/FFmpeg/FFmpeg.git \
+RUN git init FFmpeg \
 	&& cd FFmpeg \
+	&& git remote add origin https://github.com/FFmpeg/FFmpeg.git \
+	&& git fetch --depth=1 origin f1e3a2bf7a2f2cde936d1ed97f09a26853d20125 \
+	&& git reset --hard FETCH_HEAD \
 	&& ./configure \
 		--extra-cflags="-fno-lto -DCONFIG_SAFE_BITSTREAM_READER=1" \
 		--extra-cxxflags="-fno-lto -DCONFIG_SAFE_BITSTREAM_READER=1" \
@@ -675,8 +735,11 @@ RUN git clone -b n6.1.1 --depth=1 https://github.com/FFmpeg/FFmpeg.git \
 	&& rm -rf ffmpeg
 
 FROM builder AS pipewire
-RUN git clone -b 0.3.62 --depth=1 https://github.com/PipeWire/pipewire.git \
+RUN git init pipewire \
 	&& cd pipewire \
+	&& git remote add origin https://github.com/PipeWire/pipewire.git \
+	&& git fetch --depth=1 origin 3a443b4e1c9730675c7de0453a6279ab9ee263fd \
+	&& git reset --hard FETCH_HEAD \
 	&& meson build \
 		--buildtype=plain \
 		-Dtests=disabled \
@@ -691,8 +754,11 @@ RUN git clone -b 0.3.62 --depth=1 https://github.com/PipeWire/pipewire.git \
 FROM builder AS openal
 COPY --link --from=pipewire /usr/src/pipewire-cache /
 
-RUN git clone -b 1.24.3 --depth=1 https://github.com/kcat/openal-soft.git \
+RUN git init openal-soft \
 	&& cd openal-soft \
+	&& git remote add origin https://github.com/kcat/openal-soft.git \
+	&& git fetch --depth=1 origin dc7d7054a5b4f3bec1dc23a42fd616a0847af948 \
+	&& git reset --hard FETCH_HEAD \
 	&& cmake -B build . \
 		-DLIBTYPE:STRING=STATIC \
 		-DALSOFT_EXAMPLES=OFF \
@@ -704,8 +770,11 @@ RUN git clone -b 1.24.3 --depth=1 https://github.com/kcat/openal-soft.git \
 	&& rm -rf openal-soft
 
 FROM builder AS openssl
-RUN git clone -b openssl-3.2.1 --depth=1 https://github.com/openssl/openssl.git \
+RUN git init openssl \
 	&& cd openssl \
+	&& git remote add origin https://github.com/openssl/openssl.git \
+	&& git fetch --depth=1 origin 8cf17aaeb4599f8af87fefd810b5b5fee90fe69e \
+	&& git reset --hard FETCH_HEAD \
 	&& ./config \
 		--openssldir=/etc/ssl \
 		no-shared \
@@ -719,8 +788,11 @@ RUN git clone -b openssl-3.2.1 --depth=1 https://github.com/openssl/openssl.git 
 FROM builder AS xkbcommon
 COPY --link --from=xcb /usr/src/xcb-cache /
 
-RUN git clone -b xkbcommon-1.6.0 --depth=1 https://github.com/xkbcommon/libxkbcommon.git \
+RUN git init libxkbcommon \
 	&& cd libxkbcommon \
+	&& git remote add origin https://github.com/xkbcommon/libxkbcommon.git \
+	&& git fetch --depth=1 origin d2a08f761c796733e42fac4099f5c38d443e88e1 \
+	&& git reset --hard FETCH_HEAD \
 	&& meson build \
 		--buildtype=plain \
 		--default-library=static \
@@ -751,8 +823,12 @@ COPY --link --from=openssl /usr/src/openssl-cache /
 COPY --link --from=xkbcommon /usr/src/xkbcommon-cache /
 
 ENV QT=6.11.0
-RUN git clone -b v$QT --depth=1 https://github.com/qt/qt5.git \
+ENV QT_SHA=b3a9d45d2d5474a39c76fddc50bf6d55bcb7858d
+RUN git init qt5 \
 	&& cd qt5 \
+	&& git remote add origin https://github.com/qt/qt5.git \
+	&& git fetch --depth=1 origin $QT_SHA \
+	&& git reset --hard FETCH_HEAD \
 	&& git submodule update --init --recursive --depth=1 qtbase qtdeclarative qtwayland qtimageformats qtsvg qtshadertools \
 	&& find $PWD/../patches/qtbase_$QT -type f -print0 | sort -z | xargs -r0 git -C qtbase apply \
 	&& find $PWD/../patches/qtwayland_$QT -type f -print0 | sort -z | xargs -r0 git -C qtwayland apply \
@@ -789,9 +865,15 @@ RUN curl -sSL -o boost.tar.gz https://archives.boost.io/release/1.90.0/source/bo
 	&& rm -rf boost_*
 
 FROM builder AS breakpad
-RUN git clone -b v2024.02.16 --depth=1 https://chromium.googlesource.com/breakpad/breakpad.git \
+RUN git init breakpad \
 	&& cd breakpad \
-	&& git clone -b v2024.02.01 --depth=1 https://chromium.googlesource.com/linux-syscall-support.git src/third_party/lss \
+	&& git remote add origin https://chromium.googlesource.com/breakpad/breakpad.git \
+	&& git fetch --depth=1 origin f80f2888031b0570783011476a5e862fb7d848a1 \
+	&& git reset --hard FETCH_HEAD \
+	&& git init src/third_party/lss \
+	&& git -C src/third_party/lss remote add origin https://chromium.googlesource.com/linux-syscall-support.git \
+	&& git -C src/third_party/lss fetch --depth=1 origin ed31caa60f20a4f6569883b2d752ef7522de51e0 \
+	&& git -C src/third_party/lss reset --hard FETCH_HEAD \
 	&& CFLAGS="$CFLAGS -fno-lto" CXXFLAGS="$CXXFLAGS -fno-lto" ./configure \
 	&& make -j$(nproc) \
 	&& make DESTDIR=/usr/src/breakpad-cache install \
@@ -820,7 +902,7 @@ COPY --link --from=pipewire /usr/src/pipewire-cache /
 RUN git init tg_owt \
 	&& cd tg_owt \
 	&& git remote add origin https://github.com/desktop-app/tg_owt.git \
-	&& git fetch --depth=1 origin 5c5c71258777d0196dbb3a09cc37d2f56ead28ab \
+	&& git fetch --depth=1 origin 89df288dd6ba5b2ec95b3c5eaf1e7e0c3a870fc4 \
 	&& git reset --hard FETCH_HEAD \
 	&& git submodule update --init --recursive --depth=1 \
 	&& cmake -B build . -DTG_OWT_DLOPEN_PIPEWIRE=ON \
@@ -830,8 +912,11 @@ RUN git init tg_owt \
 	&& rm -rf tg_owt
 
 FROM builder AS ada
-RUN git clone -b v3.2.4 --depth=1 https://github.com/ada-url/ada.git \
+RUN git init ada \
 	&& cd ada \
+	&& git remote add origin https://github.com/ada-url/ada.git \
+	&& git fetch --depth=1 origin 010f7c45aeaff1205452e7da2df8702cf725fb3e \
+	&& git reset --hard FETCH_HEAD \
 	&& cmake -B build . \
         -D ADA_TESTING=OFF \
         -D ADA_TOOLS=OFF \

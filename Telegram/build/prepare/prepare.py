@@ -592,9 +592,9 @@ mac:
 """)
 
 stage('openssl3', """
-    git clone -b openssl-3.2.1 https://github.com/openssl/openssl openssl3
+    git clone -b openssl-3.5.7 https://github.com/openssl/openssl openssl3
     cd openssl3
-    git checkout a7e992847de83aa36be0c399c89db3fb827b0be2
+    git checkout 8cf17aaeb4599f8af87fefd810b5b5fee90fe69e
 win32:
     perl Configure no-shared no-tests debug-VC-WIN32 /FS
 win64:
@@ -1159,9 +1159,9 @@ stage('regex', """
 """)
 
 stage('ffmpeg', """
-    git clone -b n6.1.1 https://github.com/FFmpeg/FFmpeg.git ffmpeg
+    git clone -b n6.1.6 https://github.com/FFmpeg/FFmpeg.git ffmpeg
     cd ffmpeg
-    git checkout e38092ef9395d7049f871ef4d5411eb410e283e0
+    git checkout f1e3a2bf7a2f2cde936d1ed97f09a26853d20125
 win:
 depends:patches/ffmpeg.patch
     git apply ../patches/ffmpeg.patch
@@ -1591,7 +1591,7 @@ mac:
     make install
 """)
 else: # qt > '6'
-    branch = 'v$QT' + ('-lts-lgpl' if qt.startswith('6.2.') else '')
+    branch = 'v$QT' + ('-lts-lgpl' if qt.startswith('6.2.') or qt == '6.8.4' else '')
     stage('qt_' + qt, """
     git clone -b """ + branch + """ https://github.com/qt/qt5.git qt_$QT
     cd qt_$QT
