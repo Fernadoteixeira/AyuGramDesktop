@@ -13,8 +13,14 @@
 #include <limits>
 
 using namespace sqlite_orm;
-auto storage = make_storage(
-	"./tdata/ayudata.db",
+
+QString databaseFilePath() {
+	return cWorkingDir() + u"tdata/ayudata.db"_q;
+}
+
+auto createStorage() {
+	return make_storage(
+		databaseFilePath().toStdString(),
 	make_table<SchemaVersion>(
 		"SchemaVersion",
 		make_column("id", &SchemaVersion::id, primary_key()),
@@ -159,14 +165,22 @@ auto storage = make_storage(
 		make_column("messageId", &SpyMessageContentsRead::messageId),
 		make_column("entityCreateDate", &SpyMessageContentsRead::entityCreateDate)
 	)
-);
+	);
+}
+
+using Storage = decltype(createStorage());
+
+Storage &storage() {
+	static auto instance = createStorage();
+	return instance;
+}
 
 namespace AyuMigrations {
 
-void migrateToV1(decltype(storage) &storage) {
+void migrateToV1(Storage &db) {
 	// drop RegexFilter table as we've added primary_key()
 	try {
-		storage.drop_table_if_exists("RegexFilter");
+		db.drop_table_if_exists("RegexFilter");
 		LOG(("Migration to V1 successful."));
 	} catch (const std::exception &ex) {
 		LOG(("Migration to V1 failed: %1").arg(ex.what()));
@@ -175,23 +189,23 @@ void migrateToV1(decltype(storage) &storage) {
 
 }
 
-void runMigrations(decltype(storage) &storage) {
+void runMigrations(Storage &db) {
 	constexpr int kLatestVersion = 1;
 
-	const std::map<int, Fn<void(decltype(storage) &)>> migrations = {
+	const std::map<int, Fn<void(Storage &)>> migrations = {
 		{1, AyuMigrations::migrateToV1},
 	};
 
 	int currentVersion = 0;
 	try {
-		if (auto versionRow = storage.get_pointer<SchemaVersion>(1)) {
+		if (auto versionRow = db.get_pointer<SchemaVersion>(1)) {
 			currentVersion = versionRow->version;
 		} else {
-			storage.insert(SchemaVersion{1, 0});
+			db.insert(SchemaVersion{1, 0});
 		}
 	} catch (...) {
 		LOG(("No SchemaVersion, assuming 0"));
-		storage.insert(SchemaVersion{1, 0});
+		db.insert(SchemaVersion{1, 0});
 	}
 
 	if (currentVersion >= kLatestVersion) {
@@ -205,15 +219,15 @@ void runMigrations(decltype(storage) &storage) {
 		if (migrations.contains(v)) {
 			try {
 				LOG(("Migration for version: %1").arg(v));
-				storage.begin_transaction();
+				db.begin_transaction();
 
-				migrations.at(v)(storage);
+				migrations.at(v)(db);
 
-				storage.update_all(set(c(&SchemaVersion::version) = v), where(c(&SchemaVersion::id) == 1));
-				storage.commit();
+				db.update_all(set(c(&SchemaVersion::version) = v), where(c(&SchemaVersion::id) == 1));
+				db.commit();
 				LOG(("Applied migration for version: %1.").arg(v));
 			} catch (...) {
-				storage.rollback();
+				db.rollback();
 				LOG(("Failed to apply migration for version: %1.").arg(v));
 				AyuDatabase::moveCurrentDatabase();
 
@@ -227,24 +241,21 @@ namespace AyuDatabase {
 
 void moveCurrentDatabase() {
 	const auto time = base::unixtime::now();
+	const auto path = databaseFilePath();
 
-	if (QFile::exists("./tdata/ayudata.db")) {
-		QFile::rename("./tdata/ayudata.db", QString("./tdata/ayudata_%1.db").arg(time));
-	}
-
-	if (QFile::exists("./tdata/ayudata.db-shm")) {
-		QFile::rename("./tdata/ayudata.db-shm", QString("./tdata/ayudata_%1.db-shm").arg(time));
-	}
-
-	if (QFile::exists("./tdata/ayudata.db-wal")) {
-		QFile::rename("./tdata/ayudata.db-wal", QString("./tdata/ayudata_%1.db-wal").arg(time));
+	for (const auto &suffix : { u""_q, u"-shm"_q, u"-wal"_q }) {
+		const auto current = path + suffix;
+		if (QFile::exists(current)) {
+			const auto renamed = cWorkingDir() + u"tdata/ayudata_%1.db"_q.arg(time) + suffix;
+			QFile::rename(current, renamed);
+		}
 	}
 }
 
 void applySecurityPragmas() {
 	try {
-		storage.pragma.journal_mode(sqlite_orm::journal_mode::WAL);
-		storage.pragma.synchronous(1);
+		storage().pragma.journal_mode(sqlite_orm::journal_mode::WAL);
+		storage().pragma.synchronous(1);
 	} catch (const std::exception &ex) {
 		LOG(("Failed to apply DB security pragmas: %1").arg(ex.what()));
 	}
@@ -254,31 +265,31 @@ void initialize() {
 	try {
 		applySecurityPragmas();
 
-		storage.sync_schema(true);
+		storage().sync_schema(true);
 
-		runMigrations(storage);
+		runMigrations(storage());
 
-		storage.sync_schema(true);
+		storage().sync_schema(true);
 	} catch (const std::exception &ex) {
 		LOG(("Database initialization failed: %1").arg(ex.what()));
 		moveCurrentDatabase();
 
 		applySecurityPragmas();
-		storage.sync_schema(true);
-		if (!storage.get_pointer<SchemaVersion>(1)) {
-			storage.insert(SchemaVersion{1, 0});
+		storage().sync_schema(true);
+		if (!storage().get_pointer<SchemaVersion>(1)) {
+			storage().insert(SchemaVersion{1, 0});
 		}
 	}
 }
 
 void addEditedMessage(const EditedMessage &message) {
 	try {
-		storage.begin_transaction();
-		storage.insert(message);
-		storage.commit();
+		storage().begin_transaction();
+		storage().insert(message);
+		storage().commit();
 	} catch (std::exception &ex) {
 		try {
-			storage.rollback();
+			storage().rollback();
 		} catch (...) {
 		}
 		LOG(("Failed to save edited message for some reason: %1").arg(ex.what()));
@@ -288,7 +299,7 @@ void addEditedMessage(const EditedMessage &message) {
 std::vector<EditedMessage> getEditedMessages(ID userId, ID dialogId, ID messageId, ID minId, ID maxId, int totalLimit) {
 	const auto lowerFakeId = (minId == 0) ? std::numeric_limits<ID>::lowest() : minId;
 	const auto upperFakeId = (maxId == 0) ? std::numeric_limits<ID>::max() : maxId;
-	return storage.get_all<EditedMessage>(
+	return storage().get_all<EditedMessage>(
 		where(
 			column<EditedMessage>(&EditedMessage::userId) == userId and
 			column<EditedMessage>(&EditedMessage::dialogId) == dialogId and
@@ -303,7 +314,7 @@ std::vector<EditedMessage> getEditedMessages(ID userId, ID dialogId, ID messageI
 
 bool hasRevisions(ID userId, ID dialogId, ID messageId) {
 	try {
-		return !storage.select(
+		return !storage().select(
 			columns(column<EditedMessage>(&EditedMessage::messageId)),
 			where(
 				column<EditedMessage>(&EditedMessage::userId) == userId and
@@ -320,12 +331,12 @@ bool hasRevisions(ID userId, ID dialogId, ID messageId) {
 
 void addDeletedMessage(const DeletedMessage &message) {
 	try {
-		storage.begin_transaction();
-		storage.insert(message);
-		storage.commit();
+		storage().begin_transaction();
+		storage().insert(message);
+		storage().commit();
 	} catch (std::exception &ex) {
 		try {
-			storage.rollback();
+			storage().rollback();
 		} catch (...) {
 		}
 		LOG(("Failed to save edited message for some reason: %1").arg(ex.what()));
@@ -337,7 +348,7 @@ std::vector<DeletedMessage> getDeletedMessages(ID userId, ID dialogId, ID topicI
 	const auto upperMessageId = (maxId == 0) ? std::numeric_limits<ID>::max() : maxId;
 	if (searchQuery.empty()) {
 		if (topicId == 0) {
-			return storage.get_all<DeletedMessage>(
+			return storage().get_all<DeletedMessage>(
 				where(
 					column<DeletedMessage>(&DeletedMessage::userId) == userId and
 					column<DeletedMessage>(&DeletedMessage::dialogId) == dialogId and
@@ -348,7 +359,7 @@ std::vector<DeletedMessage> getDeletedMessages(ID userId, ID dialogId, ID topicI
 				limit(totalLimit)
 			);
 		}
-		return storage.get_all<DeletedMessage>(
+		return storage().get_all<DeletedMessage>(
 			where(
 				column<DeletedMessage>(&DeletedMessage::userId) == userId and
 				column<DeletedMessage>(&DeletedMessage::dialogId) == dialogId and
@@ -371,7 +382,7 @@ std::vector<DeletedMessage> getDeletedMessages(ID userId, ID dialogId, ID topicI
 	}
 	const auto pattern = "%" + escaped + "%";
 	if (topicId == 0) {
-		return storage.get_all<DeletedMessage>(
+		return storage().get_all<DeletedMessage>(
 			where(
 				column<DeletedMessage>(&DeletedMessage::userId) == userId and
 				column<DeletedMessage>(&DeletedMessage::dialogId) == dialogId and
@@ -383,7 +394,7 @@ std::vector<DeletedMessage> getDeletedMessages(ID userId, ID dialogId, ID topicI
 			limit(totalLimit)
 		);
 	}
-	return storage.get_all<DeletedMessage>(
+	return storage().get_all<DeletedMessage>(
 		where(
 			column<DeletedMessage>(&DeletedMessage::userId) == userId and
 			column<DeletedMessage>(&DeletedMessage::dialogId) == dialogId and
@@ -400,7 +411,7 @@ std::vector<DeletedMessage> getDeletedMessages(ID userId, ID dialogId, ID topicI
 bool hasDeletedMessages(ID userId, ID dialogId, ID topicId) {
 	try {
 		if (topicId == 0) {
-			return !storage.select(
+			return !storage().select(
 				columns(column<DeletedMessage>(&DeletedMessage::dialogId)),
 				where(
 					column<DeletedMessage>(&DeletedMessage::userId) == userId and
@@ -409,7 +420,7 @@ bool hasDeletedMessages(ID userId, ID dialogId, ID topicId) {
 				limit(1)
 			).empty();
 		}
-		return !storage.select(
+		return !storage().select(
 			columns(column<DeletedMessage>(&DeletedMessage::dialogId)),
 			where(
 				column<DeletedMessage>(&DeletedMessage::userId) == userId and
@@ -427,7 +438,7 @@ bool hasDeletedMessages(ID userId, ID dialogId, ID topicId) {
 void clearDeletedMessages(ID userId, ID dialogId, ID topicId) {
 	try {
 		if (topicId == 0) {
-			storage.remove_all<DeletedMessage>(
+			storage().remove_all<DeletedMessage>(
 				where(
 					column<DeletedMessage>(&DeletedMessage::userId) == userId and
 					column<DeletedMessage>(&DeletedMessage::dialogId) == dialogId
@@ -435,7 +446,7 @@ void clearDeletedMessages(ID userId, ID dialogId, ID topicId) {
 			);
 			return;
 		}
-		storage.remove_all<DeletedMessage>(
+		storage().remove_all<DeletedMessage>(
 			where(
 				column<DeletedMessage>(&DeletedMessage::userId) == userId and
 				column<DeletedMessage>(&DeletedMessage::dialogId) == dialogId and
@@ -449,7 +460,7 @@ void clearDeletedMessages(ID userId, ID dialogId, ID topicId) {
 template<typename T>
 std::vector<T> getAllT() {
 	try {
-		return storage.get_all<T>();
+		return storage().get_all<T>();
 	} catch (std::exception &ex) {
 		LOG(("Failed to get all: %1").arg(ex.what()));
 		return {};
@@ -466,9 +477,9 @@ std::vector<RegexFilterGlobalExclusion> getAllFiltersExclusions() {
 
 std::vector<RegexFilter> getExcludedByDialogId(ID dialogId) {
 	try {
-		return storage.get_all<RegexFilter>(
+		return storage().get_all<RegexFilter>(
 			where(in(&RegexFilter::id,
-					 storage.select(columns(&RegexFilterGlobalExclusion::filterId),
+					 storage().select(columns(&RegexFilterGlobalExclusion::filterId),
 									where(is_equal(&RegexFilterGlobalExclusion::dialogId, dialogId))
 					 )
 			))
@@ -481,7 +492,7 @@ std::vector<RegexFilter> getExcludedByDialogId(ID dialogId) {
 
 int getCount() {
 	try {
-		return storage.count<RegexFilter>();
+		return storage().count<RegexFilter>();
 	} catch (std::exception &ex) {
 		LOG(("Failed to get count: %1").arg(ex.what()));
 		return 0;
@@ -490,7 +501,7 @@ int getCount() {
 
 RegexFilter getById(std::vector<char> id) {
 	try {
-		return storage.get<RegexFilter>(
+		return storage().get<RegexFilter>(
 			where(column<RegexFilter>(&RegexFilter::id) == std::move(id))
 		);
 	} catch (std::exception &ex) {
@@ -501,7 +512,7 @@ RegexFilter getById(std::vector<char> id) {
 
 std::vector<RegexFilter> getShared() {
 	try {
-		return storage.get_all<RegexFilter>(
+		return storage().get_all<RegexFilter>(
 			where(is_null(column<RegexFilter>(&RegexFilter::dialogId)))
 		);
 	} catch (std::exception &ex) {
@@ -512,7 +523,7 @@ std::vector<RegexFilter> getShared() {
 
 std::vector<RegexFilter> getByDialogId(ID dialogId) {
 	try {
-		return storage.get_all<RegexFilter>(
+		return storage().get_all<RegexFilter>(
 			where(column<RegexFilter>(&RegexFilter::dialogId) == dialogId)
 		);
 	} catch (std::exception &ex) {
@@ -523,12 +534,12 @@ std::vector<RegexFilter> getByDialogId(ID dialogId) {
 
 void addRegexFilter(const RegexFilter &filter) {
 	try {
-		storage.begin_transaction();
-		storage.replace(filter); // we're using replace as we set std::vector<char> as primary key
-		storage.commit();
+		storage().begin_transaction();
+		storage().replace(filter); // we're using replace as we set std::vector<char> as primary key
+		storage().commit();
 	} catch (std::exception &ex) {
 		try {
-			storage.rollback();
+			storage().rollback();
 		} catch (...) {
 		}
 		LOG(("Failed to save regex filter for some reason: %1").arg(ex.what()));
@@ -537,12 +548,12 @@ void addRegexFilter(const RegexFilter &filter) {
 
 void addRegexExclusion(const RegexFilterGlobalExclusion &exclusion) {
 	try {
-		storage.begin_transaction();
-		storage.insert(exclusion);
-		storage.commit();
+		storage().begin_transaction();
+		storage().insert(exclusion);
+		storage().commit();
 	} catch (std::exception &ex) {
 		try {
-			storage.rollback();
+			storage().rollback();
 		} catch (...) {
 		}
 		LOG(("Failed to save regex filter exclusion for some reason: %1").arg(ex.what()));
@@ -551,7 +562,7 @@ void addRegexExclusion(const RegexFilterGlobalExclusion &exclusion) {
 
 void updateRegexFilter(const RegexFilter &filter) {
 	try {
-		storage.update_all(
+		storage().update_all(
 			set(
 				c(&RegexFilter::text) = filter.text,
 				c(&RegexFilter::enabled) = filter.enabled,
@@ -568,7 +579,7 @@ void updateRegexFilter(const RegexFilter &filter) {
 
 void deleteFilter(const std::vector<char> &id) {
 	try {
-		storage.remove_all<RegexFilter>(
+		storage().remove_all<RegexFilter>(
 			where(column<RegexFilter>(&RegexFilter::id) == id)
 		);
 	} catch (std::exception &ex) {
@@ -578,7 +589,7 @@ void deleteFilter(const std::vector<char> &id) {
 
 void deleteExclusionsByFilterId(const std::vector<char> &id) {
 	try {
-		storage.remove_all<RegexFilterGlobalExclusion>(
+		storage().remove_all<RegexFilterGlobalExclusion>(
 			where(column<RegexFilterGlobalExclusion>(&RegexFilterGlobalExclusion::filterId) == id)
 		);
 	} catch (std::exception &ex) {
@@ -588,7 +599,7 @@ void deleteExclusionsByFilterId(const std::vector<char> &id) {
 
 void deleteExclusion(ID dialogId, std::vector<char> filterId) {
 	try {
-		storage.remove_all<RegexFilterGlobalExclusion>(
+		storage().remove_all<RegexFilterGlobalExclusion>(
 			where(column<RegexFilterGlobalExclusion>(&RegexFilterGlobalExclusion::filterId) == filterId and
 				column<RegexFilterGlobalExclusion>(&RegexFilterGlobalExclusion::dialogId) == dialogId
 			)
@@ -600,7 +611,7 @@ void deleteExclusion(ID dialogId, std::vector<char> filterId) {
 
 void deleteAllFilters() {
 	try {
-		storage.remove_all<RegexFilter>();
+		storage().remove_all<RegexFilter>();
 	} catch (std::exception &ex) {
 		LOG(("Failed to delete all regex filter for some reason: %1").arg(ex.what()));
 	}
@@ -608,7 +619,7 @@ void deleteAllFilters() {
 
 void deleteAllExclusions() {
 	try {
-		storage.remove_all<RegexFilterGlobalExclusion>();
+		storage().remove_all<RegexFilterGlobalExclusion>();
 	} catch (std::exception &ex) {
 		LOG(("Failed to delete all regex filter exclusions for some reason: %1").arg(ex.what()));
 	}
@@ -616,7 +627,7 @@ void deleteAllExclusions() {
 
 bool hasFilters() {
 	try {
-		return !storage.select(
+		return !storage().select(
 			columns(column<RegexFilter>(&RegexFilter::id)),
 			limit(1)
 		).empty();
@@ -629,12 +640,12 @@ bool hasFilters() {
 bool hasPerDialogFilters() {
 	try {
 		return
-			!storage.select(
+			!storage().select(
 				columns(column<RegexFilter>(&RegexFilter::id)),
 				where(is_not_null(column<RegexFilter>(&RegexFilter::dialogId))),
 				limit(1)
 			).empty() ||
-			!storage.select(
+			!storage().select(
 				columns(column<RegexFilterGlobalExclusion>(&RegexFilterGlobalExclusion::fakeId)),
 				limit(1)
 			).empty();

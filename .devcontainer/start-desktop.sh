@@ -8,7 +8,7 @@ Display="${DISPLAY:-:1}"
 Geometry="${AYUGRAM_DESKTOP_GEOMETRY:-1920x1080x24}"
 VncPort="${AYUGRAM_VNC_PORT:-5900}"
 WebPort="${AYUGRAM_DESKTOP_PORT:-6080}"
-VncPassword="${AYUGRAM_VNC_PASSWORD:-ayugram}"
+VncPassword=""
 
 mkdir -p "$StateDirectory" "$RuntimeDirectory" "$HOME/.vnc" "$HOME/out" "/tmp/.X11-unix"
 chmod 1777 "/tmp/.X11-unix"
@@ -38,11 +38,19 @@ startProcess() {
 	echo $! >"$PidFile"
 }
 
-if [ -s "$StateDirectory/password" ]; then
+if [ -n "${AYUGRAM_VNC_PASSWORD:-}" ]; then
+	VncPassword="$AYUGRAM_VNC_PASSWORD"
+elif [ -s "$StateDirectory/password" ]; then
 	VncPassword="$(cat "$StateDirectory/password")"
 else
 	umask 077
+	if command -v openssl >/dev/null 2>&1; then
+		VncPassword="$(openssl rand -hex 16)"
+	else
+		VncPassword="$(head -c 16 /dev/urandom | od -An -tx1 | tr -d ' \n')"
+	fi
 	printf '%s\n' "$VncPassword" >"$StateDirectory/password"
+	chmod 600 "$StateDirectory/password"
 fi
 
 if [ ! -s "$StateDirectory/vnc.passwd" ]; then
@@ -108,7 +116,7 @@ startProcess xterm xterm -u8 -geometry 120x36+24+24 -title "AyuGram Development 
 
 /usr/local/bin/launch-ayugram --if-present
 
-printf 'Desktop URL: http://localhost:%s/vnc.html?autoconnect=true&resize=scale&password=%s\n' "$WebPort" "$VncPassword"
-printf 'VNC Password: %s\n' "$VncPassword"
+printf 'Desktop URL: http://localhost:%s/vnc.html?autoconnect=true&resize=scale\n' "$WebPort"
+printf 'VNC password file: %s/password\n' "$StateDirectory"
 
 wait

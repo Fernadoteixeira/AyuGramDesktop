@@ -78,7 +78,11 @@ void Domain::startWithSingleAccount(
 
 	if (auto localKey = account->local().peekLegacyLocalKey()) {
 		_localKey = std::move(localKey);
-		encryptLocalKey(passcode);
+		if (!encryptLocalKey(passcode)) {
+			LOG(("KDF Error: storing migrated account without a passcode."));
+			const auto fallback = encryptLocalKey(QByteArray());
+			Ensures(fallback);
+		}
 		account->start(nullptr);
 	} else {
 		generateLocalKey();
@@ -101,32 +105,40 @@ void Domain::generateLocalKey() {
 	base::RandomFill(salt.data(), salt.size());
 	_localKey = CreateLocalKey(pass, salt);
 
-	encryptLocalKey(QByteArray());
+	const auto encrypted = encryptLocalKey(QByteArray());
+	Ensures(encrypted);
 }
 
-void Domain::encryptLocalKey(const QByteArray &passcode) {
+bool Domain::encryptLocalKey(const QByteArray &passcode) {
 #if OPENSSL_VERSION_NUMBER >= 0x10100000L
 	const auto useScrypt = !passcode.isEmpty();
 	const auto saltSize = useScrypt
 		? (LocalEncryptSaltSize + 1)
 		: LocalEncryptSaltSize;
-	_passcodeKeySalt.resize(saltSize);
+	auto salt = QByteArray(saltSize, Qt::Uninitialized);
 	if (useScrypt) {
-		_passcodeKeySalt[0] = char(0x02);
-		base::RandomFill(_passcodeKeySalt.data() + 1, LocalEncryptSaltSize);
+		salt[0] = static_cast<char>(kKdfVersionScrypt);
+		base::RandomFill(salt.data() + 1, LocalEncryptSaltSize);
 	} else {
-		base::RandomFill(_passcodeKeySalt.data(), _passcodeKeySalt.size());
+		base::RandomFill(salt.data(), salt.size());
 	}
 #else
-	_passcodeKeySalt.resize(LocalEncryptSaltSize);
-	base::RandomFill(_passcodeKeySalt.data(), _passcodeKeySalt.size());
+	auto salt = QByteArray(LocalEncryptSaltSize, Qt::Uninitialized);
+	base::RandomFill(salt.data(), salt.size());
 #endif
-	_passcodeKey = CreateLocalKey(passcode, _passcodeKeySalt);
+	auto passcodeKey = CreateLocalKey(passcode, salt);
+	if (!passcodeKey) {
+		LOG(("KDF Error: could not derive passcode key, state unchanged."));
+		return false;
+	}
 
 	EncryptedDescriptor passKeyData(MTP::AuthKey::kSize);
 	_localKey->write(passKeyData.stream);
+	_passcodeKeySalt = salt;
+	_passcodeKey = std::move(passcodeKey);
 	_passcodeKeyEncrypted = PrepareEncrypted(passKeyData, _passcodeKey);
 	_hasLocalPasscode = !passcode.isEmpty();
+	return true;
 }
 
 Domain::StartModernResult Domain::startModern(
@@ -151,6 +163,11 @@ Domain::StartModernResult Domain::startModern(
 		return StartModernResult::Failed;
 	}
 	_passcodeKey = CreateLocalKey(passcode, salt);
+	if (!_passcodeKey) {
+		LOG(("App Info: could not derive passcode key from info file, "
+			"maybe bad password..."));
+		return StartModernResult::IncorrectPasscode;
+	}
 
 	EncryptedDescriptor keyInnerData, info;
 	if (!DecryptLocal(keyInnerData, keyEncrypted, _passcodeKey)) {
@@ -264,14 +281,16 @@ bool Domain::checkPasscode(const QByteArray &passcode) const {
 	Expects(_passcodeKey != nullptr);
 
 	const auto checkKey = CreateLocalKey(passcode, _passcodeKeySalt);
-	return checkKey->equals(_passcodeKey);
+	return checkKey && checkKey->equals(_passcodeKey);
 }
 
 void Domain::setPasscode(const QByteArray &passcode) {
 	Expects(!_passcodeKeySalt.isEmpty());
 	Expects(_localKey != nullptr);
 
-	encryptLocalKey(passcode);
+	if (!encryptLocalKey(passcode)) {
+		return;
+	}
 	writeAccounts();
 
 	_passcodeKeyChanged.fire({});

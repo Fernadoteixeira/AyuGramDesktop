@@ -1,6 +1,6 @@
 param(
     [string]$ContainerName = "ayugram-dev-ui",
-    [string]$NoVncUrl = "http://127.0.0.1:6080/vnc.html?autoconnect=true&resize=scale&password=ayugram",
+    [string]$NoVncUrl = "http://127.0.0.1:6080/vnc.html?autoconnect=true&resize=scale",
     [int]$TimeoutSeconds = 90
 )
 
@@ -73,5 +73,7 @@ Wait-Until -TimeoutSeconds $TimeoutSeconds -FailureMessage "A porta 6080 não fi
     (Test-NetConnection -ComputerName 127.0.0.1 -Port 6080 -WarningAction SilentlyContinue).TcpTestSucceeded
 }
 
+$VncPassword = (docker exec $ContainerName cat /home/user/.local/state/ayugram-desktop/password).Trim()
+
 Write-Host "Ambiente pronto! Abrindo navegador..."
-Start-Process $NoVncUrl
+Start-Process "$NoVncUrl&password=$VncPassword"

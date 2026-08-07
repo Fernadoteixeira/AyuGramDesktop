@@ -11,8 +11,13 @@ https://github.com/telegramdesktop/tdesktop/blob/master/LEGAL
 
 #include <QtCore/QBuffer>
 
+#include <cstddef>
+
 namespace Storage {
 namespace details {
+
+constexpr auto kKdfVersionPBKDF2 = std::byte{ 0x01 };
+constexpr auto kKdfVersionScrypt = std::byte{ 0x02 };
 
 [[nodiscard]] QString ToFilePart(FileKey val);
 [[nodiscard]] bool KeyAlreadyUsed(QString &name);

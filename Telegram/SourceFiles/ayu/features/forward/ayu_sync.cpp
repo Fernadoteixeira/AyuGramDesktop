@@ -9,6 +9,7 @@
 #include "apiwrap.h"
 #include "api/api_sending.h"
 #include "ayu/utils/telegram_helpers.h"
+#include "base/base_file_utilities.h"
 #include "core/application.h"
 #include "core/core_settings.h"
 #include "core/file_utilities.h"
@@ -41,8 +42,14 @@ QString filePath(not_null<Main::Session*> session, const Data::Media *media) {
 	}
 
 	if (const auto document = media->document()) {
-		if (!document->filename().isEmpty()) {
-			return pathForSave(session) + media->document()->filename();
+		const auto safeName = base::FileNameFromUserString(document->filename());
+		const auto folder = pathForSave(session);
+		const auto folderPath = QDir(folder).absolutePath();
+		const auto fullPath = QFileInfo(folder + safeName).absoluteFilePath();
+		if (!safeName.isEmpty()
+			&& !safeName.contains(u".."_q)
+			&& fullPath.startsWith(folderPath + '/')) {
+			return folder + safeName;
 		}
 		if (const auto name = document->filepath(true); !name.isEmpty()) {
 			return name;

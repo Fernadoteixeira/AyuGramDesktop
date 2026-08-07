@@ -514,6 +514,7 @@ stage('lzma', """
 win:
     git clone https://github.com/desktop-app/lzma.git
     cd lzma\\C\\Util\\LzmaLib
+    git checkout 455a368eec2ac5d94de4de71bbf7a8a0fa0d72b7
     msbuild -m LzmaLib.sln /property:Configuration=Debug /property:Platform="$X8664"
 release:
     msbuild -m LzmaLib.sln /property:Configuration=Release /property:Platform="$X8664"
@@ -523,6 +524,7 @@ stage('xz', """
 !win:
     git clone -b v5.4.5 https://github.com/tukaani-project/xz.git
     cd xz
+    git checkout 49053c0a649f4c8bd2b8d97ce915f401fbc0f3d9
     sed -i '' '\\@check_symbol_exists(futimens "sys/types.h;sys/stat.h" HAVE_FUTIMENS)@d' CMakeLists.txt
     CFLAGS="$UNGUARDED" CPPFLAGS="$UNGUARDED" cmake -B build . \\
         -D CMAKE_OSX_ARCHITECTURES="x86_64;arm64" \\
@@ -592,6 +594,7 @@ mac:
 stage('openssl3', """
     git clone -b openssl-3.2.1 https://github.com/openssl/openssl openssl3
     cd openssl3
+    git checkout a7e992847de83aa36be0c399c89db3fb827b0be2
 win32:
     perl Configure no-shared no-tests debug-VC-WIN32 /FS
 win64:
@@ -685,8 +688,10 @@ release:
 stage('libiconv', """
 mac:
     VERSION=1.18
+    SHA256=3b08f5f4f9b4eb82f151a7040bfd6fe6c6fb922efe4b1659c66ea933276965e8
     rm -f libiconv.tar.gz
-    wget --timeout=30 --tries=2 -O libiconv.tar.gz ftp://ftp.gnu.org/gnu/libiconv/libiconv-$VERSION.tar.gz || wget -O libiconv.tar.gz https://ftp.gnu.org/pub/gnu/libiconv/libiconv-$VERSION.tar.gz
+    wget --timeout=30 --tries=2 -O libiconv.tar.gz https://ftp.gnu.org/gnu/libiconv/libiconv-$VERSION.tar.gz
+    echo "$SHA256  libiconv.tar.gz" | shasum -a 256 -c
     rm -rf libiconv-$VERSION
     tar -xvzf libiconv.tar.gz
     rm libiconv.tar.gz
@@ -717,6 +722,7 @@ win:
 stage('dav1d', """
     git clone -b 1.5.3 https://code.videolan.org/videolan/dav1d.git
     cd dav1d
+    git checkout b546257f770768b2c88258c533da38b91a06f737
 win32:
     SET "TARGET=x86"
     SET "DAV1D_ASM_DISABLE=-Denable_asm=false"
@@ -840,6 +846,7 @@ mac:
 stage('libavif', """
     git clone -b v1.3.0 https://github.com/AOMediaCodec/libavif.git
     cd libavif
+    git checkout 1aadfad932c98c069a1204261b1856f81f3bc199
 win:
     cmake . ^
         -DCMAKE_INSTALL_PREFIX=%LIBS_DIR%/local ^
@@ -901,6 +908,7 @@ mac:
 stage('libwebp', """
     git clone -b v1.6.0 https://github.com/webmproject/libwebp.git
     cd libwebp
+    git checkout 4fa21912338357f89e4fd51cf2368325b59e9bd9
 win:
     nmake /f Makefile.vc CFG=debug-static OBJDIR=out RTLIBCFG=static all
     nmake /f Makefile.vc CFG=release-static OBJDIR=out RTLIBCFG=static all
@@ -940,6 +948,7 @@ mac:
 stage('libheif', """
     git clone -b v1.21.2 https://github.com/strukturag/libheif.git
     cd libheif
+    git checkout 62f1b8c76ed4d8305071fdacbe74ef9717bacac5
 win:
     %THIRDPARTY_DIR%\\msys64\\usr\\bin\\sed.exe -i 's/LIBHEIF_EXPORTS/LIBDE265_STATIC_BUILD/g' libheif/CMakeLists.txt
     %THIRDPARTY_DIR%\\msys64\\usr\\bin\\sed.exe -i 's/HAVE_VISIBILITY/LIBHEIF_STATIC_BUILD/g' libheif/CMakeLists.txt
@@ -1000,6 +1009,7 @@ mac:
 stage('libjxl', """
     git clone -b v0.11.2 --recursive --shallow-submodules https://github.com/libjxl/libjxl.git
     cd libjxl
+    git checkout 332feb17d17311c748445f7ee75c4fb55cc38530
 """ + setVar("cmake_defines", """
     -DBUILD_SHARED_LIBS=OFF
     -DBUILD_TESTING=OFF
@@ -1151,6 +1161,7 @@ stage('regex', """
 stage('ffmpeg', """
     git clone -b n6.1.1 https://github.com/FFmpeg/FFmpeg.git ffmpeg
     cd ffmpeg
+    git checkout e38092ef9395d7049f871ef4d5411eb410e283e0
 win:
 depends:patches/ffmpeg.patch
     git apply ../patches/ffmpeg.patch
@@ -1343,7 +1354,7 @@ win:
 release:
     cmake --build build --config RelWithDebInfo
 mac:
-    git checkout coreaudio_device_uid
+    git checkout c2eab43d72890c58d4b51d5d98eafb9f011e1c89
     CFLAGS=$UNGUARDED CPPFLAGS=$UNGUARDED cmake -B build . \\
         -D CMAKE_BUILD_TYPE=RelWithDebInfo \\
         -D CMAKE_INSTALL_PREFIX:PATH=$USED_PREFIX \\
@@ -1361,7 +1372,7 @@ if 'build-stackwalk' in options:
 mac:
     git clone https://chromium.googlesource.com/breakpad/breakpad stackwalk
     cd stackwalk
-    git checkout dfcb7b6799
+    git checkout dfcb7b6799b7c1e2c8d65e857d8afede185471d8
 depends:patches/breakpad.diff
     git apply ../patches/breakpad.diff
     git clone -b release-1.11.0 https://github.com/google/googletest src/testing
@@ -1377,7 +1388,7 @@ depends:patches/breakpad.diff
 stage('breakpad', """
     git clone https://chromium.googlesource.com/breakpad/breakpad
     cd breakpad
-    git checkout dfcb7b6799
+    git checkout dfcb7b6799b7c1e2c8d65e857d8afede185471d8
 depends:patches/breakpad.diff
     git apply ../patches/breakpad.diff
     git clone -b release-1.11.0 https://github.com/google/googletest src/testing

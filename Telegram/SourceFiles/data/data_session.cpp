@@ -2737,7 +2737,8 @@ void Session::updateEditedMessage(const MTPMessage &data) {
 		goto proceed;
 	}
 	edit = HistoryMessageEdition(_session, data.c_message());
-	if (settings.saveMessagesHistory() && !existing->isLocal() && !existing->author()->isSelf() && !edit.isEditHide) {
+	if (settings.saveMessagesHistory() && !existing->isLocal() && !existing->author()->isSelf() && !edit.isEditHide
+		&& !(AyuSecurity::isPasscodeProtected() && Core::App().passcodeLocked())) {
 		const auto msg = existing->originalText();
 
 		if (edit.textWithEntities == msg || msg.empty()) {

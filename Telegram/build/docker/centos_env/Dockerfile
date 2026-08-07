@@ -777,7 +777,11 @@ RUN git clone -b v$QT --depth=1 https://github.com/qt/qt5.git \
 	&& rm -rf qt5
 
 FROM builder AS boost
-RUN curl -sSL https://archives.boost.io/release/1.90.0/source/boost_1_90_0.tar.gz | tar -xz \
+ENV BOOST_SHA256=5e93d582aff26868d581a52ae78c7d8edf3f3064742c6e77901a1f18a437eea9
+RUN curl -sSL -o boost.tar.gz https://archives.boost.io/release/1.90.0/source/boost_1_90_0.tar.gz \
+	&& echo "$BOOST_SHA256  boost.tar.gz" | sha256sum -c \
+	&& tar -xzf boost.tar.gz \
+	&& rm boost.tar.gz \
 	&& cd boost_* \
 	&& ./bootstrap.sh --prefix=/usr/src/boost-cache/usr/local --with-libraries=regex \
 	&& ./b2 release link=static install \

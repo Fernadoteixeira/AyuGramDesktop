@@ -60,7 +60,7 @@ private:
 		const QByteArray &passcode,
 		std::unique_ptr<Main::Account> account);
 	void generateLocalKey();
-	void encryptLocalKey(const QByteArray &passcode);
+	[[nodiscard]] bool encryptLocalKey(const QByteArray &passcode);
 
 	const not_null<Main::Domain*> _owner;
 	const QString _dataName;

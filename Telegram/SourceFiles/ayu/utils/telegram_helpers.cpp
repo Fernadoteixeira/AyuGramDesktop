@@ -718,6 +718,10 @@ bool isMessageSavable(const not_null<HistoryItem*> item) {
 		return false;
 	}
 
+	if (AyuSecurity::isPasscodeProtected() && Core::App().passcodeLocked()) {
+		return false;
+	}
+
 	if (const auto possiblyBot = item->history()->peer->asUser()) {
 		return !possiblyBot->isBot() || (settings.saveForBots() && possiblyBot->isBot());
 	}

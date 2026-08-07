@@ -51,6 +51,12 @@ QString AyuLanguage::getCacheDir() const {
 }
 
 QString AyuLanguage::getCachePath(const QString &langId) const {
+	if (langId.isEmpty()
+		|| langId.contains(u".."_q)
+		|| langId.contains('/')
+		|| langId.contains('\\')) {
+		return {};
+	}
 	return getCacheDir() + langId + u".json"_q;
 }
 
