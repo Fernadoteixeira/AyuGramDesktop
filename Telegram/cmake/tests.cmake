@@ -76,6 +76,7 @@ if (UNIX AND NOT APPLE)
         ayu/libs/sqlite/sqlite3.c
     )
     target_compile_options(test_ayu_database PRIVATE -ffunction-sections -fdata-sections)
+    target_compile_definitions(test_ayu_database PRIVATE AYU_DATABASE_TEST_BUILD)
     target_link_options(test_ayu_database PRIVATE -Wl,--gc-sections)
     target_link_libraries(test_ayu_database
     PRIVATE

@@ -10,12 +10,19 @@
 #include "ayu/data/ayu_database_key.h"
 #include "ayu/data/entities.h"
 #include "ayu/libs/sqlite/sqlite_orm.h"
+#include "base/debug_log.h"
 #include "base/unixtime.h"
+#ifndef AYU_DATABASE_TEST_BUILD
 #include "core/application.h"
 #include "main/main_account.h"
 #include "main/main_domain.h"
 #include "settings.h"
 #include "storage/storage_account.h"
+#endif
+
+#ifdef AYU_DATABASE_TEST_BUILD
+inline QString cWorkingDir() { return QString(); }
+#endif
 
 #include <openssl/crypto.h>
 
@@ -203,6 +210,7 @@ bool databaseReady() {
 	return g_state.load() == int(DatabaseState::Ready);
 }
 
+#ifndef AYU_DATABASE_TEST_BUILD
 bool retentionAllowed() {
 	if (!databaseReady() || !Core::IsAppLaunched()) {
 		return false;
@@ -212,6 +220,9 @@ bool retentionAllowed() {
 	}
 	return !Core::App().passcodeLocked();
 }
+#else
+bool retentionAllowed() { return false; }
+#endif
 
 void applyCodecKey(sqlite3 *db) {
 	if (g_databaseKey.size() != AyuDatabase::kDatabaseKeySize) {
@@ -235,6 +246,7 @@ void applyCodecKey(sqlite3 *db) {
 	return file.read(16) == QByteArray("SQLite format 3\0", 16);
 }
 
+#ifndef AYU_DATABASE_TEST_BUILD
 MTP::AuthKeyPtr currentLocalKey() {
 	if (!Core::IsAppLaunched()) {
 		return nullptr;
@@ -245,6 +257,9 @@ MTP::AuthKeyPtr currentLocalKey() {
 	}
 	return domain.active().local().peekLegacyLocalKey();
 }
+#else
+MTP::AuthKeyPtr currentLocalKey() { return nullptr; }
+#endif
 
 template <typename T>
 void copyTable(Storage &source, Storage &target) {
@@ -449,6 +464,7 @@ void zeroizeKey() {
 	g_state = int(DatabaseState::Initial);
 }
 
+#ifndef AYU_DATABASE_TEST_BUILD
 void initialize() {
 	auto expected = int(DatabaseState::Initial);
 	if (!g_state.compare_exchange_strong(expected, int(DatabaseState::Failed))) {
@@ -529,6 +545,9 @@ void initialize() {
 	reportPlaintextArtifacts();
 	g_state = int(DatabaseState::Ready);
 }
+#else
+void initialize() {}
+#endif
 
 void addEditedMessage(const EditedMessage &message) {
 	if (!retentionAllowed()) {
