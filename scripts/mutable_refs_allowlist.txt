@@ -1,0 +1,10 @@
+# Allowlist for mutable git references that are legitimately un-pinnable.
+#
+# Format: relative_path:line_number
+#
+# qt5 clones use a runtime-selected version ($QT variable) and cannot be
+# statically pinned to a commit SHA.  The version is determined by
+# Telegram/build/qt_version.py at build time.
+
+Telegram/build/prepare/prepare.py:1518
+Telegram/build/prepare/prepare.py:1609

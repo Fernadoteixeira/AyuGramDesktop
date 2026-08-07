@@ -217,13 +217,10 @@ def scan_file(filepath, repo_root, allowlist):
                 elif is_shell_variable(b_tag):
                     pass  # can't resolve statically — skip
                 else:
-                    finding = Finding(
-                        rel_path, line_no, line,
-                        f'git clone -b "{b_tag}" uses mutable tag '
-                        f'(not a 40-hex SHA)',
-                    )
-                    if not is_allowlisted(allowlist, finding):
-                        findings.append(finding)
+                    # Mutable tag — defer: look for a pinning checkout/reset
+                    # within the next PIN_WINDOW lines.  If found, the clone
+                    # is effectively immutable (tag+checkout-pinned pattern).
+                    pending_clone = line_no
                 # clone has -b → no bare-clone pinning check needed
             else:
                 # bare git clone (no -b) → needs subsequent checkout/reset SHA

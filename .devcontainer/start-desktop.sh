@@ -47,9 +47,9 @@ elif [ -s "$StateDirectory/password" ]; then
 else
 	umask 077
 	if command -v openssl >/dev/null 2>&1; then
-		VncPassword="$(openssl rand -hex 16)"
+		VncPassword="$(openssl rand -base64 12 | tr -dc 'A-Za-z0-9' | head -c 8)"
 	else
-		VncPassword="$(head -c 16 /dev/urandom | od -An -tx1 | tr -d ' \n')"
+		VncPassword="$(head -c 6 /dev/urandom | base64 | tr -dc 'A-Za-z0-9' | head -c 8)"
 	fi
 	printf '%s\n' "$VncPassword" >"$StateDirectory/password"
 	chmod 600 "$StateDirectory/password"

@@ -663,7 +663,7 @@ mac:
 stage('rnnoise', """
     git clone https://github.com/desktop-app/rnnoise.git
     cd rnnoise
-    git checkout d8ea2b0
+    git checkout d8ea2b0ec6a88f8a68d6904d75e33b4f09cb2987
     mkdir out
     cd out
 win:
@@ -717,6 +717,7 @@ stage('gas-preprocessor', """
 win:
     git clone https://github.com/FFmpeg/gas-preprocessor
     cd gas-preprocessor
+    git checkout d6fb29b653b0d34827777f2519a28ce7e5c37066
     echo @echo off > cpp.bat
     echo cl %%%%%%** >> cpp.bat
 """)
@@ -1060,7 +1061,7 @@ stage('libvpx', """
     git clone https://github.com/webmproject/libvpx.git
 depends:patches/libvpx/*.patch
     cd libvpx
-    git checkout v1.14.1
+    git checkout 12f3a2ac603e8f10742105519e0cd03c3b8f71dd
 win:
     for /r %%i in (..\\patches\\libvpx\\*) do git apply %%i
 
@@ -1821,6 +1822,7 @@ stage('protobuf', """
 win:
     git clone --recursive -b v21.9 https://github.com/protocolbuffers/protobuf
     cd protobuf
+    git checkout 90b73ac3f0b10320315c2ca0d03a5a9b095d2f66
     git clone https://github.com/abseil/abseil-cpp third_party/abseil-cpp
     cd third_party/abseil-cpp
     git checkout 273292d1cf

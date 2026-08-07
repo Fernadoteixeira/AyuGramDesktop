@@ -1,0 +1,1031 @@
+{
+  "schema_version": "1.0",
+  "generated_date": "2026-08-07",
+  "generated_by": "SEC-343 Security 360 audit - dependency-source manifest",
+  "description": "Comprehensive manifest of every external dependency source consumed by the AyuGramDesktop build system. Inventoried from Telegram/build/prepare/prepare.py (Windows/macOS native builds), Telegram/build/docker/centos_env/Dockerfile (Linux container build), Telegram/build/qt_version.py (Qt version selector), and the repository git submodules (.gitmodules).",
+  "pin_type_legend": {
+    "sha-immutable": "Pinned to an immutable git commit SHA fetched directly (Dockerfile `git fetch --depth=1 origin <sha>`) or checked out after a branchless clone (prepare.py `git clone ... && git checkout <sha>`), OR an archive download verified by a sha256 checksum / a container image pinned by digest. The pinned artifact cannot move.",
+    "tag+checkout-pinned": "Cloned via a git tag/branch ref (`git clone -b <tag>`) and then reset to a specific commit SHA (`git checkout <sha>`). The tag is only a fetch convenience; the SHA is the real pin.",
+    "branch": "Cloned via a branch or checked out to a moving tag with no commit SHA pinning. The resolved commit can change if the upstream ref moves (weak pin).",
+    "runtime-variable": "Version or ref is resolved at runtime from an environment variable, or the artifact is downloaded without integrity verification (e.g. a 'latest' URL or a fixed URL with no checksum). Not reproducibly pinned."
+  },
+  "summary": {
+    "total_deps": 124,
+    "by_build_source": {
+      "prepare_py": 40,
+      "dockerfile": 51,
+      "submodules": 33
+    },
+    "by_pin_type": {
+      "sha-immutable": 95,
+      "tag+checkout-pinned": 18,
+      "branch": 4,
+      "runtime-variable": 7
+    },
+    "unresolved_to_sha": [
+      "msys64 (release download, no checksum)",
+      "python (host venv + unpinned pip packages)",
+      "NuGet (downloads 'latest' nuget.exe, no checksum)",
+      "jom (fixed-URL zip download, no checksum)",
+      "gyp (mac) (pip git+https://chromium.googlesource.com/external/gyp@master, moving branch, no SHA)",
+      "gas-preprocessor (git clone, no checkout/pin - default branch HEAD)",
+      "libvpx [prepare.py] (checked out tag v1.14.1, no commit SHA pinned)",
+      "protobuf [prepare.py] (cloned -b v21.9 branch tip, no commit SHA pinned)",
+      "qt5/qt6 [prepare.py] (branch v$QT[-lts-lgpl] from runtime $QT env, no commit SHA pinned)",
+      "dnf system packages [Dockerfile] (rpm packages, latest from repos)",
+      "pip packages [Dockerfile] (setuptools/urllib3/cryptography/numpy/meson/ninja, >= floor pins)"
+    ],
+    "unresolved_count": 11,
+    "note": "total_deps counts downloadable/cloneable dependency entries across prepare_py, dockerfile and submodules. qt_version.py provides Qt version-selection metadata (3 selectors) and is documented separately below; it is not counted in total_deps to avoid double-counting the Qt clone."
+  },
+  "dependencies": {
+    "prepare_py": [
+      {
+        "name": "patches",
+        "source_url": "https://github.com/desktop-app/patches.git",
+        "version": "commit 4519c85c924b9da81f29d4aac045886f896ee479",
+        "sha": "4519c85c924b9da81f29d4aac045886f896ee479",
+        "origin": "github.com/desktop-app/patches",
+        "pin_type": "sha-immutable",
+        "platforms": ["win", "mac"],
+        "notes": "Branchless git clone followed by git checkout of a pinned SHA. Source of build patches applied to many later stages."
+      },
+      {
+        "name": "msys64",
+        "source_url": "https://github.com/msys2/msys2-installer/releases/download/2025-08-30/msys2-base-x86_64-20250830.sfx.exe",
+        "version": "20250830",
+        "sha": null,
+        "origin": "github.com/msys2/msys2-installer",
+        "pin_type": "runtime-variable",
+        "platforms": ["win"],
+        "notes": "Downloaded self-extracting MSYS2 base archive. URL is pinned to a dated release but NO checksum/integrity verification is performed. win only. pacman then installs make, mingw-w64 diffutils/gperf/nasm/perl/pkgconf."
+      },
+      {
+        "name": "python (build venv)",
+        "source_url": "pip (PyPI)",
+        "version": "host python version; packages 'latest'",
+        "sha": null,
+        "origin": "pypi.org",
+        "pin_type": "runtime-variable",
+        "platforms": ["win"],
+        "notes": "Creates a venv from host Python and `pip install pywin32 six meson` with no version pins. Used to provide meson on Windows."
+      },
+      {
+        "name": "NuGet",
+        "source_url": "https://dist.nuget.org/win-x86-commandline/latest/nuget.exe",
+        "version": "latest",
+        "sha": null,
+        "origin": "dist.nuget.org",
+        "pin_type": "runtime-variable",
+        "platforms": ["win"],
+        "notes": "Downloads the 'latest' nuget.exe with no checksum verification. win only."
+      },
+      {
+        "name": "jom",
+        "source_url": "https://master.qt.io/official_releases/jom/jom_1_1_3.zip",
+        "version": "1.1.3",
+        "sha": null,
+        "origin": "master.qt.io",
+        "pin_type": "runtime-variable",
+        "platforms": ["win"],
+        "notes": "Fixed-version URL but no checksum verification. win only."
+      },
+      {
+        "name": "gyp (win)",
+        "source_url": "https://github.com/desktop-app/gyp.git",
+        "version": "commit 5e2425c47ba62aea63b20887ce545058b2dddec6",
+        "sha": "5e2425c47ba62aea63b20887ce545058b2dddec6",
+        "origin": "github.com/desktop-app/gyp",
+        "pin_type": "sha-immutable",
+        "platforms": ["win"],
+        "notes": "Branchless clone + checkout SHA. Conditionally built when not mac or when 'build-stackwalk' is in options."
+      },
+      {
+        "name": "gyp (mac)",
+        "source_url": "https://chromium.googlesource.com/external/gyp",
+        "version": "branch master (via pip git+...@master)",
+        "sha": null,
+        "origin": "chromium.googlesource.com/external/gyp",
+        "pin_type": "branch",
+        "platforms": ["mac"],
+        "notes": "mac path: `pip install git+https://chromium.googlesource.com/external/gyp@master six` into ThirdParty/gyp. Tracks the moving 'master' branch with no SHA pin; also pulls the 'six' package unpinned."
+      },
+      {
+        "name": "lzma",
+        "source_url": "https://github.com/desktop-app/lzma.git",
+        "version": "commit 455a368eec2ac5d94de4de71bbf7a8a0fa0d72b7",
+        "sha": "455a368eec2ac5d94de4de71bbf7a8a0fa0d72b7",
+        "origin": "github.com/desktop-app/lzma",
+        "pin_type": "sha-immutable",
+        "platforms": ["win"],
+        "notes": "Branchless clone + checkout SHA. win only (LzmaLib msbuild)."
+      },
+      {
+        "name": "xz",
+        "source_url": "https://github.com/tukaani-project/xz.git",
+        "version": "v5.4.5 @ 49053c0a649f4c8bd2b8d97ce915f401fbc0f3d9",
+        "sha": "49053c0a649f4c8bd2b8d97ce915f401fbc0f3d9",
+        "origin": "github.com/tukaani-project/xz",
+        "pin_type": "tag+checkout-pinned",
+        "platforms": ["mac"],
+        "notes": "`git clone -b v5.4.5` then checkout pinned SHA. !win (mac) stage. NOTE: the Dockerfile pins xz to a DIFFERENT commit (a522a226...)."
+      },
+      {
+        "name": "zlib",
+        "source_url": "https://github.com/madler/zlib.git",
+        "version": "v1.3.1 @ 925af44f3cde53c6b076611c297850091b5dc7bb",
+        "sha": "925af44f3cde53c6b076611c297850091b5dc7bb",
+        "origin": "github.com/madler/zlib",
+        "pin_type": "tag+checkout-pinned",
+        "platforms": ["win", "mac"],
+        "notes": "`git clone -b v1.3.1` then checkout pinned SHA. NOTE: the Dockerfile pins zlib to a DIFFERENT commit (51b7f2ab...)."
+      },
+      {
+        "name": "mozjpeg",
+        "source_url": "https://github.com/mozilla/mozjpeg.git",
+        "version": "v4.1.5 @ 38f37cf900958c1004c2eea945a773764ba20716",
+        "sha": "38f37cf900958c1004c2eea945a773764ba20716",
+        "origin": "github.com/mozilla/mozjpeg",
+        "pin_type": "tag+checkout-pinned",
+        "platforms": ["win", "mac"],
+        "notes": "`git clone -b v4.1.5` then checkout pinned SHA. NOTE: the Dockerfile pins mozjpeg to a DIFFERENT commit (6c9f0897...)."
+      },
+      {
+        "name": "openssl3",
+        "source_url": "https://github.com/openssl/openssl",
+        "version": "openssl-3.5.7 @ 8cf17aaeb4599f8af87fefd810b5b5fee90fe69e",
+        "sha": "8cf17aaeb4599f8af87fefd810b5b5fee90fe69e",
+        "origin": "github.com/openssl/openssl",
+        "pin_type": "tag+checkout-pinned",
+        "platforms": ["win", "mac"],
+        "notes": "`git clone -b openssl-3.5.7` then checkout pinned SHA. Same SHA used by the Dockerfile."
+      },
+      {
+        "name": "opus",
+        "source_url": "https://github.com/xiph/opus.git",
+        "version": "v1.5.2 @ 5ec2f3c915d0529b94a3a302969c673531654824",
+        "sha": "5ec2f3c915d0529b94a3a302969c673531654824",
+        "origin": "github.com/xiph/opus",
+        "pin_type": "tag+checkout-pinned",
+        "platforms": ["win", "mac"],
+        "notes": "`git clone -b v1.5.2` then checkout pinned SHA. NOTE: the Dockerfile pins opus to a DIFFERENT commit (ddbe4838...)."
+      },
+      {
+        "name": "rnnoise",
+        "source_url": "https://github.com/desktop-app/rnnoise.git",
+        "version": "commit d8ea2b0 (short SHA)",
+        "sha": "d8ea2b0",
+        "origin": "github.com/desktop-app/rnnoise",
+        "pin_type": "sha-immutable",
+        "platforms": ["win", "mac"],
+        "notes": "Branchless clone + checkout SHORT SHA d8ea2b0. Uses the desktop-app fork. NOTE: the Dockerfile uses the upstream xiph/rnnoise at a DIFFERENT commit (904a876d...)."
+      },
+      {
+        "name": "libiconv",
+        "source_url": "https://ftp.gnu.org/gnu/libiconv/libiconv-1.18.tar.gz",
+        "version": "1.18",
+        "sha": "3b08f5f4f9b4eb82f151a7040bfd6fe6c6fb922efe4b1659c66ea933276965e8",
+        "origin": "ftp.gnu.org",
+        "pin_type": "sha-immutable",
+        "platforms": ["mac"],
+        "notes": "wget tarball verified with `shasum -a 256 -c` against the embedded SHA256. mac only. The sha field holds the sha256 checksum (not a git SHA)."
+      },
+      {
+        "name": "gas-preprocessor",
+        "source_url": "https://github.com/FFmpeg/gas-preprocessor",
+        "version": "default branch HEAD (no checkout)",
+        "sha": null,
+        "origin": "github.com/FFmpeg/gas-preprocessor",
+        "pin_type": "branch",
+        "platforms": ["win"],
+        "notes": "`git clone` with NO checkout/pin — uses the remote default branch HEAD at clone time. Not reproducibly pinned. win only."
+      },
+      {
+        "name": "dav1d",
+        "source_url": "https://code.videolan.org/videolan/dav1d.git",
+        "version": "1.5.3 @ b546257f770768b2c88258c533da38b91a06f737",
+        "sha": "b546257f770768b2c88258c533da38b91a06f737",
+        "origin": "code.videolan.org/videolan/dav1d",
+        "pin_type": "tag+checkout-pinned",
+        "platforms": ["win", "mac"],
+        "notes": "`git clone -b 1.5.3` then checkout pinned SHA. Same SHA used by the Dockerfile (which clones from the github mirror instead)."
+      },
+      {
+        "name": "openh264",
+        "source_url": "https://github.com/cisco/openh264.git",
+        "version": "v2.6.0 @ 652bdb7719f30b52b08e506645a7322ff1b2cc6f",
+        "sha": "652bdb7719f30b52b08e506645a7322ff1b2cc6f",
+        "origin": "github.com/cisco/openh264",
+        "pin_type": "tag+checkout-pinned",
+        "platforms": ["win", "mac"],
+        "notes": "`git clone -b v2.6.0` then checkout pinned SHA. Same SHA used by the Dockerfile."
+      },
+      {
+        "name": "libavif",
+        "source_url": "https://github.com/AOMediaCodec/libavif.git",
+        "version": "v1.3.0 @ 1aadfad932c98c069a1204261b1856f81f3bc199",
+        "sha": "1aadfad932c98c069a1204261b1856f81f3bc199",
+        "origin": "github.com/AOMediaCodec/libavif",
+        "pin_type": "tag+checkout-pinned",
+        "platforms": ["win", "mac"],
+        "notes": "`git clone -b v1.3.0` then checkout pinned SHA. Same SHA used by the Dockerfile."
+      },
+      {
+        "name": "libde265",
+        "source_url": "https://github.com/strukturag/libde265.git",
+        "version": "v1.0.16 @ 7ba65889d3d6d8a0d99b5360b028243ba843be3a",
+        "sha": "7ba65889d3d6d8a0d99b5360b028243ba843be3a",
+        "origin": "github.com/strukturag/libde265",
+        "pin_type": "tag+checkout-pinned",
+        "platforms": ["win", "mac"],
+        "notes": "`git clone -b v1.0.16` then checkout pinned SHA. Same SHA used by the Dockerfile."
+      },
+      {
+        "name": "libwebp",
+        "source_url": "https://github.com/webmproject/libwebp.git",
+        "version": "v1.6.0 @ 4fa21912338357f89e4fd51cf2368325b59e9bd9",
+        "sha": "4fa21912338357f89e4fd51cf2368325b59e9bd9",
+        "origin": "github.com/webmproject/libwebp",
+        "pin_type": "tag+checkout-pinned",
+        "platforms": ["win", "mac"],
+        "notes": "`git clone -b v1.6.0` then checkout pinned SHA. Same SHA used by the Dockerfile."
+      },
+      {
+        "name": "libheif",
+        "source_url": "https://github.com/strukturag/libheif.git",
+        "version": "v1.21.2 @ 62f1b8c76ed4d8305071fdacbe74ef9717bacac5",
+        "sha": "62f1b8c76ed4d8305071fdacbe74ef9717bacac5",
+        "origin": "github.com/strukturag/libheif",
+        "pin_type": "tag+checkout-pinned",
+        "platforms": ["win", "mac"],
+        "notes": "`git clone -b v1.21.2` then checkout pinned SHA. Same SHA used by the Dockerfile."
+      },
+      {
+        "name": "libjxl",
+        "source_url": "https://github.com/libjxl/libjxl.git",
+        "version": "v0.11.2 @ 332feb17d17311c748445f7ee75c4fb55cc38530",
+        "sha": "332feb17d17311c748445f7ee75c4fb55cc38530",
+        "origin": "github.com/libjxl/libjxl",
+        "pin_type": "tag+checkout-pinned",
+        "platforms": ["win", "mac"],
+        "notes": "`git clone -b v0.11.2 --recursive --shallow-submodules` then checkout pinned SHA. Nested submodules are pinned by the libjxl tree. Same SHA used by the Dockerfile."
+      },
+      {
+        "name": "libvpx",
+        "source_url": "https://github.com/webmproject/libvpx.git",
+        "version": "tag v1.14.1 (no commit SHA)",
+        "sha": null,
+        "origin": "github.com/webmproject/libvpx",
+        "pin_type": "branch",
+        "platforms": ["win", "mac"],
+        "notes": "Branchless clone then `git checkout v1.14.1` (a tag, not a commit SHA). Patches from patches/libvpx applied. WEAK PIN: the tag could be moved upstream. NOTE: the Dockerfile instead pins libvpx to a specific commit SHA (12f3a2ac...)."
+      },
+      {
+        "name": "liblcms2",
+        "source_url": "https://github.com/mm2/Little-CMS.git",
+        "version": "lcms2.16 @ 453bafeb85b4ef96498866b7a8eadcc74dff9223",
+        "sha": "453bafeb85b4ef96498866b7a8eadcc74dff9223",
+        "origin": "github.com/mm2/Little-CMS",
+        "pin_type": "tag+checkout-pinned",
+        "platforms": ["win", "mac"],
+        "notes": "`git clone -b lcms2.16` then checkout pinned SHA. NOTE: the Dockerfile pins Little-CMS to a DIFFERENT commit (d0752309...)."
+      },
+      {
+        "name": "nv-codec-headers",
+        "source_url": "https://github.com/FFmpeg/nv-codec-headers.git",
+        "version": "n12.1.14.0 @ 145d4ca80971a97fe3b3908691419fbb56a6b1c4",
+        "sha": "145d4ca80971a97fe3b3908691419fbb56a6b1c4",
+        "origin": "github.com/FFmpeg/nv-codec-headers",
+        "pin_type": "tag+checkout-pinned",
+        "platforms": ["win"],
+        "notes": "`git clone -b n12.1.14.0` then checkout pinned SHA. win only. NOTE: the Dockerfile pins nv-codec-headers to a DIFFERENT commit (1889e62e...)."
+      },
+      {
+        "name": "regex (boost regex)",
+        "source_url": "https://github.com/boostorg/regex.git",
+        "version": "boost-1.83.0 @ 4cbcd3078e6ae10d05124379623a1bf03fcb9350",
+        "sha": "4cbcd3078e6ae10d05124379623a1bf03fcb9350",
+        "origin": "github.com/boostorg/regex",
+        "pin_type": "tag+checkout-pinned",
+        "platforms": ["win"],
+        "notes": "`git clone -b boost-1.83.0` then checkout pinned SHA. win only (header-only boost regex). NOTE: the Dockerfile instead uses a checksum-verified boost 1.90.0 tarball."
+      },
+      {
+        "name": "ffmpeg",
+        "source_url": "https://github.com/FFmpeg/FFmpeg.git",
+        "version": "n6.1.6 @ f1e3a2bf7a2f2cde936d1ed97f09a26853d20125",
+        "sha": "f1e3a2bf7a2f2cde936d1ed97f09a26853d20125",
+        "origin": "github.com/FFmpeg/FFmpeg",
+        "pin_type": "tag+checkout-pinned",
+        "platforms": ["win", "mac"],
+        "notes": "`git clone -b n6.1.6` then checkout pinned SHA. patches/ffmpeg.patch applied. Same SHA used by the Dockerfile."
+      },
+      {
+        "name": "openal-soft",
+        "source_url": "https://github.com/telegramdesktop/openal-soft.git",
+        "version": "win@291c0fdbbdd767f00c45c7fca562614faea57647, mac@c2eab43d72890c58d4b51d5d98eafb9f011e1c89",
+        "sha": "win:291c0fdbbdd767f00c45c7fca562614faea57647 / mac:c2eab43d72890c58d4b51d5d98eafb9f011e1c89",
+        "origin": "github.com/telegramdesktop/openal-soft",
+        "pin_type": "sha-immutable",
+        "platforms": ["win", "mac"],
+        "notes": "Branchless clone + per-platform checkout SHA (different SHA per platform). Uses the telegramdesktop fork. NOTE: the Dockerfile uses the upstream kcat/openal-soft at a DIFFERENT commit (dc7d7054...)."
+      },
+      {
+        "name": "breakpad",
+        "source_url": "https://chromium.googlesource.com/breakpad/breakpad",
+        "version": "commit dfcb7b6799b7c1e2c8d65e857d8afede185471d8",
+        "sha": "dfcb7b6799b7c1e2c8d65e857d8afede185471d8",
+        "origin": "chromium.googlesource.com/breakpad/breakpad",
+        "pin_type": "sha-immutable",
+        "platforms": ["win", "mac"],
+        "notes": "Branchless clone + checkout SHA. Cloned in both the 'breakpad' stage and the optional 'stackwalk' stage (same SHA). patches/breakpad.diff applied. NOTE: the Dockerfile pins breakpad to a DIFFERENT commit (f80f2888...)."
+      },
+      {
+        "name": "googletest",
+        "source_url": "https://github.com/google/googletest",
+        "version": "release-1.11.0 @ e2239ee6043f73722e7aa812a459f54a28552929",
+        "sha": "e2239ee6043f73722e7aa812a459f54a28552929",
+        "origin": "github.com/google/googletest",
+        "pin_type": "tag+checkout-pinned",
+        "platforms": ["win", "mac"],
+        "notes": "`git clone -b release-1.11.0` into breakpad src/testing (and stackwalk src/testing), then `git -C src/testing checkout <sha>`. Dependency of breakpad."
+      },
+      {
+        "name": "linux-syscall-support",
+        "source_url": "https://chromium.googlesource.com/linux-syscall-support",
+        "version": "commit e1e7b0ad8ee99a875b272c8e33e308472e897660",
+        "sha": "e1e7b0ad8ee99a875b272c8e33e308472e897660",
+        "origin": "chromium.googlesource.com/linux-syscall-support",
+        "pin_type": "sha-immutable",
+        "platforms": ["mac"],
+        "notes": "Branchless clone into breakpad src/third_party/lss + checkout SHA. mac only in prepare.py (also used by optional stackwalk). NOTE: the Dockerfile pins lss to a DIFFERENT commit (ed31caa6...)."
+      },
+      {
+        "name": "crashpad",
+        "source_url": "https://github.com/desktop-app/crashpad.git",
+        "version": "commit 3279fae3f02a0370ef54d4f9d264f52f337b0f1d",
+        "sha": "3279fae3f02a0370ef54d4f9d264f52f337b0f1d",
+        "origin": "github.com/desktop-app/crashpad",
+        "pin_type": "sha-immutable",
+        "platforms": ["mac"],
+        "notes": "Branchless clone + checkout SHA, then `git submodule init && git submodule update third_party/mini_chromium` (submodule pinned by crashpad tree). mac only. Dockerfile does not build crashpad."
+      },
+      {
+        "name": "tg_angle",
+        "source_url": "https://github.com/desktop-app/tg_angle.git",
+        "version": "commit e3f59e8d0c (short SHA)",
+        "sha": "e3f59e8d0c",
+        "origin": "github.com/desktop-app/tg_angle",
+        "pin_type": "sha-immutable",
+        "platforms": ["win"],
+        "notes": "Branchless clone + checkout SHORT SHA e3f59e8d0c. Only built when Qt < 6 (Qt 5). win only. Dockerfile does not use tg_angle (Qt 6 only)."
+      },
+      {
+        "name": "qt5/qt6",
+        "source_url": "https://github.com/qt/qt5.git",
+        "version": "branch v$QT-lts-lgpl (Qt5) / v$QT (Qt6); runtime $QT = 5.15.19 | 6.11.1",
+        "sha": null,
+        "origin": "github.com/qt/qt5",
+        "pin_type": "runtime-variable",
+        "platforms": ["win", "mac"],
+        "notes": "`git clone -b <branch>` where the branch name is derived at runtime from the $QT env var (set by qt_version.py: 5.15.19 on win non-arm Qt5, else 6.11.1). `git submodule update --init --recursive` of qtbase/qtimageformats/qtsvg (+ qtdeclarative/qtwayland/qtshadertools for Qt6) with NO explicit commit SHA pin — relies on the branch/tag tip. patches/qtbase_$QT applied. WEAK PIN. NOTE: the Dockerfile instead pins Qt to a specific commit SHA (bfde7b89...)."
+      },
+      {
+        "name": "tg_owt (WebRTC)",
+        "source_url": "https://github.com/desktop-app/tg_owt.git",
+        "version": "commit 89df288dd6ba5b2ec95b3c5eaf1e7e0c3a870fc4",
+        "sha": "89df288dd6ba5b2ec95b3c5eaf1e7e0c3a870fc4",
+        "origin": "github.com/desktop-app/tg_owt",
+        "pin_type": "sha-immutable",
+        "platforms": ["win", "mac"],
+        "notes": "Branchless clone + checkout SHA, then `git submodule update --init --recursive` (submodules pinned by tg_owt tree). Same SHA used by the Dockerfile."
+      },
+      {
+        "name": "ada",
+        "source_url": "https://github.com/ada-url/ada.git",
+        "version": "v3.2.4 @ 010f7c45aeaff1205452e7da2df8702cf725fb3e",
+        "sha": "010f7c45aeaff1205452e7da2df8702cf725fb3e",
+        "origin": "github.com/ada-url/ada",
+        "pin_type": "tag+checkout-pinned",
+        "platforms": ["win", "mac"],
+        "notes": "`git clone -b v3.2.4` then checkout pinned SHA. Same SHA used by the Dockerfile."
+      },
+      {
+        "name": "protobuf",
+        "source_url": "https://github.com/protocolbuffers/protobuf",
+        "version": "v21.9 (branch tip, --recursive)",
+        "sha": null,
+        "origin": "github.com/protocolbuffers/protobuf",
+        "pin_type": "branch",
+        "platforms": ["win"],
+        "notes": "`git clone --recursive -b v21.9` with NO explicit commit SHA for protobuf itself — resolves to the v21.9 branch/tag tip. Nested submodules are pinned by the protobuf tree. WEAK PIN. mac variant is commented out. NOTE: the Dockerfile instead pins protobuf to a specific commit SHA (43e16268...)."
+      },
+      {
+        "name": "abseil-cpp (in protobuf)",
+        "source_url": "https://github.com/abseil/abseil-cpp",
+        "version": "commit 273292d1cf (short SHA)",
+        "sha": "273292d1cf",
+        "origin": "github.com/abseil/abseil-cpp",
+        "pin_type": "sha-immutable",
+        "platforms": ["win"],
+        "notes": "Branchless clone into protobuf/third_party/abseil-cpp + checkout SHORT SHA 273292d1cf. win only (mac protobuf is commented out)."
+      },
+      {
+        "name": "tde2e",
+        "source_url": "https://github.com/tdlib/td.git",
+        "version": "commit 51743df (short) / 51743dfd01dff6179e2d8f7095729caa4e2222e9 (full)",
+        "sha": "51743dfd01dff6179e2d8f7095729caa4e2222e9",
+        "origin": "github.com/tdlib/td",
+        "pin_type": "sha-immutable",
+        "platforms": ["win", "mac"],
+        "notes": "Branchless clone (into tde2e/) + checkout SHORT SHA 51743df. Same commit (full SHA) used by the Dockerfile."
+      }
+    ],
+    "dockerfile": [
+      {
+        "name": "rockylinux base image",
+        "source_url": "docker.io/library/rockylinux:8",
+        "version": "8",
+        "sha": "sha256:9794037624aaa6212aeada1d28861ef5e0a935adaf93e4ef79837119f2a2d04c",
+        "origin": "docker.io/library/rockylinux",
+        "pin_type": "sha-immutable",
+        "platforms": ["linux"],
+        "notes": "Base image pinned by immutable digest (@sha256:...). Strongest possible container pin."
+      },
+      {
+        "name": "dnf system packages",
+        "source_url": "Rocky Linux 8 repositories (dnf)",
+        "version": "latest (rpm repos)",
+        "sha": null,
+        "origin": "rpm repositories (epel, powertools, appstream)",
+        "pin_type": "runtime-variable",
+        "platforms": ["linux"],
+        "notes": "Installs cmake, autoconf, automake, libtool, pkgconfig, make, patch, git, python3.11(+devel+pip), gperf, flex, bison, clang(+tools), lld, nasm, gcc-toolset-15, gobject-introspection-devel, gtk3-devel, wayland-devel, mesa-devel, vulkan-devel, libdrm-devel, libva/libvdpau-devel, etc. Versions are whatever dnf resolves at build time (no pins)."
+      },
+      {
+        "name": "pip packages",
+        "source_url": "pip (PyPI)",
+        "version": "setuptools>=75.8.0, urllib3>=2.3.0, cryptography>=44.0.0, numpy>=2.2.0, meson, ninja",
+        "sha": null,
+        "origin": "pypi.org",
+        "pin_type": "runtime-variable",
+        "platforms": ["linux"],
+        "notes": "Floor-version pins only (>=), so the resolved versions float upward. meson/ninja unpinned."
+      },
+      {
+        "name": "Implib.so",
+        "source_url": "https://github.com/yugr/Implib.so.git",
+        "version": "commit ecf7bb51a92a0fb16834c5b698570ab25f9f1d21",
+        "sha": "ecf7bb51a92a0fb16834c5b698570ab25f9f1d21",
+        "origin": "github.com/yugr/Implib.so",
+        "pin_type": "sha-immutable",
+        "platforms": ["linux"],
+        "notes": "`git fetch --depth=1 origin <sha>` + reset --hard. Used to generate static import libs for system .so files (gtk, mesa, wayland, xcb, etc.)."
+      },
+      {
+        "name": "patches",
+        "source_url": "https://github.com/desktop-app/patches.git",
+        "version": "commit 4519c85c924b9da81f29d4aac045886f896ee479",
+        "sha": "4519c85c924b9da81f29d4aac045886f896ee479",
+        "origin": "github.com/desktop-app/patches",
+        "pin_type": "sha-immutable",
+        "platforms": ["linux"],
+        "notes": "Same SHA as prepare.py patches stage."
+      },
+      {
+        "name": "zlib",
+        "source_url": "https://github.com/madler/zlib.git",
+        "version": "commit 51b7f2abdade71cd9bb0e7a373ef2610ec6f9daf",
+        "sha": "51b7f2abdade71cd9bb0e7a373ef2610ec6f9daf",
+        "origin": "github.com/madler/zlib",
+        "pin_type": "sha-immutable",
+        "platforms": ["linux"],
+        "notes": "Direct SHA fetch. NOTE: DIFFERENT commit from prepare.py (925af44f...)."
+      },
+      {
+        "name": "xz",
+        "source_url": "https://github.com/tukaani-project/xz.git",
+        "version": "commit a522a226545730551f7e7c2685fab27cf567746c",
+        "sha": "a522a226545730551f7e7c2685fab27cf567746c",
+        "origin": "github.com/tukaani-project/xz",
+        "pin_type": "sha-immutable",
+        "platforms": ["linux"],
+        "notes": "Direct SHA fetch. NOTE: DIFFERENT commit from prepare.py (49053c0a...)."
+      },
+      {
+        "name": "protobuf",
+        "source_url": "https://github.com/protocolbuffers/protobuf.git",
+        "version": "commit 43e1626812c1b543e56a7bec59dc09eb18248bd2",
+        "sha": "43e1626812c1b543e56a7bec59dc09eb18248bd2",
+        "origin": "github.com/protocolbuffers/protobuf",
+        "pin_type": "sha-immutable",
+        "platforms": ["linux"],
+        "notes": "Direct SHA fetch + `git submodule update --init --recursive --depth=1`. NOTE: prepare.py used the v21.9 branch tip (no SHA)."
+      },
+      {
+        "name": "lcms2 (Little-CMS)",
+        "source_url": "https://github.com/mm2/Little-CMS.git",
+        "version": "commit d0752309ff93f62be246ee9bf18338107f30d485",
+        "sha": "d0752309ff93f62be246ee9bf18338107f30d485",
+        "origin": "github.com/mm2/Little-CMS",
+        "pin_type": "sha-immutable",
+        "platforms": ["linux"],
+        "notes": "Direct SHA fetch. NOTE: DIFFERENT commit from prepare.py (453bafeb...)."
+      },
+      {
+        "name": "brotli",
+        "source_url": "https://github.com/google/brotli.git",
+        "version": "commit ed738e842d2fbdf2d6459e39267a633c4a9b2f5d",
+        "sha": "ed738e842d2fbdf2d6459e39267a633c4a9b2f5d",
+        "origin": "github.com/google/brotli",
+        "pin_type": "sha-immutable",
+        "platforms": ["linux"],
+        "notes": "Direct SHA fetch. Dockerfile-only (not built by prepare.py)."
+      },
+      {
+        "name": "highway",
+        "source_url": "https://github.com/google/highway.git",
+        "version": "commit ba0900a4957b929390ab73827235557959234fea",
+        "sha": "ba0900a4957b929390ab73827235557959234fea",
+        "origin": "github.com/google/highway",
+        "pin_type": "sha-immutable",
+        "platforms": ["linux"],
+        "notes": "Direct SHA fetch. Dockerfile-only dependency of libjxl."
+      },
+      {
+        "name": "mozjpeg",
+        "source_url": "https://github.com/mozilla/mozjpeg.git",
+        "version": "commit 6c9f0897afa1c2738d7222a0a9ab49e8b536a267",
+        "sha": "6c9f0897afa1c2738d7222a0a9ab49e8b536a267",
+        "origin": "github.com/mozilla/mozjpeg",
+        "pin_type": "sha-immutable",
+        "platforms": ["linux"],
+        "notes": "Direct SHA fetch. NOTE: DIFFERENT commit from prepare.py (38f37cf9...)."
+      },
+      {
+        "name": "opus",
+        "source_url": "https://github.com/xiph/opus.git",
+        "version": "commit ddbe48383984d56acd9e1ab6a090c54ca6b735a6",
+        "sha": "ddbe48383984d56acd9e1ab6a090c54ca6b735a6",
+        "origin": "github.com/xiph/opus",
+        "pin_type": "sha-immutable",
+        "platforms": ["linux"],
+        "notes": "Direct SHA fetch. NOTE: DIFFERENT commit from prepare.py (5ec2f3c9...)."
+      },
+      {
+        "name": "dav1d",
+        "source_url": "https://github.com/videolan/dav1d.git",
+        "version": "commit b546257f770768b2c88258c533da38b91a06f737",
+        "sha": "b546257f770768b2c88258c533da38b91a06f737",
+        "origin": "github.com/videolan/dav1d",
+        "pin_type": "sha-immutable",
+        "platforms": ["linux"],
+        "notes": "Direct SHA fetch from the github mirror. Same SHA as prepare.py (which clones from code.videolan.org)."
+      },
+      {
+        "name": "openh264",
+        "source_url": "https://github.com/cisco/openh264.git",
+        "version": "commit 652bdb7719f30b52b08e506645a7322ff1b2cc6f",
+        "sha": "652bdb7719f30b52b08e506645a7322ff1b2cc6f",
+        "origin": "github.com/cisco/openh264",
+        "pin_type": "sha-immutable",
+        "platforms": ["linux"],
+        "notes": "Direct SHA fetch. Same SHA as prepare.py."
+      },
+      {
+        "name": "libde265",
+        "source_url": "https://github.com/strukturag/libde265.git",
+        "version": "commit 7ba65889d3d6d8a0d99b5360b028243ba843be3a",
+        "sha": "7ba65889d3d6d8a0d99b5360b028243ba843be3a",
+        "origin": "github.com/strukturag/libde265",
+        "pin_type": "sha-immutable",
+        "platforms": ["linux"],
+        "notes": "Direct SHA fetch. Same SHA as prepare.py."
+      },
+      {
+        "name": "libvpx",
+        "source_url": "https://github.com/webmproject/libvpx.git",
+        "version": "commit 12f3a2ac603e8f10742105519e0cd03c3b8f71dd",
+        "sha": "12f3a2ac603e8f10742105519e0cd03c3b8f71dd",
+        "origin": "github.com/webmproject/libvpx",
+        "pin_type": "sha-immutable",
+        "platforms": ["linux"],
+        "notes": "Direct SHA fetch. NOTE: prepare.py used the moving tag v1.14.1 (no SHA)."
+      },
+      {
+        "name": "libwebp",
+        "source_url": "https://github.com/webmproject/libwebp.git",
+        "version": "commit 4fa21912338357f89e4fd51cf2368325b59e9bd9",
+        "sha": "4fa21912338357f89e4fd51cf2368325b59e9bd9",
+        "origin": "github.com/webmproject/libwebp",
+        "pin_type": "sha-immutable",
+        "platforms": ["linux"],
+        "notes": "Direct SHA fetch. Same SHA as prepare.py."
+      },
+      {
+        "name": "libavif",
+        "source_url": "https://github.com/AOMediaCodec/libavif.git",
+        "version": "commit 1aadfad932c98c069a1204261b1856f81f3bc199",
+        "sha": "1aadfad932c98c069a1204261b1856f81f3bc199",
+        "origin": "github.com/AOMediaCodec/libavif",
+        "pin_type": "sha-immutable",
+        "platforms": ["linux"],
+        "notes": "Direct SHA fetch. Same SHA as prepare.py."
+      },
+      {
+        "name": "libheif",
+        "source_url": "https://github.com/strukturag/libheif.git",
+        "version": "commit 62f1b8c76ed4d8305071fdacbe74ef9717bacac5",
+        "sha": "62f1b8c76ed4d8305071fdacbe74ef9717bacac5",
+        "origin": "github.com/strukturag/libheif",
+        "pin_type": "sha-immutable",
+        "platforms": ["linux"],
+        "notes": "Direct SHA fetch. Same SHA as prepare.py."
+      },
+      {
+        "name": "libjxl",
+        "source_url": "https://github.com/libjxl/libjxl.git",
+        "version": "commit 332feb17d17311c748445f7ee75c4fb55cc38530",
+        "sha": "332feb17d17311c748445f7ee75c4fb55cc38530",
+        "origin": "github.com/libjxl/libjxl",
+        "pin_type": "sha-immutable",
+        "platforms": ["linux"],
+        "notes": "Direct SHA fetch (submodules provided via copied caches from brotli/highway/lcms2 stages). Same SHA as prepare.py."
+      },
+      {
+        "name": "rnnoise",
+        "source_url": "https://github.com/xiph/rnnoise.git",
+        "version": "commit 904a876dce1f9ab8860c0a5000ed151f9f6eef58",
+        "sha": "904a876dce1f9ab8860c0a5000ed151f9f6eef58",
+        "origin": "github.com/xiph/rnnoise",
+        "pin_type": "sha-immutable",
+        "platforms": ["linux"],
+        "notes": "Direct SHA fetch from upstream xiph/rnnoise. NOTE: prepare.py uses the desktop-app fork at a DIFFERENT commit (d8ea2b0)."
+      },
+      {
+        "name": "xcb-proto",
+        "source_url": "https://github.com/gitlab-freedesktop-mirrors/xcbproto.git",
+        "version": "commit 98eeebfc2d7db5377b85437418fb942ea30ffc0d",
+        "sha": "98eeebfc2d7db5377b85437418fb942ea30ffc0d",
+        "origin": "github.com/gitlab-freedesktop-mirrors/xcbproto",
+        "pin_type": "sha-immutable",
+        "platforms": ["linux"],
+        "notes": "Direct SHA fetch. Dockerfile-only."
+      },
+      {
+        "name": "libxcb",
+        "source_url": "https://github.com/gitlab-freedesktop-mirrors/libxcb.git",
+        "version": "commit cc4b93c9cd93bad15b7106747b0213e4b9c53a1c",
+        "sha": "cc4b93c9cd93bad15b7106747b0213e4b9c53a1c",
+        "origin": "github.com/gitlab-freedesktop-mirrors/libxcb",
+        "pin_type": "sha-immutable",
+        "platforms": ["linux"],
+        "notes": "Direct SHA fetch. Dockerfile-only."
+      },
+      {
+        "name": "libxcb-wm",
+        "source_url": "https://github.com/gitlab-freedesktop-mirrors/libxcb-wm.git",
+        "version": "commit 0c6681e465c9cc7b1fbb60778ba1eaa61ab01a14",
+        "sha": "0c6681e465c9cc7b1fbb60778ba1eaa61ab01a14",
+        "origin": "github.com/gitlab-freedesktop-mirrors/libxcb-wm",
+        "pin_type": "sha-immutable",
+        "platforms": ["linux"],
+        "notes": "Direct SHA fetch + `git submodule update --init --recursive --depth=1`. Dockerfile-only."
+      },
+      {
+        "name": "libxcb-util",
+        "source_url": "https://github.com/gitlab-freedesktop-mirrors/libxcb-util.git",
+        "version": "commit bffd8df1725c0fae9105a097e75b466e2f49d7bd",
+        "sha": "bffd8df1725c0fae9105a097e75b466e2f49d7bd",
+        "origin": "github.com/gitlab-freedesktop-mirrors/libxcb-util",
+        "pin_type": "sha-immutable",
+        "platforms": ["linux"],
+        "notes": "Direct SHA fetch + submodules --init --recursive. Dockerfile-only."
+      },
+      {
+        "name": "libxcb-image",
+        "source_url": "https://github.com/gitlab-freedesktop-mirrors/libxcb-image.git",
+        "version": "commit 1abfc17b1e08e46dbdf34b4ef36097a8c307a8ec",
+        "sha": "1abfc17b1e08e46dbdf34b4ef36097a8c307a8ec",
+        "origin": "github.com/gitlab-freedesktop-mirrors/libxcb-image",
+        "pin_type": "sha-immutable",
+        "platforms": ["linux"],
+        "notes": "Direct SHA fetch + submodules --init --recursive. Dockerfile-only."
+      },
+      {
+        "name": "libxcb-keysyms",
+        "source_url": "https://github.com/gitlab-freedesktop-mirrors/libxcb-keysyms.git",
+        "version": "commit ef5cb393d27511ba511c68a54f8ff7b9aab4a384",
+        "sha": "ef5cb393d27511ba511c68a54f8ff7b9aab4a384",
+        "origin": "github.com/gitlab-freedesktop-mirrors/libxcb-keysyms",
+        "pin_type": "sha-immutable",
+        "platforms": ["linux"],
+        "notes": "Direct SHA fetch + submodules --init --recursive. Dockerfile-only."
+      },
+      {
+        "name": "libxcb-render-util",
+        "source_url": "https://github.com/gitlab-freedesktop-mirrors/libxcb-render-util.git",
+        "version": "commit 5ad9853d6ddcac394d42dd2d4e34436b5db9da39",
+        "sha": "5ad9853d6ddcac394d42dd2d4e34436b5db9da39",
+        "origin": "github.com/gitlab-freedesktop-mirrors/libxcb-render-util",
+        "pin_type": "sha-immutable",
+        "platforms": ["linux"],
+        "notes": "Direct SHA fetch + submodules --init --recursive. Dockerfile-only."
+      },
+      {
+        "name": "libxcb-cursor",
+        "source_url": "https://github.com/gitlab-freedesktop-mirrors/libxcb-cursor.git",
+        "version": "commit 4929f6051658ba5424b41703a1fb63f9db896065",
+        "sha": "4929f6051658ba5424b41703a1fb63f9db896065",
+        "origin": "github.com/gitlab-freedesktop-mirrors/libxcb-cursor",
+        "pin_type": "sha-immutable",
+        "platforms": ["linux"],
+        "notes": "Direct SHA fetch + submodules --init --recursive. Dockerfile-only."
+      },
+      {
+        "name": "libxext",
+        "source_url": "https://github.com/gitlab-freedesktop-mirrors/libxext.git",
+        "version": "commit 67e82cc395f44faddd83ec3d0d21624fe91c6fc0",
+        "sha": "67e82cc395f44faddd83ec3d0d21624fe91c6fc0",
+        "origin": "github.com/gitlab-freedesktop-mirrors/libxext",
+        "pin_type": "sha-immutable",
+        "platforms": ["linux"],
+        "notes": "Direct SHA fetch. Dockerfile-only."
+      },
+      {
+        "name": "libxtst",
+        "source_url": "https://github.com/gitlab-freedesktop-mirrors/libxtst.git",
+        "version": "commit 99b89c3bcb0ebb0b6dd86bfdc9d276715eaea889",
+        "sha": "99b89c3bcb0ebb0b6dd86bfdc9d276715eaea889",
+        "origin": "github.com/gitlab-freedesktop-mirrors/libxtst",
+        "pin_type": "sha-immutable",
+        "platforms": ["linux"],
+        "notes": "Direct SHA fetch. Dockerfile-only."
+      },
+      {
+        "name": "libxfixes",
+        "source_url": "https://github.com/gitlab-freedesktop-mirrors/libxfixes.git",
+        "version": "commit 84df9cb81cc31bbed27ba241a23ae04f61da57db",
+        "sha": "84df9cb81cc31bbed27ba241a23ae04f61da57db",
+        "origin": "github.com/gitlab-freedesktop-mirrors/libxfixes",
+        "pin_type": "sha-immutable",
+        "platforms": ["linux"],
+        "notes": "Direct SHA fetch. Dockerfile-only."
+      },
+      {
+        "name": "libxv",
+        "source_url": "https://github.com/gitlab-freedesktop-mirrors/libxv.git",
+        "version": "commit d419928942dbf1897c9627475aa4a2828a81240f",
+        "sha": "d419928942dbf1897c9627475aa4a2828a81240f",
+        "origin": "github.com/gitlab-freedesktop-mirrors/libxv",
+        "pin_type": "sha-immutable",
+        "platforms": ["linux"],
+        "notes": "Direct SHA fetch. Dockerfile-only."
+      },
+      {
+        "name": "libxrandr",
+        "source_url": "https://github.com/gitlab-freedesktop-mirrors/libxrandr.git",
+        "version": "commit 3387129532899eaeee3477a2d92fa662d7292a84",
+        "sha": "3387129532899eaeee3477a2d92fa662d7292a84",
+        "origin": "github.com/gitlab-freedesktop-mirrors/libxrandr",
+        "pin_type": "sha-immutable",
+        "platforms": ["linux"],
+        "notes": "Direct SHA fetch. Dockerfile-only."
+      },
+      {
+        "name": "libxrender",
+        "source_url": "https://github.com/gitlab-freedesktop-mirrors/libxrender.git",
+        "version": "commit e5e23272394c90731debd7e18dd167e8c25b5c15",
+        "sha": "e5e23272394c90731debd7e18dd167e8c25b5c15",
+        "origin": "github.com/gitlab-freedesktop-mirrors/libxrender",
+        "pin_type": "sha-immutable",
+        "platforms": ["linux"],
+        "notes": "Direct SHA fetch. Dockerfile-only."
+      },
+      {
+        "name": "libxdamage",
+        "source_url": "https://github.com/gitlab-freedesktop-mirrors/libxdamage.git",
+        "version": "commit 1f20df4fd7c132f55e924dc5ec3f270cd54704d0",
+        "sha": "1f20df4fd7c132f55e924dc5ec3f270cd54704d0",
+        "origin": "github.com/gitlab-freedesktop-mirrors/libxdamage",
+        "pin_type": "sha-immutable",
+        "platforms": ["linux"],
+        "notes": "Direct SHA fetch. Dockerfile-only."
+      },
+      {
+        "name": "libxcomposite",
+        "source_url": "https://github.com/gitlab-freedesktop-mirrors/libxcomposite.git",
+        "version": "commit cecff847395deb553b6331f31776f9cbfc809add",
+        "sha": "cecff847395deb553b6331f31776f9cbfc809add",
+        "origin": "github.com/gitlab-freedesktop-mirrors/libxcomposite",
+        "pin_type": "sha-immutable",
+        "platforms": ["linux"],
+        "notes": "Direct SHA fetch. Dockerfile-only."
+      },
+      {
+        "name": "nv-codec-headers",
+        "source_url": "https://github.com/FFmpeg/nv-codec-headers.git",
+        "version": "commit 1889e62e2d35ff7aa9baca2bceb14f053785e6f1",
+        "sha": "1889e62e2d35ff7aa9baca2bceb14f053785e6f1",
+        "origin": "github.com/FFmpeg/nv-codec-headers",
+        "pin_type": "sha-immutable",
+        "platforms": ["linux"],
+        "notes": "Direct SHA fetch. NOTE: DIFFERENT commit from prepare.py (145d4ca8...)."
+      },
+      {
+        "name": "ffmpeg (FFmpeg)",
+        "source_url": "https://github.com/FFmpeg/FFmpeg.git",
+        "version": "commit f1e3a2bf7a2f2cde936d1ed97f09a26853d20125",
+        "sha": "f1e3a2bf7a2f2cde936d1ed97f09a26853d20125",
+        "origin": "github.com/FFmpeg/FFmpeg",
+        "pin_type": "sha-immutable",
+        "platforms": ["linux"],
+        "notes": "Direct SHA fetch. Same SHA as prepare.py."
+      },
+      {
+        "name": "pipewire",
+        "source_url": "https://github.com/PipeWire/pipewire.git",
+        "version": "commit 3a443b4e1c9730675c7de0453a6279ab9ee263fd",
+        "sha": "3a443b4e1c9730675c7de0453a6279ab9ee263fd",
+        "origin": "github.com/PipeWire/pipewire",
+        "pin_type": "sha-immutable",
+        "platforms": ["linux"],
+        "notes": "Direct SHA fetch. Dockerfile-only (openal PipeWire backend)."
+      },
+      {
+        "name": "openal-soft",
+        "source_url": "https://github.com/kcat/openal-soft.git",
+        "version": "commit dc7d7054a5b4f3bec1dc23a42fd616a0847af948",
+        "sha": "dc7d7054a5b4f3bec1dc23a42fd616a0847af948",
+        "origin": "github.com/kcat/openal-soft",
+        "pin_type": "sha-immutable",
+        "platforms": ["linux"],
+        "notes": "Direct SHA fetch from upstream kcat/openal-soft. NOTE: prepare.py uses the telegramdesktop fork at DIFFERENT commits (291c0fdb/c2eab43d)."
+      },
+      {
+        "name": "openssl",
+        "source_url": "https://github.com/openssl/openssl.git",
+        "version": "commit 8cf17aaeb4599f8af87fefd810b5b5fee90fe69e",
+        "sha": "8cf17aaeb4599f8af87fefd810b5b5fee90fe69e",
+        "origin": "github.com/openssl/openssl",
+        "pin_type": "sha-immutable",
+        "platforms": ["linux"],
+        "notes": "Direct SHA fetch. Same SHA as prepare.py (openssl-3.5.7)."
+      },
+      {
+        "name": "libxkbcommon",
+        "source_url": "https://github.com/xkbcommon/libxkbcommon.git",
+        "version": "commit d2a08f761c796733e42fac4099f5c38d443e88e1",
+        "sha": "d2a08f761c796733e42fac4099f5c38d443e88e1",
+        "origin": "github.com/xkbcommon/libxkbcommon",
+        "pin_type": "sha-immutable",
+        "platforms": ["linux"],
+        "notes": "Direct SHA fetch. Dockerfile-only."
+      },
+      {
+        "name": "qt5 (qt6.11.1)",
+        "source_url": "https://github.com/qt/qt5.git",
+        "version": "6.11.1 @ commit bfde7b892add48396756dc44a3e3fa03d98c5710",
+        "sha": "bfde7b892add48396756dc44a3e3fa03d98c5710",
+        "origin": "github.com/qt/qt5",
+        "pin_type": "sha-immutable",
+        "platforms": ["linux"],
+        "notes": "Direct SHA fetch (QT_SHA env) of Qt 6.11.1 + `git submodule update --init --recursive --depth=1` of qtbase/qtdeclarative/qtwayland/qtimageformats/qtsvg/qtshadertools. patches/qtbase_$QT and qtwayland_$QT applied. NOTE: prepare.py uses a moving branch (no SHA)."
+      },
+      {
+        "name": "boost",
+        "source_url": "https://archives.boost.io/release/1.90.0/source/boost_1_90_0.tar.gz",
+        "version": "1.90.0",
+        "sha": "5e93d582aff26868d581a52ae78c7d8edf3f3064742c6e77901a1f18a437eea9",
+        "origin": "archives.boost.io",
+        "pin_type": "sha-immutable",
+        "platforms": ["linux"],
+        "notes": "curl tarball verified with `sha256sum -c` against BOOST_SHA256. The sha field holds the sha256 checksum (not a git SHA). Dockerfile-only; prepare.py uses boostorg/regex submodule clone instead."
+      },
+      {
+        "name": "breakpad",
+        "source_url": "https://chromium.googlesource.com/breakpad/breakpad.git",
+        "version": "commit f80f2888031b0570783011476a5e862fb7d848a1",
+        "sha": "f80f2888031b0570783011476a5e862fb7d848a1",
+        "origin": "chromium.googlesource.com/breakpad/breakpad",
+        "pin_type": "sha-immutable",
+        "platforms": ["linux"],
+        "notes": "Direct SHA fetch. NOTE: DIFFERENT commit from prepare.py (dfcb7b67...)."
+      },
+      {
+        "name": "linux-syscall-support (in breakpad)",
+        "source_url": "https://chromium.googlesource.com/linux-syscall-support.git",
+        "version": "commit ed31caa60f20a4f6569883b2d752ef7522de51e0",
+        "sha": "ed31caa60f20a4f6569883b2d752ef7522de51e0",
+        "origin": "chromium.googlesource.com/linux-syscall-support",
+        "pin_type": "sha-immutable",
+        "platforms": ["linux"],
+        "notes": "Direct SHA fetch into breakpad src/third_party/lss. NOTE: DIFFERENT commit from prepare.py (e1e7b0ad...)."
+      },
+      {
+        "name": "tg_owt (WebRTC)",
+        "source_url": "https://github.com/desktop-app/tg_owt.git",
+        "version": "commit 89df288dd6ba5b2ec95b3c5eaf1e7e0c3a870fc4",
+        "sha": "89df288dd6ba5b2ec95b3c5eaf1e7e0c3a870fc4",
+        "origin": "github.com/desktop-app/tg_owt",
+        "pin_type": "sha-immutable",
+        "platforms": ["linux"],
+        "notes": "Direct SHA fetch + `git submodule update --init --recursive --depth=1`. Same SHA as prepare.py."
+      },
+      {
+        "name": "ada",
+        "source_url": "https://github.com/ada-url/ada.git",
+        "version": "commit 010f7c45aeaff1205452e7da2df8702cf725fb3e",
+        "sha": "010f7c45aeaff1205452e7da2df8702cf725fb3e",
+        "origin": "github.com/ada-url/ada",
+        "pin_type": "sha-immutable",
+        "platforms": ["linux"],
+        "notes": "Direct SHA fetch. Same SHA as prepare.py."
+      },
+      {
+        "name": "tde2e",
+        "source_url": "https://github.com/tdlib/td.git",
+        "version": "commit 51743dfd01dff6179e2d8f7095729caa4e2222e9",
+        "sha": "51743dfd01dff6179e2d8f7095729caa4e2222e9",
+        "origin": "github.com/tdlib/td",
+        "pin_type": "sha-immutable",
+        "platforms": ["linux"],
+        "notes": "Direct SHA fetch. Same commit as prepare.py (51743df short)."
+      }
+    ],
+    "submodules": [
+      { "name": "GSL", "path": "Telegram/ThirdParty/GSL", "source_url": "https://github.com/Microsoft/GSL.git", "version": "commit 87f9d768866548b5b86e72be66c60c5abd4d9b37", "sha": "87f9d768866548b5b86e72be66c60c5abd4d9b37", "origin": "github.com/Microsoft/GSL", "pin_type": "sha-immutable" },
+      { "name": "xxHash", "path": "Telegram/ThirdParty/xxHash", "source_url": "https://github.com/Cyan4973/xxHash.git", "version": "commit c0b5ea995d66691734b1a79ad89e73a0d2fd5a53", "sha": "c0b5ea995d66691734b1a79ad89e73a0d2fd5a53", "origin": "github.com/Cyan4973/xxHash", "pin_type": "sha-immutable" },
+      { "name": "rlottie", "path": "Telegram/ThirdParty/rlottie", "source_url": "https://github.com/desktop-app/rlottie.git", "version": "commit cbfdcdd2830b4beba53e64e72c11cb0328a720a9", "sha": "cbfdcdd2830b4beba53e64e72c11cb0328a720a9", "origin": "github.com/desktop-app/rlottie", "pin_type": "sha-immutable" },
+      { "name": "lz4", "path": "Telegram/ThirdParty/lz4", "source_url": "https://github.com/lz4/lz4.git", "version": "commit 0774d05537f9762f838f7ab541b7765f1a729cb5", "sha": "0774d05537f9762f838f7ab541b7765f1a729cb5", "origin": "github.com/lz4/lz4", "pin_type": "sha-immutable" },
+      { "name": "lib_crl", "path": "Telegram/lib_crl", "source_url": "https://github.com/desktop-app/lib_crl.git", "version": "commit f770e4e8be24553b22278a8ac07f5eb3c7aa6547", "sha": "f770e4e8be24553b22278a8ac07f5eb3c7aa6547", "origin": "github.com/desktop-app/lib_crl", "pin_type": "sha-immutable" },
+      { "name": "lib_rpl", "path": "Telegram/lib_rpl", "source_url": "https://github.com/desktop-app/lib_rpl.git", "version": "commit c57cccffb01d85570decd7fccb88419c9a682e63", "sha": "c57cccffb01d85570decd7fccb88419c9a682e63", "origin": "github.com/desktop-app/lib_rpl", "pin_type": "sha-immutable" },
+      { "name": "lib_base", "path": "Telegram/lib_base", "source_url": "https://github.com/desktop-app/lib_base.git", "version": "commit 3888062a7d106339e27012d2ce8c46de8c3c8644", "sha": "3888062a7d106339e27012d2ce8c46de8c3c8644", "origin": "github.com/desktop-app/lib_base", "pin_type": "sha-immutable" },
+      { "name": "codegen", "path": "Telegram/codegen", "source_url": "https://github.com/AyuGram/codegen.git", "version": "commit 17a10c1b721288f9cced2b5401f40eb87025edbb", "sha": "17a10c1b721288f9cced2b5401f40eb87025edbb", "origin": "github.com/AyuGram/codegen", "pin_type": "sha-immutable" },
+      { "name": "lib_ui", "path": "Telegram/lib_ui", "source_url": "https://github.com/AyuGram/lib_ui.git", "version": "commit 51673cadc14c3a45a67c37364b33b0d572d9b1cf", "sha": "51673cadc14c3a45a67c37364b33b0d572d9b1cf", "origin": "github.com/AyuGram/lib_ui", "pin_type": "sha-immutable" },
+      { "name": "lib_lottie", "path": "Telegram/lib_lottie", "source_url": "https://github.com/desktop-app/lib_lottie.git", "version": "commit 49d67cf66d3573cd71a3228af47a4ac59b64fc90", "sha": "49d67cf66d3573cd71a3228af47a4ac59b64fc90", "origin": "github.com/desktop-app/lib_lottie", "pin_type": "sha-immutable" },
+      { "name": "lib_tl", "path": "Telegram/lib_tl", "source_url": "https://github.com/AyuGram/lib_tl.git", "version": "commit 7573852f2fb6ffad152092c71b15437162227147", "sha": "7573852f2fb6ffad152092c71b15437162227147", "origin": "github.com/AyuGram/lib_tl", "pin_type": "sha-immutable" },
+      { "name": "lib_spellcheck", "path": "Telegram/lib_spellcheck", "source_url": "https://github.com/desktop-app/lib_spellcheck", "version": "commit 1f18c1e35b99697fe58d48d7f5a88e96c928128e", "sha": "1f18c1e35b99697fe58d48d7f5a88e96c928128e", "origin": "github.com/desktop-app/lib_spellcheck", "pin_type": "sha-immutable" },
+      { "name": "lib_storage", "path": "Telegram/lib_storage", "source_url": "https://github.com/desktop-app/lib_storage.git", "version": "commit ccdc72548a5065b5991b4e06e610d76bc4f6023e", "sha": "ccdc72548a5065b5991b4e06e610d76bc4f6023e", "origin": "github.com/desktop-app/lib_storage", "pin_type": "sha-immutable" },
+      { "name": "cmake_helpers", "path": "cmake", "source_url": "https://github.com/desktop-app/cmake_helpers.git", "version": "commit f79a0e6acdae261270391253d24f47efb54e9a7d", "sha": "f79a0e6acdae261270391253d24f47efb54e9a7d", "origin": "github.com/desktop-app/cmake_helpers", "pin_type": "sha-immutable" },
+      { "name": "expected", "path": "Telegram/ThirdParty/expected", "source_url": "https://github.com/TartanLlama/expected", "version": "commit 292eff8bd8ee230a7df1d6a1c00c4ea0eb2f0362", "sha": "292eff8bd8ee230a7df1d6a1c00c4ea0eb2f0362", "origin": "github.com/TartanLlama/expected", "pin_type": "sha-immutable" },
+      { "name": "QR-Code-generator", "path": "Telegram/ThirdParty/QR", "source_url": "https://github.com/nayuki/QR-Code-generator", "version": "commit 720f62bddb7226106071d4728c292cb1df519ceb", "sha": "720f62bddb7226106071d4728c292cb1df519ceb", "origin": "github.com/nayuki/QR-Code-generator", "pin_type": "sha-immutable" },
+      { "name": "lib_qr", "path": "Telegram/lib_qr", "source_url": "https://github.com/desktop-app/lib_qr.git", "version": "commit 6fdf60461444ba150e13ac36009c0ffce72c4c83", "sha": "6fdf60461444ba150e13ac36009c0ffce72c4c83", "origin": "github.com/desktop-app/lib_qr", "pin_type": "sha-immutable" },
+      { "name": "hunspell", "path": "Telegram/ThirdParty/hunspell", "source_url": "https://github.com/hunspell/hunspell", "version": "commit 77764d18f2483413ce94a032f29578437826dd52", "sha": "77764d18f2483413ce94a032f29578437826dd52", "origin": "github.com/hunspell/hunspell", "pin_type": "sha-immutable" },
+      { "name": "range-v3", "path": "Telegram/ThirdParty/range-v3", "source_url": "https://github.com/ericniebler/range-v3.git", "version": "commit 108f93c279c8f9cec175dac361084983d0176e99", "sha": "108f93c279c8f9cec175dac361084983d0176e99", "origin": "github.com/ericniebler/range-v3", "pin_type": "sha-immutable" },
+      { "name": "nimf", "path": "Telegram/ThirdParty/nimf", "source_url": "https://github.com/hamonikr/nimf.git", "version": "commit efe873d2da0c74450d9fc3c2c43b9199112dade6", "sha": "efe873d2da0c74450d9fc3c2c43b9199112dade6", "origin": "github.com/hamonikr/nimf", "pin_type": "sha-immutable" },
+      { "name": "hime", "path": "Telegram/ThirdParty/hime", "source_url": "https://github.com/hime-ime/hime.git", "version": "commit 1c15f1f1482172c45f0172571f15fce1361a7c70", "sha": "1c15f1f1482172c45f0172571f15fce1361a7c70", "origin": "github.com/hime-ime/hime", "pin_type": "sha-immutable" },
+      { "name": "fcitx5-qt", "path": "Telegram/ThirdParty/fcitx5-qt", "source_url": "https://github.com/fcitx/fcitx5-qt.git", "version": "commit 46651831dac2520944f573c14214827c0e87d2a6", "sha": "46651831dac2520944f573c14214827c0e87d2a6", "origin": "github.com/fcitx/fcitx5-qt", "pin_type": "sha-immutable" },
+      { "name": "lib_webrtc", "path": "Telegram/lib_webrtc", "source_url": "https://github.com/desktop-app/lib_webrtc.git", "version": "commit 52636e86eaa493de670daf71959d000b281bd153", "sha": "52636e86eaa493de670daf71959d000b281bd153", "origin": "github.com/desktop-app/lib_webrtc", "pin_type": "sha-immutable" },
+      { "name": "tgcalls", "path": "Telegram/ThirdParty/tgcalls", "source_url": "https://github.com/TelegramMessenger/tgcalls.git", "version": "commit 2faee3b5524f54d56c91c2058c00e11c656a74b3", "sha": "2faee3b5524f54d56c91c2058c00e11c656a74b3", "origin": "github.com/TelegramMessenger/tgcalls", "pin_type": "sha-immutable" },
+      { "name": "lib_webview", "path": "Telegram/lib_webview", "source_url": "https://github.com/desktop-app/lib_webview.git", "version": "commit 71c948902bfac5b25e90e1c9d1c8a34d1ee275c0", "sha": "71c948902bfac5b25e90e1c9d1c8a34d1ee275c0", "origin": "github.com/desktop-app/lib_webview", "pin_type": "sha-immutable" },
+      { "name": "dispatch", "path": "Telegram/ThirdParty/dispatch", "source_url": "https://github.com/apple/swift-corelibs-libdispatch", "version": "commit 886ca22f659c53dae66a40ee8266c7aae9bb97cd", "sha": "886ca22f659c53dae66a40ee8266c7aae9bb97cd", "origin": "github.com/apple/swift-corelibs-libdispatch", "pin_type": "sha-immutable" },
+      { "name": "kimageformats", "path": "Telegram/ThirdParty/kimageformats", "source_url": "https://github.com/KDE/kimageformats.git", "version": "commit a11c1feb231bcc709a6e9db398a70e2bb95888f2", "sha": "a11c1feb231bcc709a6e9db398a70e2bb95888f2", "origin": "github.com/KDE/kimageformats", "pin_type": "sha-immutable" },
+      { "name": "kcoreaddons", "path": "Telegram/ThirdParty/kcoreaddons", "source_url": "https://github.com/KDE/kcoreaddons.git", "version": "commit 56173e45c23c43d23e70fc0685b28d8790159970", "sha": "56173e45c23c43d23e70fc0685b28d8790159970", "origin": "github.com/KDE/kcoreaddons", "pin_type": "sha-immutable" },
+      { "name": "cld3", "path": "Telegram/ThirdParty/cld3", "source_url": "https://github.com/google/cld3.git", "version": "commit b48dc46512566f5a2d41118c8c1116c4f96dc661", "sha": "b48dc46512566f5a2d41118c8c1116c4f96dc661", "origin": "github.com/google/cld3", "pin_type": "sha-immutable" },
+      { "name": "libprisma", "path": "Telegram/ThirdParty/libprisma", "source_url": "https://github.com/desktop-app/libprisma.git", "version": "commit 23b0d70f9709da9b38561d5706891a134d18df76", "sha": "23b0d70f9709da9b38561d5706891a134d18df76", "origin": "github.com/desktop-app/libprisma", "pin_type": "sha-immutable" },
+      { "name": "xdg-desktop-portal", "path": "Telegram/ThirdParty/xdg-desktop-portal", "source_url": "https://github.com/flatpak/xdg-desktop-portal.git", "version": "commit bbc01037c6864189163e0baa60424a81262e343e", "sha": "bbc01037c6864189163e0baa60424a81262e343e", "origin": "github.com/flatpak/xdg-desktop-portal", "pin_type": "sha-immutable" },
+      { "name": "lib_translate", "path": "Telegram/lib_translate", "source_url": "https://github.com/desktop-app/lib_translate", "version": "commit 09c10726220e6862ca91d39b5dec5119aa0177bc", "sha": "09c10726220e6862ca91d39b5dec5119aa0177bc", "origin": "github.com/desktop-app/lib_translate", "pin_type": "sha-immutable" },
+      { "name": "lib_icu", "path": "Telegram/lib_icu", "source_url": "https://github.com/AyuGram/lib_icu.git", "version": "commit 7e55ddbcda78145b1fdb55c1f07f39299fa263f6", "sha": "7e55ddbcda78145b1fdb55c1f07f39299fa263f6", "origin": "github.com/AyuGram/lib_icu", "pin_type": "sha-immutable" }
+    ]
+  },
+  "qt_version_py": {
+    "description": "Telegram/build/qt_version.py selects the Qt version by setting the QT environment variable, which drives the qt5/qt6 clone branch in prepare.py and the QT/QT_SHA env in the Dockerfile. These are version selectors, not separate dependencies, and are excluded from total_deps to avoid double-counting the Qt clone.",
+    "selectors": [
+      {
+        "condition": "sys.platform == 'darwin' (macOS)",
+        "resolved_qt": "6.11.1",
+        "feeds": "prepare.py qt5/qt6 stage -> branch v6.11.1 (no SHA); Dockerfile QT=6.11.1 QT_SHA=bfde7b89..."
+      },
+      {
+        "condition": "win32 with arch=='arm' OR 'qt6' in sys.argv",
+        "resolved_qt": "6.11.1",
+        "feeds": "prepare.py qt5/qt6 stage -> branch v6.11.1 (no SHA)"
+      },
+      {
+        "condition": "win32 otherwise (x86/x64, Qt5 default)",
+        "resolved_qt": "5.15.19",
+        "feeds": "prepare.py qt5 stage -> branch v5.15.19-lts-lgpl (no SHA); also enables the tg_angle stage"
+      }
+    ]
+  },
+  "cross_source_drift": {
+    "description": "Dependencies where the Windows/macOS (prepare.py) and Linux (Dockerfile) builds pin DIFFERENT commits of the same upstream. These are reproducibility and supply-chain consistency risks worth tracking.",
+    "items": [
+      { "name": "zlib", "prepare_py_sha": "925af44f3cde53c6b076611c297850091b5dc7bb", "dockerfile_sha": "51b7f2abdade71cd9bb0e7a373ef2610ec6f9daf" },
+      { "name": "xz", "prepare_py_sha": "49053c0a649f4c8bd2b8d97ce915f401fbc0f3d9", "dockerfile_sha": "a522a226545730551f7e7c2685fab27cf567746c" },
+      { "name": "mozjpeg", "prepare_py_sha": "38f37cf900958c1004c2eea945a773764ba20716", "dockerfile_sha": "6c9f0897afa1c2738d7222a0a9ab49e8b536a267" },
+      { "name": "opus", "prepare_py_sha": "5ec2f3c915d0529b94a3a302969c673531654824", "dockerfile_sha": "ddbe48383984d56acd9e1ab6a090c54ca6b735a6" },
+      { "name": "liblcms2/Little-CMS", "prepare_py_sha": "453bafeb85b4ef96498866b7a8eadcc74dff9223", "dockerfile_sha": "d0752309ff93f62be246ee9bf18338107f30d485" },
+      { "name": "nv-codec-headers", "prepare_py_sha": "145d4ca80971a97fe3b3908691419fbb56a6b1c4", "dockerfile_sha": "1889e62e2d35ff7aa9baca2bceb14f053785e6f1" },
+      { "name": "breakpad", "prepare_py_sha": "dfcb7b6799b7c1e2c8d65e857d8afede185471d8", "dockerfile_sha": "f80f2888031b0570783011476a5e862fb7d848a1" },
+      { "name": "linux-syscall-support", "prepare_py_sha": "e1e7b0ad8ee99a875b272c8e33e308472e897660", "dockerfile_sha": "ed31caa60f20a4f6569883b2d752ef7522de51e0" },
+      { "name": "rnnoise", "prepare_py_sha": "d8ea2b0 (desktop-app fork)", "dockerfile_sha": "904a876dce1f9ab8860c0a5000ed151f9f6eef58 (xiph upstream)" },
+      { "name": "openal-soft", "prepare_py_sha": "win:291c0fdb.../mac:c2eab43d... (telegramdesktop fork)", "dockerfile_sha": "dc7d7054a5b4f3bec1dc23a42fd616a0847af948 (kcat upstream)" },
+      { "name": "protobuf", "prepare_py_pin": "v21.9 branch tip (no SHA)", "dockerfile_sha": "43e1626812c1b543e56a7bec59dc09eb18248bd2" },
+      { "name": "libvpx", "prepare_py_pin": "tag v1.14.1 (no SHA)", "dockerfile_sha": "12f3a2ac603e8f10742105519e0cd03c3b8f71dd" },
+      { "name": "qt5", "prepare_py_pin": "branch v$QT[-lts-lgpl] (no SHA)", "dockerfile_sha": "bfde7b892add48396756dc44a3e3fa03d98c5710" },
+      { "name": "boost regex", "prepare_py_pin": "boostorg/regex submodule @ 4cbcd307... (tag boost-1.83.0)", "dockerfile_pin": "boost 1.90.0 tarball sha256 5e93d582..." }
+    ]
+  }
+}

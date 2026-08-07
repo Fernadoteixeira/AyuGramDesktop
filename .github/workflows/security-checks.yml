@@ -6,6 +6,9 @@ on:
       - Telegram/build/docker/centos_env/Dockerfile
       - Telegram/build/prepare/prepare.py
       - scripts/check_mutable_refs.py
+      - scripts/mutable_refs_allowlist.txt
+      - scripts/verify_libiconv.py
+      - scripts/verify_boost.py
       - .github/workflows/security-checks.yml
   push:
     branches:
@@ -14,6 +17,9 @@ on:
       - Telegram/build/docker/centos_env/Dockerfile
       - Telegram/build/prepare/prepare.py
       - scripts/check_mutable_refs.py
+      - scripts/mutable_refs_allowlist.txt
+      - scripts/verify_libiconv.py
+      - scripts/verify_boost.py
       - .github/workflows/security-checks.yml
   workflow_dispatch:
 
@@ -41,7 +47,7 @@ jobs:
           python-version: "3.11"
 
       - name: Run mutable refs detector
-        run: python scripts/check_mutable_refs.py
+        run: python scripts/check_mutable_refs.py --allowlist scripts/mutable_refs_allowlist.txt
 
   checksum-verification:
     name: Verify library checksums
@@ -58,22 +64,8 @@ jobs:
         with:
           python-version: "3.11"
 
-      # Run libiconv checksum verification if the script exists.
-      # Create scripts/verify_libiconv.py to enable this gate.
       - name: Verify libiconv checksum
-        run: |
-          if [ -f "scripts/verify_libiconv.py" ]; then
-            python scripts/verify_libiconv.py
-          else
-            echo "scripts/verify_libiconv.py not found — skipping"
-          fi
+        run: python scripts/verify_libiconv.py
 
-      # Run Boost checksum verification if the script exists.
-      # Create scripts/verify_boost.py to enable this gate.
       - name: Verify Boost checksum
-        run: |
-          if [ -f "scripts/verify_boost.py" ]; then
-            python scripts/verify_boost.py
-          else
-            echo "scripts/verify_boost.py not found — skipping"
-          fi
+        run: python scripts/verify_boost.py
