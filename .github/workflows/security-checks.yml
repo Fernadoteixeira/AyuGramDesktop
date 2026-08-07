@@ -1,0 +1,79 @@
+name: Security checks
+
+on:
+  pull_request:
+    paths:
+      - Telegram/build/docker/centos_env/Dockerfile
+      - Telegram/build/prepare/prepare.py
+      - scripts/check_mutable_refs.py
+      - .github/workflows/security-checks.yml
+  push:
+    branches:
+      - dev
+    paths:
+      - Telegram/build/docker/centos_env/Dockerfile
+      - Telegram/build/prepare/prepare.py
+      - scripts/check_mutable_refs.py
+      - .github/workflows/security-checks.yml
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: security-checks-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  mutable-refs:
+    name: Detect mutable git references
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          persist-credentials: false
+
+      - name: Set up Python
+        uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065
+        with:
+          python-version: "3.11"
+
+      - name: Run mutable refs detector
+        run: python scripts/check_mutable_refs.py
+
+  checksum-verification:
+    name: Verify library checksums
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          persist-credentials: false
+
+      - name: Set up Python
+        uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065
+        with:
+          python-version: "3.11"
+
+      # Run libiconv checksum verification if the script exists.
+      # Create scripts/verify_libiconv.py to enable this gate.
+      - name: Verify libiconv checksum
+        run: |
+          if [ -f "scripts/verify_libiconv.py" ]; then
+            python scripts/verify_libiconv.py
+          else
+            echo "scripts/verify_libiconv.py not found — skipping"
+          fi
+
+      # Run Boost checksum verification if the script exists.
+      # Create scripts/verify_boost.py to enable this gate.
+      - name: Verify Boost checksum
+        run: |
+          if [ -f "scripts/verify_boost.py" ]; then
+            python scripts/verify_boost.py
+          else
+            echo "scripts/verify_boost.py not found — skipping"
+          fi

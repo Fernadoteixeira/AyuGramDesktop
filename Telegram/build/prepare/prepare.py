@@ -502,7 +502,7 @@ if not mac or 'build-stackwalk' in options:
 win:
     git clone https://github.com/desktop-app/gyp.git
     cd gyp
-    git checkout 5e2425c47b
+    git checkout 5e2425c47ba62aea63b20887ce545058b2dddec6
 mac:
     python3 -m pip install \\
         --ignore-installed \\
@@ -536,6 +536,7 @@ stage('xz', """
 stage('zlib', """
     git clone -b v1.3.1 https://github.com/madler/zlib.git
     cd zlib
+    git checkout 925af44f3cde53c6b076611c297850091b5dc7bb
 win:
     cmake . ^
         -DCMAKE_MSVC_RUNTIME_LIBRARY="MultiThreaded$<$<CONFIG:Debug>:Debug>" ^
@@ -557,6 +558,7 @@ mac:
 stage('mozjpeg', """
     git clone -b v4.1.5 https://github.com/mozilla/mozjpeg.git
     cd mozjpeg
+    git checkout 38f37cf900958c1004c2eea945a773764ba20716
 win:
     cmake . ^
         -DCMAKE_POLICY_VERSION_MINIMUM=3.5 ^
@@ -642,6 +644,7 @@ mac:
 stage('opus', """
     git clone -b v1.5.2 https://github.com/xiph/opus.git
     cd opus
+    git checkout 5ec2f3c915d0529b94a3a302969c673531654824
 win:
     cmake -B out . ^
         -DCMAKE_INSTALL_PREFIX=%LIBS_DIR%/local ^
@@ -788,6 +791,7 @@ mac:
 stage('openh264', """
     git clone -b v2.6.0 https://github.com/cisco/openh264.git
     cd openh264
+    git checkout 652bdb7719f30b52b08e506645a7322ff1b2cc6f
 win32:
     SET "TARGET=x86"
 win64:
@@ -876,6 +880,7 @@ mac:
 stage('libde265', """
     git clone -b v1.0.16 https://github.com/strukturag/libde265.git
     cd libde265
+    git checkout 7ba65889d3d6d8a0d99b5360b028243ba843be3a
 win:
     cmake . ^
         -DCMAKE_INSTALL_PREFIX=%LIBS_DIR%/local ^
@@ -1116,6 +1121,7 @@ mac:
 stage('liblcms2', """
     git clone -b lcms2.16 https://github.com/mm2/Little-CMS.git liblcms2
     cd liblcms2
+    git checkout 453bafeb85b4ef96498866b7a8eadcc74dff9223
 win:
 depends:python/Scripts/activate.bat
     %THIRDPARTY_DIR%\\python\\Scripts\\activate.bat
@@ -1152,10 +1158,14 @@ mac:
 stage('nv-codec-headers', """
 win:
     git clone -b n12.1.14.0 https://github.com/FFmpeg/nv-codec-headers.git
+    cd nv-codec-headers
+    git checkout 145d4ca80971a97fe3b3908691419fbb56a6b1c4
 """)
 
 stage('regex', """
     git clone -b boost-1.83.0 https://github.com/boostorg/regex.git
+    cd regex
+    git checkout 4cbcd3078e6ae10d05124379623a1bf03fcb9350
 """)
 
 stage('ffmpeg', """
@@ -1343,7 +1353,7 @@ stage('openal-soft', """
     git clone https://github.com/telegramdesktop/openal-soft.git
     cd openal-soft
 win:
-    git checkout 291c0fdbbd
+    git checkout 291c0fdbbdd767f00c45c7fca562614faea57647
     cmake -B build . ^
         -D LIBTYPE:STRING=STATIC ^
         -D FORCE_STATIC_VCRT=ON ^
@@ -1376,9 +1386,10 @@ mac:
 depends:patches/breakpad.diff
     git apply ../patches/breakpad.diff
     git clone -b release-1.11.0 https://github.com/google/googletest src/testing
+    git -C src/testing checkout e2239ee6043f73722e7aa812a459f54a28552929
     git clone https://chromium.googlesource.com/linux-syscall-support src/third_party/lss
     cd src/third_party/lss
-    git checkout e1e7b0ad8e
+    git checkout e1e7b0ad8ee99a875b272c8e33e308472e897660
     cd ../../build
     PYTHONPATH=$THIRDPARTY_DIR/gyp python3 gyp_breakpad
     cd ../processor
@@ -1392,6 +1403,7 @@ stage('breakpad', """
 depends:patches/breakpad.diff
     git apply ../patches/breakpad.diff
     git clone -b release-1.11.0 https://github.com/google/googletest src/testing
+    git -C src/testing checkout e2239ee6043f73722e7aa812a459f54a28552929
 win:
     SET "PYTHONUTF8=1"
     SET "FolderPostfix="
@@ -1416,7 +1428,7 @@ win:
 mac:
     git clone https://chromium.googlesource.com/linux-syscall-support src/third_party/lss
     cd src/third_party/lss
-    git checkout e1e7b0ad8e
+    git checkout e1e7b0ad8ee99a875b272c8e33e308472e897660
     cd ../../..
     cd src/client/mac
     xcodebuild -project Breakpad.xcodeproj -target Breakpad -configuration Debug build
@@ -1430,7 +1442,7 @@ stage('crashpad', """
 mac:
     git clone https://github.com/desktop-app/crashpad.git
     cd crashpad
-    git checkout 3279fae3f0
+    git checkout 3279fae3f02a0370ef54d4f9d264f52f337b0f1d
     git submodule init
     git submodule update third_party/mini_chromium
     ZLIB_PATH=$USED_PREFIX/include
@@ -1786,6 +1798,7 @@ release:
 stage('ada', """
     git clone -b v3.2.4 https://github.com/ada-url/ada.git
     cd ada
+    git checkout 010f7c45aeaff1205452e7da2df8702cf725fb3e
 win:
     cmake -B out . ^
         -D ADA_TESTING=OFF ^

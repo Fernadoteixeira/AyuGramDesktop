@@ -6,11 +6,25 @@
 // Copyright @Radolyn, 2026
 #include "ayu/data/ayu_database.h"
 
+#include "ayu/ayu_settings.h"
+#include "ayu/data/ayu_database_key.h"
 #include "ayu/data/entities.h"
 #include "ayu/libs/sqlite/sqlite_orm.h"
 #include "base/unixtime.h"
+#include "core/application.h"
+#include "main/main_account.h"
+#include "main/main_domain.h"
+#include "settings.h"
+#include "storage/storage_account.h"
 
+#include <openssl/crypto.h>
+
+#include <QtCore/QDir>
+#include <QtCore/QFile>
+
+#include <atomic>
 #include <limits>
+#include <optional>
 
 using namespace sqlite_orm;
 
@@ -18,9 +32,9 @@ QString databaseFilePath() {
 	return cWorkingDir() + u"tdata/ayudata.db"_q;
 }
 
-auto createStorage() {
+auto createStorageForPath(const std::string &path) {
 	return make_storage(
-		databaseFilePath().toStdString(),
+		path,
 	make_table<SchemaVersion>(
 		"SchemaVersion",
 		make_column("id", &SchemaVersion::id, primary_key()),
@@ -168,11 +182,184 @@ auto createStorage() {
 	);
 }
 
+auto createStorage() {
+	return createStorageForPath(databaseFilePath().toStdString());
+}
+
 using Storage = decltype(createStorage());
 
-Storage &storage() {
-	static auto instance = createStorage();
+namespace {
+
+enum class DatabaseState : int {
+	Initial,
+	Ready,
+	Failed,
+};
+
+std::atomic<int> g_state = int(DatabaseState::Initial);
+QByteArray g_databaseKey;
+
+bool databaseReady() {
+	return g_state.load() == int(DatabaseState::Ready);
+}
+
+bool retentionAllowed() {
+	if (!databaseReady() || !Core::IsAppLaunched()) {
+		return false;
+	}
+	if (!AyuSecurity::canEnableDataRetention()) {
+		return false;
+	}
+	return !Core::App().passcodeLocked();
+}
+
+void applyCodecKey(sqlite3 *db) {
+	if (g_databaseKey.size() != AyuDatabase::kDatabaseKeySize) {
+		LOG(("Database FATAL: opening ayudata.db without a valid key; "
+			"all database operations will fail."));
+		return;
+	}
+	sqlite3mc_config(db, "cipher", sqlite3mc_cipher_index("sqlcipher"));
+	char spec[4 + AyuDatabase::kDatabaseKeySize];
+	memcpy(spec, "raw:", 4);
+	memcpy(spec + 4, g_databaseKey.constData(), g_databaseKey.size());
+	sqlite3_key(db, spec, sizeof(spec));
+	OPENSSL_cleanse(spec, sizeof(spec));
+}
+
+[[nodiscard]] bool hasPlaintextHeader(const QString &path) {
+	auto file = QFile(path);
+	if (!file.open(QIODevice::ReadOnly)) {
+		return false;
+	}
+	return file.read(16) == QByteArray("SQLite format 3\0", 16);
+}
+
+MTP::AuthKeyPtr currentLocalKey() {
+	if (!Core::IsAppLaunched()) {
+		return nullptr;
+	}
+	auto &domain = Core::App().domain();
+	if (!domain.started()) {
+		return nullptr;
+	}
+	return domain.active().local().peekLegacyLocalKey();
+}
+
+template <typename T>
+void copyTable(Storage &source, Storage &target) {
+	const auto rows = source.get_all<T>();
+	for (const auto &row : rows) {
+		target.replace(row);
+	}
+	if (int(rows.size()) != target.count<T>()) {
+		throw std::runtime_error("row count mismatch during migration");
+	}
+}
+
+[[nodiscard]] bool migratePlaintextDatabase() {
+	const auto path = databaseFilePath();
+	if (!hasPlaintextHeader(path)) {
+		return false;
+	}
+	const auto encPath = path + u".enc"_q;
+
+	for (const auto &suffix : { u""_q, u"-wal"_q, u"-shm"_q }) {
+		QFile::remove(encPath + suffix);
+	}
+
+	try {
+		{
+			auto source = createStorageForPath(path.toStdString());
+			source.pragma.synchronous(2);
+			source.pragma.journal_mode(journal_mode::DELETE);
+			source.sync_schema(true);
+
+			auto target = createStorageForPath(encPath.toStdString());
+			target.on_open = [](sqlite3 *db) {
+				applyCodecKey(db);
+				sqlite3_exec(db, "PRAGMA synchronous = FULL;", nullptr, nullptr, nullptr);
+			};
+			target.sync_schema(true);
+
+			target.begin_transaction();
+			copyTable<SchemaVersion>(source, target);
+			copyTable<DeletedMessage>(source, target);
+			copyTable<EditedMessage>(source, target);
+			copyTable<DeletedDialog>(source, target);
+			copyTable<RegexFilter>(source, target);
+			copyTable<RegexFilterGlobalExclusion>(source, target);
+			copyTable<SpyMessageRead>(source, target);
+			copyTable<SpyMessageContentsRead>(source, target);
+			target.commit();
+
+			const auto integrity = target.pragma.integrity_check();
+			if (integrity.size() != 1 || integrity.front() != "ok") {
+				throw std::runtime_error("integrity check failed");
+			}
+		}
+
+		const auto backup = cWorkingDir()
+			+ u"tdata/ayudata_pre_encryption_%1.db"_q.arg(base::unixtime::now());
+		QFile::remove(backup);
+		if (!QFile::rename(path, backup)) {
+			throw std::runtime_error("could not move plaintext DB aside");
+		}
+		if (!QFile::rename(encPath, path)) {
+			QFile::rename(backup, path);
+			throw std::runtime_error("could not replace DB with encrypted copy");
+		}
+		for (const auto &suffix : { u"-wal"_q, u"-shm"_q }) {
+			QFile::remove(path + suffix);
+			QFile::remove(backup + suffix);
+		}
+		LOG(("Database Info: migrated ayudata.db to encrypted storage, "
+			"plaintext backup kept at '%1'.").arg(backup));
+		return true;
+	} catch (const std::exception &ex) {
+		LOG(("Database Error: migration to encrypted DB failed: %1"
+			).arg(ex.what()));
+		for (const auto &suffix : { u""_q, u"-wal"_q, u"-shm"_q }) {
+			QFile::remove(encPath + suffix);
+		}
+		return false;
+	}
+}
+
+void reportPlaintextArtifacts() {
+	const auto dir = QDir(cWorkingDir() + u"tdata"_q);
+	const auto entries = dir.entryList(
+		{
+			u"ayudata_*.db"_q,
+			u"ayudata_*.db-wal"_q,
+			u"ayudata_*.db-shm"_q,
+		},
+		QDir::Files);
+	for (const auto &entry : entries) {
+		LOG(("Database Warning: unencrypted ayudata artifact in tdata: '%1' "
+			"(kept for data safety; delete manually if not needed)."
+			).arg(entry));
+	}
+}
+
+} // namespace
+
+std::optional<Storage> &storageInstance() {
+	static std::optional<Storage> instance;
 	return instance;
+}
+
+Storage &storage() {
+	auto &instance = storageInstance();
+	if (!instance.has_value()) {
+		instance.emplace(createStorage());
+		instance->on_open = [](sqlite3 *db) {
+			applyCodecKey(db);
+			sqlite3_exec(db, "PRAGMA journal_mode = WAL;", nullptr, nullptr, nullptr);
+			sqlite3_exec(db, "PRAGMA synchronous = NORMAL;", nullptr, nullptr, nullptr);
+		};
+	}
+	return *instance;
 }
 
 namespace AyuMigrations {
@@ -252,19 +439,66 @@ void moveCurrentDatabase() {
 	}
 }
 
-void applySecurityPragmas() {
-	try {
-		storage().pragma.journal_mode(sqlite_orm::journal_mode::WAL);
-		storage().pragma.synchronous(1);
-	} catch (const std::exception &ex) {
-		LOG(("Failed to apply DB security pragmas: %1").arg(ex.what()));
+void zeroizeKey() {
+	if (!g_databaseKey.isEmpty()) {
+		OPENSSL_cleanse(g_databaseKey.data(), g_databaseKey.size());
+		g_databaseKey.clear();
+		g_databaseKey.squeeze();
 	}
+	storageInstance().reset();
+	g_state = int(DatabaseState::Initial);
 }
 
 void initialize() {
-	try {
-		applySecurityPragmas();
+	auto expected = int(DatabaseState::Initial);
+	if (!g_state.compare_exchange_strong(expected, int(DatabaseState::Failed))) {
+		return;
+	}
 
+	const auto localKey = currentLocalKey();
+	if (!localKey) {
+		LOG(("Database Info: domain is not unlocked yet, "
+			"deferring ayudata.db initialization."));
+		g_state = int(DatabaseState::Initial);
+		return;
+	}
+
+	const auto path = databaseFilePath();
+	const auto exists = QFile::exists(path) && QFileInfo(path).size() > 0;
+	const auto plaintext = exists && hasPlaintextHeader(path);
+
+	auto key = loadDatabaseKey(localKey);
+	if (!key) {
+		if (!exists || plaintext) {
+			key = generateDatabaseKey();
+		} else {
+			LOG(("Database Error: encrypted ayudata.db exists but its key "
+				"could not be unwrapped (passcode reset?). "
+				"Moving the DB aside and starting fresh."));
+			moveCurrentDatabase();
+			key = generateDatabaseKey();
+		}
+		if (!storeDatabaseKey(*key, localKey)) {
+			LOG(("Database Error: could not persist the DB key, "
+				"retention is disabled for this session."));
+			return;
+		}
+	}
+
+	g_databaseKey = *key;
+
+	if (plaintext) {
+		if (!migratePlaintextDatabase()) {
+			if (!g_databaseKey.isEmpty()) {
+				OPENSSL_cleanse(g_databaseKey.data(), g_databaseKey.size());
+			}
+			g_databaseKey.clear();
+			g_databaseKey.squeeze();
+			return;
+		}
+	}
+
+	try {
 		storage().sync_schema(true);
 
 		runMigrations(storage());
@@ -274,15 +508,32 @@ void initialize() {
 		LOG(("Database initialization failed: %1").arg(ex.what()));
 		moveCurrentDatabase();
 
-		applySecurityPragmas();
-		storage().sync_schema(true);
-		if (!storage().get_pointer<SchemaVersion>(1)) {
-			storage().insert(SchemaVersion{1, 0});
+		try {
+			storage().sync_schema(true);
+			if (!storage().get_pointer<SchemaVersion>(1)) {
+				storage().insert(SchemaVersion{1, 0});
+			}
+		} catch (const std::exception &ex2) {
+			LOG(("Database Error: could not recover ayudata.db: %1, "
+				"retention is disabled for this session."
+				).arg(ex2.what()));
+			if (!g_databaseKey.isEmpty()) {
+				OPENSSL_cleanse(g_databaseKey.data(), g_databaseKey.size());
+			}
+			g_databaseKey.clear();
+			g_databaseKey.squeeze();
+			return;
 		}
 	}
+
+	reportPlaintextArtifacts();
+	g_state = int(DatabaseState::Ready);
 }
 
 void addEditedMessage(const EditedMessage &message) {
+	if (!retentionAllowed()) {
+		return;
+	}
 	try {
 		storage().begin_transaction();
 		storage().insert(message);
@@ -297,6 +548,9 @@ void addEditedMessage(const EditedMessage &message) {
 }
 
 std::vector<EditedMessage> getEditedMessages(ID userId, ID dialogId, ID messageId, ID minId, ID maxId, int totalLimit) {
+	if (!retentionAllowed()) {
+		return {};
+	}
 	const auto lowerFakeId = (minId == 0) ? std::numeric_limits<ID>::lowest() : minId;
 	const auto upperFakeId = (maxId == 0) ? std::numeric_limits<ID>::max() : maxId;
 	return storage().get_all<EditedMessage>(
@@ -313,6 +567,9 @@ std::vector<EditedMessage> getEditedMessages(ID userId, ID dialogId, ID messageI
 }
 
 bool hasRevisions(ID userId, ID dialogId, ID messageId) {
+	if (!retentionAllowed()) {
+		return false;
+	}
 	try {
 		return !storage().select(
 			columns(column<EditedMessage>(&EditedMessage::messageId)),
@@ -330,6 +587,9 @@ bool hasRevisions(ID userId, ID dialogId, ID messageId) {
 }
 
 void addDeletedMessage(const DeletedMessage &message) {
+	if (!retentionAllowed()) {
+		return;
+	}
 	try {
 		storage().begin_transaction();
 		storage().insert(message);
@@ -344,6 +604,9 @@ void addDeletedMessage(const DeletedMessage &message) {
 }
 
 std::vector<DeletedMessage> getDeletedMessages(ID userId, ID dialogId, ID topicId, ID minId, ID maxId, int totalLimit, const std::string &searchQuery) {
+	if (!retentionAllowed()) {
+		return {};
+	}
 	const auto lowerMessageId = (minId == 0) ? std::numeric_limits<ID>::lowest() : minId;
 	const auto upperMessageId = (maxId == 0) ? std::numeric_limits<ID>::max() : maxId;
 	if (searchQuery.empty()) {
@@ -409,6 +672,9 @@ std::vector<DeletedMessage> getDeletedMessages(ID userId, ID dialogId, ID topicI
 }
 
 bool hasDeletedMessages(ID userId, ID dialogId, ID topicId) {
+	if (!retentionAllowed()) {
+		return false;
+	}
 	try {
 		if (topicId == 0) {
 			return !storage().select(
@@ -436,6 +702,9 @@ bool hasDeletedMessages(ID userId, ID dialogId, ID topicId) {
 }
 
 void clearDeletedMessages(ID userId, ID dialogId, ID topicId) {
+	if (!retentionAllowed()) {
+		return;
+	}
 	try {
 		if (topicId == 0) {
 			storage().remove_all<DeletedMessage>(
@@ -468,14 +737,23 @@ std::vector<T> getAllT() {
 }
 
 std::vector<RegexFilter> getAllRegexFilters() {
+	if (!retentionAllowed()) {
+		return {};
+	}
 	return getAllT<RegexFilter>();
 }
 
 std::vector<RegexFilterGlobalExclusion> getAllFiltersExclusions() {
+	if (!retentionAllowed()) {
+		return {};
+	}
 	return getAllT<RegexFilterGlobalExclusion>();
 }
 
 std::vector<RegexFilter> getExcludedByDialogId(ID dialogId) {
+	if (!retentionAllowed()) {
+		return {};
+	}
 	try {
 		return storage().get_all<RegexFilter>(
 			where(in(&RegexFilter::id,
@@ -491,6 +769,9 @@ std::vector<RegexFilter> getExcludedByDialogId(ID dialogId) {
 }
 
 int getCount() {
+	if (!retentionAllowed()) {
+		return 0;
+	}
 	try {
 		return storage().count<RegexFilter>();
 	} catch (std::exception &ex) {
@@ -500,6 +781,9 @@ int getCount() {
 }
 
 RegexFilter getById(std::vector<char> id) {
+	if (!retentionAllowed()) {
+		return {};
+	}
 	try {
 		return storage().get<RegexFilter>(
 			where(column<RegexFilter>(&RegexFilter::id) == std::move(id))
@@ -511,6 +795,9 @@ RegexFilter getById(std::vector<char> id) {
 }
 
 std::vector<RegexFilter> getShared() {
+	if (!retentionAllowed()) {
+		return {};
+	}
 	try {
 		return storage().get_all<RegexFilter>(
 			where(is_null(column<RegexFilter>(&RegexFilter::dialogId)))
@@ -522,6 +809,9 @@ std::vector<RegexFilter> getShared() {
 }
 
 std::vector<RegexFilter> getByDialogId(ID dialogId) {
+	if (!retentionAllowed()) {
+		return {};
+	}
 	try {
 		return storage().get_all<RegexFilter>(
 			where(column<RegexFilter>(&RegexFilter::dialogId) == dialogId)
@@ -533,6 +823,9 @@ std::vector<RegexFilter> getByDialogId(ID dialogId) {
 }
 
 void addRegexFilter(const RegexFilter &filter) {
+	if (!retentionAllowed()) {
+		return;
+	}
 	try {
 		storage().begin_transaction();
 		storage().replace(filter); // we're using replace as we set std::vector<char> as primary key
@@ -547,6 +840,9 @@ void addRegexFilter(const RegexFilter &filter) {
 }
 
 void addRegexExclusion(const RegexFilterGlobalExclusion &exclusion) {
+	if (!retentionAllowed()) {
+		return;
+	}
 	try {
 		storage().begin_transaction();
 		storage().insert(exclusion);
@@ -561,6 +857,9 @@ void addRegexExclusion(const RegexFilterGlobalExclusion &exclusion) {
 }
 
 void updateRegexFilter(const RegexFilter &filter) {
+	if (!retentionAllowed()) {
+		return;
+	}
 	try {
 		storage().update_all(
 			set(
@@ -578,6 +877,9 @@ void updateRegexFilter(const RegexFilter &filter) {
 }
 
 void deleteFilter(const std::vector<char> &id) {
+	if (!retentionAllowed()) {
+		return;
+	}
 	try {
 		storage().remove_all<RegexFilter>(
 			where(column<RegexFilter>(&RegexFilter::id) == id)
@@ -588,6 +890,9 @@ void deleteFilter(const std::vector<char> &id) {
 }
 
 void deleteExclusionsByFilterId(const std::vector<char> &id) {
+	if (!retentionAllowed()) {
+		return;
+	}
 	try {
 		storage().remove_all<RegexFilterGlobalExclusion>(
 			where(column<RegexFilterGlobalExclusion>(&RegexFilterGlobalExclusion::filterId) == id)
@@ -598,6 +903,9 @@ void deleteExclusionsByFilterId(const std::vector<char> &id) {
 }
 
 void deleteExclusion(ID dialogId, std::vector<char> filterId) {
+	if (!retentionAllowed()) {
+		return;
+	}
 	try {
 		storage().remove_all<RegexFilterGlobalExclusion>(
 			where(column<RegexFilterGlobalExclusion>(&RegexFilterGlobalExclusion::filterId) == filterId and
@@ -610,6 +918,9 @@ void deleteExclusion(ID dialogId, std::vector<char> filterId) {
 }
 
 void deleteAllFilters() {
+	if (!retentionAllowed()) {
+		return;
+	}
 	try {
 		storage().remove_all<RegexFilter>();
 	} catch (std::exception &ex) {
@@ -618,6 +929,9 @@ void deleteAllFilters() {
 }
 
 void deleteAllExclusions() {
+	if (!retentionAllowed()) {
+		return;
+	}
 	try {
 		storage().remove_all<RegexFilterGlobalExclusion>();
 	} catch (std::exception &ex) {
@@ -626,6 +940,9 @@ void deleteAllExclusions() {
 }
 
 bool hasFilters() {
+	if (!retentionAllowed()) {
+		return false;
+	}
 	try {
 		return !storage().select(
 			columns(column<RegexFilter>(&RegexFilter::id)),
@@ -638,6 +955,9 @@ bool hasFilters() {
 }
 
 bool hasPerDialogFilters() {
+	if (!retentionAllowed()) {
+		return false;
+	}
 	try {
 		return
 			!storage().select(

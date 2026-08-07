@@ -40,6 +40,8 @@ startProcess() {
 
 if [ -n "${AYUGRAM_VNC_PASSWORD:-}" ]; then
 	VncPassword="$AYUGRAM_VNC_PASSWORD"
+	printf '%s\n' "$VncPassword" >"$StateDirectory/password"
+	chmod 600 "$StateDirectory/password"
 elif [ -s "$StateDirectory/password" ]; then
 	VncPassword="$(cat "$StateDirectory/password")"
 else

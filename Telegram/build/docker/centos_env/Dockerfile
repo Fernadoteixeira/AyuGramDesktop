@@ -105,8 +105,11 @@ RUN git init patches \
 	&& rm -rf .git
 
 FROM builder AS zlib
-RUN git clone -b v1.3.1 --depth=1 https://github.com/madler/zlib.git \
+RUN git init zlib \
 	&& cd zlib \
+	&& git remote add origin https://github.com/madler/zlib.git \
+	&& git fetch --depth=1 origin 51b7f2abdade71cd9bb0e7a373ef2610ec6f9daf \
+	&& git reset --hard FETCH_HEAD \
 	&& cmake -B build . -DZLIB_BUILD_EXAMPLES=OFF \
 	&& cmake --build build \
 	&& export DESTDIR=/usr/src/zlib-cache \
@@ -116,8 +119,11 @@ RUN git clone -b v1.3.1 --depth=1 https://github.com/madler/zlib.git \
 	&& rm -rf zlib
 
 FROM builder AS xz
-RUN git clone -b v5.8.1 --depth=1 https://github.com/tukaani-project/xz.git \
+RUN git init xz \
 	&& cd xz \
+	&& git remote add origin https://github.com/tukaani-project/xz.git \
+	&& git fetch --depth=1 origin a522a226545730551f7e7c2685fab27cf567746c \
+	&& git reset --hard FETCH_HEAD \
 	&& cmake -B build . \
 	&& cmake --build build \
 	&& DESTDIR=/usr/src/xz-cache cmake --install build \
@@ -125,8 +131,12 @@ RUN git clone -b v5.8.1 --depth=1 https://github.com/tukaani-project/xz.git \
 	&& rm -rf xz
 
 FROM builder AS protobuf
-RUN git clone -b v30.2 --depth=1 --recursive --shallow-submodules https://github.com/protocolbuffers/protobuf.git \
+RUN git init protobuf \
 	&& cd protobuf \
+	&& git remote add origin https://github.com/protocolbuffers/protobuf.git \
+	&& git fetch --depth=1 origin 43e1626812c1b543e56a7bec59dc09eb18248bd2 \
+	&& git reset --hard FETCH_HEAD \
+	&& git submodule update --init --recursive --depth=1 \
 	&& cmake -B build . \
 		-Dprotobuf_BUILD_TESTS=OFF \
 		-Dprotobuf_BUILD_PROTOBUF_BINARIES=ON \
@@ -181,8 +191,11 @@ RUN git init highway \
 	&& rm -rf highway
 
 FROM builder AS mozjpeg
-RUN git clone -b v4.1.5 --depth=1 https://github.com/mozilla/mozjpeg.git \
+RUN git init mozjpeg \
 	&& cd mozjpeg \
+	&& git remote add origin https://github.com/mozilla/mozjpeg.git \
+	&& git fetch --depth=1 origin 6c9f0897afa1c2738d7222a0a9ab49e8b536a267 \
+	&& git reset --hard FETCH_HEAD \
 	&& cmake -B build . \
 		-DCMAKE_INSTALL_PREFIX=/usr/local \
 		-DENABLE_SHARED=OFF \
@@ -194,8 +207,11 @@ RUN git clone -b v4.1.5 --depth=1 https://github.com/mozilla/mozjpeg.git \
 	&& rm -rf mozjpeg
 
 FROM builder AS opus
-RUN git clone -b v1.5.2 --depth=1 https://github.com/xiph/opus.git \
+RUN git init opus \
 	&& cd opus \
+	&& git remote add origin https://github.com/xiph/opus.git \
+	&& git fetch --depth=1 origin ddbe48383984d56acd9e1ab6a090c54ca6b735a6 \
+	&& git reset --hard FETCH_HEAD \
 	&& cmake -B build . \
 	&& cmake --build build \
 	&& DESTDIR=/usr/src/opus-cache cmake --install build \
@@ -203,8 +219,11 @@ RUN git clone -b v1.5.2 --depth=1 https://github.com/xiph/opus.git \
 	&& rm -rf opus
 
 FROM builder AS dav1d
-RUN git clone -b 1.5.3 --depth=1 https://github.com/videolan/dav1d.git \
+RUN git init dav1d \
 	&& cd dav1d \
+	&& git remote add origin https://github.com/videolan/dav1d.git \
+	&& git fetch --depth=1 origin b546257f770768b2c88258c533da38b91a06f737 \
+	&& git reset --hard FETCH_HEAD \
 	&& meson build \
 		--buildtype=plain \
 		--default-library=static \
@@ -216,8 +235,11 @@ RUN git clone -b 1.5.3 --depth=1 https://github.com/videolan/dav1d.git \
 	&& rm -rf dav1d
 
 FROM builder AS openh264
-RUN git clone -b v2.6.0 --depth=1 https://github.com/cisco/openh264.git \
+RUN git init openh264 \
 	&& cd openh264 \
+	&& git remote add origin https://github.com/cisco/openh264.git \
+	&& git fetch --depth=1 origin 652bdb7719f30b52b08e506645a7322ff1b2cc6f \
+	&& git reset --hard FETCH_HEAD \
 	&& meson build \
 		--buildtype=plain \
 		--default-library=static \
@@ -227,8 +249,11 @@ RUN git clone -b v2.6.0 --depth=1 https://github.com/cisco/openh264.git \
 	&& rm -rf openh264
 
 FROM builder AS de265
-RUN git clone -b v1.0.16 --depth=1 https://github.com/strukturag/libde265.git \
+RUN git init libde265 \
 	&& cd libde265 \
+	&& git remote add origin https://github.com/strukturag/libde265.git \
+	&& git fetch --depth=1 origin 7ba65889d3d6d8a0d99b5360b028243ba843be3a \
+	&& git reset --hard FETCH_HEAD \
 	&& cmake -B build . \
 		-DCMAKE_BUILD_TYPE=None \
 		-DBUILD_SHARED_LIBS=OFF \
@@ -260,8 +285,11 @@ RUN git init libvpx \
 	&& rm -rf libvpx
 
 FROM builder AS webp
-RUN git clone -b v1.6.0 --depth=1 https://github.com/webmproject/libwebp.git \
+RUN git init libwebp \
 	&& cd libwebp \
+	&& git remote add origin https://github.com/webmproject/libwebp.git \
+	&& git fetch --depth=1 origin 4fa21912338357f89e4fd51cf2368325b59e9bd9 \
+	&& git reset --hard FETCH_HEAD \
 	&& cmake -B build . \
 		-DWEBP_BUILD_ANIM_UTILS=OFF \
 		-DWEBP_BUILD_CWEBP=OFF \
@@ -280,8 +308,11 @@ RUN git clone -b v1.6.0 --depth=1 https://github.com/webmproject/libwebp.git \
 FROM builder AS avif
 COPY --link --from=dav1d /usr/src/dav1d-cache /
 
-RUN git clone -b v1.3.0 --depth=1 https://github.com/AOMediaCodec/libavif.git \
+RUN git init libavif \
 	&& cd libavif \
+	&& git remote add origin https://github.com/AOMediaCodec/libavif.git \
+	&& git fetch --depth=1 origin 1aadfad932c98c069a1204261b1856f81f3bc199 \
+	&& git reset --hard FETCH_HEAD \
 	&& cmake -B build . \
 		-DBUILD_SHARED_LIBS=OFF \
 		-DAVIF_CODEC_DAV1D=SYSTEM \
@@ -294,8 +325,11 @@ RUN git clone -b v1.3.0 --depth=1 https://github.com/AOMediaCodec/libavif.git \
 FROM builder AS heif
 COPY --link --from=de265 /usr/src/de265-cache /
 
-RUN git clone -b v1.21.2 --depth=1 https://github.com/strukturag/libheif.git \
+RUN git init libheif \
 	&& cd libheif \
+	&& git remote add origin https://github.com/strukturag/libheif.git \
+	&& git fetch --depth=1 origin 62f1b8c76ed4d8305071fdacbe74ef9717bacac5 \
+	&& git reset --hard FETCH_HEAD \
 	&& cmake -B build . \
 		-DBUILD_SHARED_LIBS=OFF \
 		-DCMAKE_DISABLE_FIND_PACKAGE_Doxygen=ON \
@@ -323,8 +357,11 @@ COPY --link --from=lcms2 /usr/src/lcms2-cache /
 COPY --link --from=brotli /usr/src/brotli-cache /
 COPY --link --from=highway /usr/src/highway-cache /
 
-RUN git clone -b v0.11.2 --depth=1 https://github.com/libjxl/libjxl.git \
+RUN git init libjxl \
 	&& cd libjxl \
+	&& git remote add origin https://github.com/libjxl/libjxl.git \
+	&& git fetch --depth=1 origin 332feb17d17311c748445f7ee75c4fb55cc38530 \
+	&& git reset --hard FETCH_HEAD \
 	&& cmake -B build . \
 		-DBUILD_SHARED_LIBS=OFF \
 		-DBUILD_TESTING=OFF \
@@ -822,8 +859,8 @@ COPY --link --from=xcb-cursor /usr/src/xcb-cursor-cache /
 COPY --link --from=openssl /usr/src/openssl-cache /
 COPY --link --from=xkbcommon /usr/src/xkbcommon-cache /
 
-ENV QT=6.11.0
-ENV QT_SHA=b3a9d45d2d5474a39c76fddc50bf6d55bcb7858d
+ENV QT=6.11.1
+ENV QT_SHA=bfde7b892add48396756dc44a3e3fa03d98c5710
 RUN git init qt5 \
 	&& cd qt5 \
 	&& git remote add origin https://github.com/qt/qt5.git \

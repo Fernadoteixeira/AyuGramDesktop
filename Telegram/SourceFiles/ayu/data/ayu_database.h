@@ -57,4 +57,6 @@ bool hasPerDialogFilters();
 
 void moveCurrentDatabase();
 
+void zeroizeKey();
+
 }

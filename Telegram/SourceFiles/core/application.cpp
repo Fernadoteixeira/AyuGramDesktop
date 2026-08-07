@@ -103,6 +103,7 @@ https://github.com/telegramdesktop/tdesktop/blob/master/LEGAL
 
 // AyuGram includes
 #include "ayu/ayu_infra.h"
+#include "ayu/data/ayu_database.h"
 #include "ayu/features/streamer_mode/streamer_mode.h"
 
 
@@ -1249,6 +1250,7 @@ void Application::lockByPasscode() {
 	if (_mediaView) {
 		_mediaView->close();
 	}
+	AyuDatabase::zeroizeKey();
 }
 
 void Application::maybeLockByPasscode() {
