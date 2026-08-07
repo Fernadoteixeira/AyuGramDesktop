@@ -82,21 +82,21 @@ jobs:
           docker run --rm \
             --volume "$GITHUB_WORKSPACE:/usr/src/tdesktop" \
             ayugram-security-toolchain:ci \
-            bash -lc 'cmake --build out --target test_storage_kdf test_ayu_database --parallel 4'
+            bash -lc 'cmake --build out --target test_storage_kdf test_ayu_database --config Release --parallel 4'
 
       - name: Execute KDF regression suite
         run: |
           docker run --rm \
             --volume "$GITHUB_WORKSPACE:/usr/src/tdesktop" \
             ayugram-security-toolchain:ci \
-            bash -lc './out/test_storage_kdf'
+            bash -lc './out/Release/test_storage_kdf'
 
       - name: Execute SQLCipher regression suite
         run: |
           docker run --rm \
             --volume "$GITHUB_WORKSPACE:/usr/src/tdesktop" \
             ayugram-security-toolchain:ci \
-            bash -lc './out/test_ayu_database'
+            bash -lc './out/Release/test_ayu_database'
 
       - name: Capture dependency versions
         if: always()
