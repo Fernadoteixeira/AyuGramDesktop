@@ -14,6 +14,8 @@ https://github.com/telegramdesktop/tdesktop/blob/master/LEGAL
 #include "main/main_account.h"
 #include "base/random.h"
 
+#include <openssl/opensslv.h>
+
 namespace Storage {
 namespace {
 
@@ -103,8 +105,22 @@ void Domain::generateLocalKey() {
 }
 
 void Domain::encryptLocalKey(const QByteArray &passcode) {
+#if OPENSSL_VERSION_NUMBER >= 0x10100000L
+	const auto useScrypt = !passcode.isEmpty();
+	const auto saltSize = useScrypt
+		? (LocalEncryptSaltSize + 1)
+		: LocalEncryptSaltSize;
+	_passcodeKeySalt.resize(saltSize);
+	if (useScrypt) {
+		_passcodeKeySalt[0] = char(0x02);
+		base::RandomFill(_passcodeKeySalt.data() + 1, LocalEncryptSaltSize);
+	} else {
+		base::RandomFill(_passcodeKeySalt.data(), _passcodeKeySalt.size());
+	}
+#else
 	_passcodeKeySalt.resize(LocalEncryptSaltSize);
 	base::RandomFill(_passcodeKeySalt.data(), _passcodeKeySalt.size());
+#endif
 	_passcodeKey = CreateLocalKey(passcode, _passcodeKeySalt);
 
 	EncryptedDescriptor passKeyData(MTP::AuthKey::kSize);
@@ -129,7 +145,8 @@ Domain::StartModernResult Domain::startModern(
 		return StartModernResult::Failed;
 	}
 
-	if (salt.size() != LocalEncryptSaltSize) {
+	if (salt.size() != LocalEncryptSaltSize
+			&& salt.size() != (LocalEncryptSaltSize + 1)) {
 		LOG(("App Error: bad salt in info file, size: %1").arg(salt.size()));
 		return StartModernResult::Failed;
 	}

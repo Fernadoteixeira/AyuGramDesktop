@@ -13,6 +13,7 @@ https://github.com/telegramdesktop/tdesktop/blob/master/LEGAL
 #include "base/random.h"
 
 #include <crl/crl_object_on_thread.h>
+#include <openssl/opensslv.h>
 #include <QtCore/QtEndian>
 #include <QtCore/QSaveFile>
 
@@ -24,6 +25,12 @@ constexpr char TdfMagic[] = { 'T', 'D', 'F', '$' };
 constexpr auto TdfMagicLen = int(sizeof(TdfMagic));
 
 constexpr auto kStrongIterationsCount = 100'000;
+
+constexpr auto kKdfVersionPBKDF2 = std::byte{ 0x01 };
+constexpr auto kKdfVersionScrypt = std::byte{ 0x02 };
+constexpr auto kScryptN = 1 << 15; // 32768 — ~1s on modern hardware
+constexpr auto kScryptR = 8;
+constexpr auto kScryptP = 1;
 
 struct WriteEntry {
 	QString basePath;
@@ -301,13 +308,43 @@ bool CheckStreamStatus(QDataStream &stream) {
 MTP::AuthKeyPtr CreateLocalKey(
 		const QByteArray &passcode,
 		const QByteArray &salt) {
-	const auto s = bytes::make_span(salt);
+	auto key = MTP::AuthKey::Data{ { gsl::byte{} } };
+
+#if OPENSSL_VERSION_NUMBER >= 0x10100000L
+	if (salt.size() > 32
+			&& std::byte(static_cast<unsigned char>(salt[0])) == kKdfVersionScrypt
+			&& !passcode.isEmpty()) {
+		const auto actualSalt = salt.mid(1);
+		const auto s = bytes::make_span(actualSalt);
+		auto hash = openssl::Sha512(s, bytes::make_span(passcode), s);
+		const int ret = EVP_PBE_scrypt(
+			reinterpret_cast<const char*>(hash.data()),
+			hash.size(),
+			reinterpret_cast<const unsigned char*>(s.data()),
+			s.size(),
+			kScryptN,
+			kScryptR,
+			kScryptP,
+			0,
+			reinterpret_cast<unsigned char*>(key.data()),
+			key.size());
+		OPENSSL_cleanse(hash.data(), hash.size());
+		if (ret == 1) {
+			auto result = std::make_shared<MTP::AuthKey>(key);
+			OPENSSL_cleanse(key.data(), key.size());
+			return result;
+		}
+		LOG(("KDF: scrypt failed (ret=%1), falling back to PBKDF2.").arg(ret));
+	}
+#endif
+
+	const auto effectiveSalt = (salt.size() > 32) ? salt.mid(1) : salt;
+	const auto s = bytes::make_span(effectiveSalt);
 	auto hash = openssl::Sha512(s, bytes::make_span(passcode), s);
 	const auto iterationsCount = passcode.isEmpty()
-		? 1 // Don't slow down for no password.
+		? 1
 		: kStrongIterationsCount;
 
-	auto key = MTP::AuthKey::Data{ { gsl::byte{} } };
 	PKCS5_PBKDF2_HMAC(
 		reinterpret_cast<const char*>(hash.data()),
 		hash.size(),
