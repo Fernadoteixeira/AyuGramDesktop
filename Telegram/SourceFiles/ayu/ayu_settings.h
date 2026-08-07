@@ -710,3 +710,10 @@ private:
 
 void to_json(nlohmann::json &j, const AyuSettings &s);
 void from_json(const nlohmann::json &j, AyuSettings &s);
+
+namespace AyuSecurity {
+
+[[nodiscard]] bool isPasscodeProtected();
+[[nodiscard]] bool canEnableDataRetention();
+
+} // namespace AyuSecurity

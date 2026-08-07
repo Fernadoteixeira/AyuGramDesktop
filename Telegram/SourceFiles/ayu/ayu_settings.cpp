@@ -18,6 +18,7 @@
 #include "main/main_session.h"
 #include "platform/platform_translate_provider.h"
 #include "rpl/combine.h"
+#include "storage/storage_domain.h"
 #include "window/window_controller.h"
 
 #include <fstream>
@@ -1257,3 +1258,15 @@ void from_json(const nlohmann::json &j, AyuSettings &s) {
 		j["messageShotSettings"].get_to(s._messageShotSettings);
 	}
 }
+
+namespace AyuSecurity {
+
+bool isPasscodeProtected() {
+	return Core::App().domain().local().hasLocalPasscode();
+}
+
+bool canEnableDataRetention() {
+	return isPasscodeProtected();
+}
+
+} // namespace AyuSecurity

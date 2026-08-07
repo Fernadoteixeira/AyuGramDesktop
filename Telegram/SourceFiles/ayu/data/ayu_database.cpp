@@ -241,8 +241,19 @@ void moveCurrentDatabase() {
 	}
 }
 
+void applySecurityPragmas() {
+	try {
+		storage.pragma.journal_mode(sqlite_orm::journal_mode::WAL);
+		storage.pragma.synchronous(1);
+	} catch (const std::exception &ex) {
+		LOG(("Failed to apply DB security pragmas: %1").arg(ex.what()));
+	}
+}
+
 void initialize() {
 	try {
+		applySecurityPragmas();
+
 		storage.sync_schema(true);
 
 		runMigrations(storage);
@@ -252,6 +263,7 @@ void initialize() {
 		LOG(("Database initialization failed: %1").arg(ex.what()));
 		moveCurrentDatabase();
 
+		applySecurityPragmas();
 		storage.sync_schema(true);
 		if (!storage.get_pointer<SchemaVersion>(1)) {
 			storage.insert(SchemaVersion{1, 0});
