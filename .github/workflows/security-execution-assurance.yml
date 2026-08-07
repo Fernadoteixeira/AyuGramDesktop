@@ -18,7 +18,7 @@ permissions:
 
 concurrency:
   group: security-execution-assurance-${{ github.workflow }}-${{ github.ref }}
-  cancel-in-progress: true
+  cancel-in-progress: false
 
 jobs:
   linux-security-runtime:
@@ -89,14 +89,36 @@ jobs:
           docker run --rm \
             --volume "$GITHUB_WORKSPACE:/usr/src/tdesktop" \
             ayugram-security-toolchain:ci \
-            bash -lc './out/Release/test_storage_kdf'
+            bash -lc '
+              set -euo pipefail
+              for candidate in ./out/test_storage_kdf ./out/Release/test_storage_kdf; do
+                if [ -x "$candidate" ]; then
+                  echo "Executing $candidate"
+                  exec "$candidate"
+                fi
+              done
+              echo "test_storage_kdf binary not found in expected single- or multi-config locations" >&2
+              find ./out -maxdepth 3 -type f -name "test_storage_kdf*" -print >&2 || true
+              exit 1
+            '
 
       - name: Execute SQLCipher regression suite
         run: |
           docker run --rm \
             --volume "$GITHUB_WORKSPACE:/usr/src/tdesktop" \
             ayugram-security-toolchain:ci \
-            bash -lc './out/Release/test_ayu_database'
+            bash -lc '
+              set -euo pipefail
+              for candidate in ./out/test_ayu_database ./out/Release/test_ayu_database; do
+                if [ -x "$candidate" ]; then
+                  echo "Executing $candidate"
+                  exec "$candidate"
+                fi
+              done
+              echo "test_ayu_database binary not found in expected single- or multi-config locations" >&2
+              find ./out -maxdepth 3 -type f -name "test_ayu_database*" -print >&2 || true
+              exit 1
+            '
 
       - name: Capture dependency versions
         if: always()
@@ -112,5 +134,6 @@ jobs:
             echo '- Branch: `${{ github.head_ref || github.ref_name }}`'
             echo '- Commit: `${{ github.sha }}`'
             echo '- Required result: both C++ targets compile and both suites exit 0.'
+            echo '- Test execution resolves both single-config (`out/test_*`) and multi-config (`out/Release/test_*`) layouts explicitly.'
             echo '- This workflow does not publish images and has read-only repository permissions.'
           } >> "$GITHUB_STEP_SUMMARY"
