@@ -2,7 +2,7 @@
 
 Este documento lista os submódulos definidos no repositório `AyuGramDesktop`, incluindo caminho e URL de origem.
 
-Total de submódulos: 33
+Total de submódulos: 34
 
 ## Submódulos
 
@@ -72,3 +72,5 @@ Total de submódulos: 33
     - URL: <https://github.com/desktop-app/lib_translate>
 33. **Telegram/lib_icu**
     - URL: <https://github.com/AyuGram/lib_icu.git>
+34. **Telegram/ThirdParty/cmark-gfm**
+    - URL: <https://github.com/github/cmark-gfm.git>

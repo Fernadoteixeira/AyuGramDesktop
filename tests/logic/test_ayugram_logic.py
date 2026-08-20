@@ -143,11 +143,12 @@ def test_json_settings_serialization():
 def test_devcontainer_scripts():
     print("[TEST 3/3] Executando Verificação de Scripts Headless do Devcontainer...")
     
-    start_desktop_path = r"c:\Users\fjuni\OneDrive\Documentos\GitHub\AyuGramDesktop\.devcontainer\start-desktop.sh"
-    launch_ayugram_path = r"c:\Users\fjuni\OneDrive\Documentos\GitHub\AyuGramDesktop\.devcontainer\launch-ayugram.sh"
+    repo_root = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
+    start_desktop_path = os.path.join(repo_root, ".devcontainer", "start-desktop.sh")
+    launch_ayugram_path = os.path.join(repo_root, ".devcontainer", "launch-ayugram.sh")
 
-    assert os.path.exists(start_desktop_path), "Falha: start-desktop.sh não encontrado."
-    assert os.path.exists(launch_ayugram_path), "Falha: launch-ayugram.sh não encontrado."
+    assert os.path.exists(start_desktop_path), f"Falha: start-desktop.sh não encontrado em {start_desktop_path}."
+    assert os.path.exists(launch_ayugram_path), f"Falha: launch-ayugram.sh não encontrado em {launch_ayugram_path}."
 
     with open(start_desktop_path, "r", encoding="utf-8") as f:
         content = f.read()

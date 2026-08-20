@@ -8,7 +8,7 @@ RUN dnf -y install epel-release \
 	&& dnf config-manager --set-enabled powertools \
 	&& dnf -y install dbus-x11 fluxbox novnc python3-websockify \
 		x11vnc xorg-x11-server-Xvfb xterm mesa-dri-drivers xcb-util-cursor \
-		xdotool wmctrl xorg-x11-utils ImageMagick \
+		xdotool wmctrl xorg-x11-utils ImageMagick clang \
 	&& dnf clean all \
 	&& rm -rf /var/cache/dnf
 
