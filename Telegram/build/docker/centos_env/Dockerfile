@@ -14,7 +14,7 @@ RUN dnf -y install epel-release \
 	&& (dnf -y remove python36 python36-devel python36-libs || true) \
 	&& dnf -y install --exclude="python36*" cmake autoconf automake libtool pkgconfig make patch git \
 		python3.11 python3.11-pip python3.11-devel gperf flex bison clang clang-tools-extra \
-		lld nasm file which wget perl-open perl-XML-Parser perl-IPC-Cmd \
+		lld nasm file which wget perl-open perl-XML-Parser perl-IPC-Cmd perl-Time-Piece \
 		xorg-x11-util-macros $TOOLSET-gcc $TOOLSET-gcc-c++ $TOOLSET-binutils \
 		$TOOLSET-gdb $TOOLSET-libasan-devel libffi-devel fontconfig-devel \
 		freetype-devel libX11-devel wayland-devel alsa-lib-devel \
