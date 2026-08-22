@@ -4,6 +4,7 @@
 # Ensure diffs and shell scripts have LF endings
 *.diff text eol=lf
 *.sh text eol=lf
+*.ignore text eol=lf
 *.bat text eol=crlf
 
 # Ensure lottie animations are treated as binary files
