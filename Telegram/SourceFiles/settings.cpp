@@ -55,6 +55,9 @@ RecentInlineBots gRecentInlineBots;
 bool gPasswordRecovered = false;
 int32 gPasscodeBadTries = 0;
 crl::time gPasscodeLastTry = 0;
+int32 gPasscodeLockoutsSession = 0;
+int32 gPasscodeUnlocksSession = 0;
+int32 gPasscodeChangesSession = 0;
 
 float64 gRetinaFactor = 1.;
 int32 gIntRetinaFactor = 1;

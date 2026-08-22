@@ -1,0 +1,322 @@
+{
+  "merge_base": "ba8c1a6b0f456c6a5601d675e765cd5fba10d54c",
+  "upstream_head": "db3b9891cb0b04ebb7d8c0e71ada3bcc669b910a",
+  "local_head": "0c685ff85666fd3672544f21ebfbd5eb294485e7",
+  "total_commits": 52,
+  "clean_apply": 3,
+  "needs_3way_resolve": 49,
+  "results": [
+    {
+      "sha": "4f03c85954",
+      "subject": "Enhance project and task management workflows",
+      "status": "NEEDS_3WAY_RESOLVE",
+      "error": "error: patch failed: .agents/skills/task-think/PROMPTS.md:76\nFalling back to direct application...\nerror: patch failed: .agents/skills/task-think/PROMPTS.md:76\nerror: .agents/skills/task-think/PROMPTS.md: patch does not apply\nerror: patch failed: .claude/commands/icon.md:29\nFalling back to direct application...\nerror: patch failed: .claude/commands/icon.md:29\nerror: .claude/commands/icon.md: patch does not apply\nerror: patch failed: .claude/commands/planner.md:6\nFalling back to direct application...\nerror: patch failed: .claude/commands/planner.md:6\nerror: .claude/commands/planner.md: patch does not apply\nerror: patch failed: .claude/commands/reflect.md:20\nFalling back to direct application...\nerror: patch failed: .claude/commands/reflect.md:20\nerror: .claude/commands/reflect.md: patch does not apply\nerror: patch failed: .claude/commands/release.md:10\nFalling back to direct application...\nerror: patch failed: .claude/commands/release.md:10\nerror: .claude/commands/release.md: patch does not apply\nerror: patch failed: .claude/commands/task.md:16\nFalling back to direct application...\nerror: patch failed: .claude/commands/task.md:16\nerror: .claude/commands/task.md: patch does not apply\nerror: patch failed: .claude/commands/withtest.md:14\nFalling back to direct application...\nerror: patch failed: .claude/commands/withtest.md:14\nerror: .claude/commands/withtest.md: patch does not apply\nerror: patch failed: .devcontainer.json:1\nFalling back to direct application...\nerror: patch failed: .devcontainer.json:1\nerror: .devcontainer.json: patch does not apply\nerror: patch failed: .gitignore:18\nFalling back to direct application...\nerror: patch failed: .gitignore:18\nerror: .gitignore: patch does not apply\nPerforming three-way merge...\nApplied patch to '.vscode/extensions.json' with conflicts.\nPerforming three-way merge...\nApplied patch to '.vscode/settings.json' with conflicts.\nerror: patch failed: README-RU.md:2\nFalling back to direct application...\nerror: patch failed: README-RU.md:2\nerror: README-RU.md: patch does not apply\nerror: patch failed: README.md:2\nFalling back to direct application...\nerror: patch failed: README.md:2\nerror: README.md: patch does not apply\nerror: patch failed: REVIEW.md:34\nFalling back to direct application...\nerror: patch failed: REVIEW.md:34\nerror: REVIEW.md: patch does not apply\nPerforming three-way merge...\nApplied patch to 'SUBMODULES.md' with conflicts.\nerror: patch failed: docs/building-mac.md:6\nFalling back to direct application...\nerror: patch failed: docs/building-mac.md:6\nerror: docs/building-mac.md: patch does not apply\nerror: patch failed: docs/building-win-x64.md:9\nFalling back to direct application...\nerror: patch failed: docs/building-win-x64.md:9\nerror: docs/building-win-x64.md: patch does not apply"
+    },
+    {
+      "sha": "9c25d7f371",
+      "subject": "feat: update development environment configuration and documentation",
+      "status": "NEEDS_3WAY_RESOLVE",
+      "error": "error: patch failed: .devcontainer.json:1\nFalling back to direct application...\nerror: patch failed: .devcontainer.json:1\nerror: .devcontainer.json: patch does not apply\nPerforming three-way merge...\nApplied patch to '.github/dependabot.yml' with conflicts.\nPerforming three-way merge...\nApplied patch to '.github/workflows/development-container.yml' with conflicts.\nerror: patch failed: .vscode/extensions.json:5\nFalling back to direct application...\nerror: patch failed: .vscode/extensions.json:5\nerror: .vscode/extensions.json: patch does not apply\nerror: patch failed: .vscode/settings.json:1\nFalling back to direct application...\nerror: patch failed: .vscode/settings.json:1\nerror: .vscode/settings.json: patch does not apply\nerror: patch failed: Telegram/build/docker/centos_env/run.sh:1\nFalling back to direct application...\nerror: patch failed: Telegram/build/docker/centos_env/run.sh:1\nerror: Telegram/build/docker/centos_env/run.sh: patch does not apply\nerror: patch failed: docs/api_credentials.md:1\nFalling back to direct application...\nerror: patch failed: docs/api_credentials.md:1\nerror: docs/api_credentials.md: patch does not apply\nerror: patch failed: docs/building-linux.md:1\nFalling back to direct application...\nerror: patch failed: docs/building-linux.md:1\nerror: docs/building-linux.md: patch does not apply\nPerforming three-way merge...\nApplied patch to 'docs/docker-development.md' with conflicts."
+    },
+    {
+      "sha": "ef5d7a93cf",
+      "subject": "feat(docker): update base image and dependencies",
+      "status": "NEEDS_3WAY_RESOLVE",
+      "error": "error: patch failed: .devcontainer.json:1\nFalling back to direct application...\nerror: patch failed: .devcontainer.json:1\nerror: .devcontainer.json: patch does not apply\nPerforming three-way merge...\nApplied patch to '.devcontainer/Dockerfile' with conflicts.\nPerforming three-way merge...\nApplied patch to '.devcontainer/launch-ayugram.sh' with conflicts.\nPerforming three-way merge...\nApplied patch to '.devcontainer/start-desktop.sh' with conflicts.\nerror: patch failed: .github/dependabot.yml:15\nFalling back to direct application...\nerror: patch failed: .github/dependabot.yml:15\nerror: .github/dependabot.yml: patch does not apply\nerror: patch failed: .github/workflows/development-container.yml:4\nFalling back to direct application...\nerror: patch failed: .github/workflows/development-container.yml:4\nerror: .github/workflows/development-container.yml: patch does not apply\nerror: patch failed: Telegram/build/docker/centos_env/Dockerfile:1\nFalling back to direct application...\nerror: patch failed: Telegram/build/docker/centos_env/Dockerfile:1\nerror: Telegram/build/docker/centos_env/Dockerfile: patch does not apply\nerror: patch failed: Telegram/build/docker/centos_env/poetry.lock:20\nFalling back to direct application...\nerror: patch failed: Telegram/build/docker/centos_env/poetry.lock:20\nerror: Telegram/build/docker/centos_env/poetry.lock: patch does not apply\nerror: patch failed: Telegram/build/docker/centos_env/pyproject.toml:8\nFalling back to direct application...\nerror: patch failed: Telegram/build/docker/centos_env/pyproject.toml:8\nerror: Telegram/build/docker/centos_env/pyproject.toml: patch does not apply\nerror: patch failed: Telegram/build/docker/centos_env/run.sh:1\nFalling back to direct application...\nerror: patch failed: Telegram/build/docker/centos_env/run.sh:1\nerror: Telegram/build/docker/centos_env/run.sh: patch does not apply\nerror: patch failed: docs/building-linux.md:16\nFalling back to direct application...\nerror: patch failed: docs/building-linux.md:16\nerror: docs/building-linux.md: patch does not apply\nerror: patch failed: docs/docker-development.md:11\nFalling back to direct application...\nerror: patch failed: docs/docker-development.md:11\nerror: docs/docker-development.md: patch does not apply"
+    },
+    {
+      "sha": "1a431dedc5",
+      "subject": "fix: improve VNC password retrieval and cleanup on container restart",
+      "status": "NEEDS_3WAY_RESOLVE",
+      "error": "error: patch failed: .devcontainer/start-desktop.sh:12\nFalling back to direct application...\nerror: patch failed: .devcontainer/start-desktop.sh:12\nerror: .devcontainer/start-desktop.sh: patch does not apply\nerror: patch failed: docs/docker-development.md:10\nFalling back to direct application...\nerror: patch failed: docs/docker-development.md:10\nerror: docs/docker-development.md: patch does not apply"
+    },
+    {
+      "sha": "de98aac518",
+      "subject": "fix: increase Xvfb readiness check attempts from 50 to 100",
+      "status": "NEEDS_3WAY_RESOLVE",
+      "error": "error: patch failed: .devcontainer/start-desktop.sh:20\nFalling back to direct application...\nerror: patch failed: .devcontainer/start-desktop.sh:20\nerror: .devcontainer/start-desktop.sh: patch does not apply"
+    },
+    {
+      "sha": "e6d8c4d2a0",
+      "subject": "fix: ensure editor actions are always visible in the workbench",
+      "status": "NEEDS_3WAY_RESOLVE",
+      "error": "error: patch failed: .vscode/settings.json:21\nFalling back to direct application...\nerror: patch failed: .vscode/settings.json:21\nerror: .vscode/settings.json: patch does not apply"
+    },
+    {
+      "sha": "4103e58c08",
+      "subject": "feat: add devcontainer script to initialize GUI desktop environment with VNC and noVNC",
+      "status": "NEEDS_3WAY_RESOLVE",
+      "error": "error: patch failed: .devcontainer/start-desktop.sh:8\nFalling back to direct application...\nerror: patch failed: .devcontainer/start-desktop.sh:8\nerror: .devcontainer/start-desktop.sh: patch does not apply"
+    },
+    {
+      "sha": "02e16b2a95",
+      "subject": "chore: fix glib bindings path resolution and add opengl software rendering to devcontainer",
+      "status": "NEEDS_3WAY_RESOLVE",
+      "error": "error: patch failed: .devcontainer/Dockerfile:7\nFalling back to direct application...\nerror: patch failed: .devcontainer/Dockerfile:7\nerror: .devcontainer/Dockerfile: patch does not apply\nFalling back to direct application...\nerror: patch failed: cmake:1\nerror: cmake: patch does not apply"
+    },
+    {
+      "sha": "8177d66096",
+      "subject": "refactor: remove redundant and unused utility files",
+      "status": "NEEDS_3WAY_RESOLVE",
+      "error": "error: git diff header lacks filename information when removing 1 leading pathname component at C:/Users/fjuni/AppData/Local/Temp/tmpcy84r0sn.patch:14"
+    },
+    {
+      "sha": "dc2c11e0c5",
+      "subject": "chore: remove obsolete file to clean up project structure",
+      "status": "NEEDS_3WAY_RESOLVE",
+      "error": "Falling back to direct application...\nerror: patch failed: Telegram/ThirdParty/fcitx5-qt:1\nerror: Telegram/ThirdParty/fcitx5-qt: patch does not apply\nFalling back to direct application...\nerror: patch failed: Telegram/ThirdParty/hime:1\nerror: Telegram/ThirdParty/hime: patch does not apply"
+    },
+    {
+      "sha": "e94f39acca",
+      "subject": "feat: add startup script for headless desktop environment in devcontainer",
+      "status": "NEEDS_3WAY_RESOLVE",
+      "error": "error: patch failed: .devcontainer/start-desktop.sh:37\nFalling back to direct application...\nerror: patch failed: .devcontainer/start-desktop.sh:37\nerror: .devcontainer/start-desktop.sh: patch does not apply"
+    },
+    {
+      "sha": "a41961f34f",
+      "subject": "refactor(ayu): clean up single-line comments in messages_storage to comply with AGENTS.md guidelines",
+      "status": "NEEDS_3WAY_RESOLVE",
+      "error": "error: patch failed: Telegram/SourceFiles/ayu/data/messages_storage.cpp:1\nFalling back to direct application...\nerror: patch failed: Telegram/SourceFiles/ayu/data/messages_storage.cpp:1\nerror: Telegram/SourceFiles/ayu/data/messages_storage.cpp: patch does not apply"
+    },
+    {
+      "sha": "350411f68f",
+      "subject": "test(devcontainer): fix ayugram binary lookup and orchestrate windows cold start",
+      "status": "NEEDS_3WAY_RESOLVE",
+      "error": "error: patch failed: .devcontainer/launch-ayugram.sh:13\nFalling back to direct application...\nerror: patch failed: .devcontainer/launch-ayugram.sh:13\nerror: .devcontainer/launch-ayugram.sh: patch does not apply\nPerforming three-way merge...\nApplied patch to 'scripts/windows/Start-AyuGram.ps1' with conflicts."
+    },
+    {
+      "sha": "c6b0df42fe",
+      "subject": "test(core): map anti-recall/ghost mode and add sqlite/json tests",
+      "status": "CLEAN_APPLY",
+      "error": ""
+    },
+    {
+      "sha": "b0546e9afe",
+      "subject": "fix(ui): adjust devcontainer display resolution and update base images",
+      "status": "NEEDS_3WAY_RESOLVE",
+      "error": "error: patch failed: .devcontainer.json:24\nFalling back to direct application...\nerror: patch failed: .devcontainer.json:24\nerror: .devcontainer.json: patch does not apply\nerror: patch failed: .devcontainer/start-desktop.sh:4\nFalling back to direct application...\nerror: patch failed: .devcontainer/start-desktop.sh:4\nerror: .devcontainer/start-desktop.sh: patch does not apply\nerror: patch failed: Telegram/build/docker/centos_env/Dockerfile:10\nFalling back to direct application...\nerror: patch failed: Telegram/build/docker/centos_env/Dockerfile:10\nerror: Telegram/build/docker/centos_env/Dockerfile: patch does not apply\nerror: patch failed: Telegram/build/docker/centos_env/pyproject.toml:5\nFalling back to direct application...\nerror: patch failed: Telegram/build/docker/centos_env/pyproject.toml:5\nerror: Telegram/build/docker/centos_env/pyproject.toml: patch does not apply"
+    },
+    {
+      "sha": "2bf9782740",
+      "subject": "fix(e2e): refatora\u00e7\u00e3o final da inicializa\u00e7\u00e3o gr\u00e1fica e container",
+      "status": "NEEDS_3WAY_RESOLVE",
+      "error": "error: patch failed: .devcontainer.json:8\nFalling back to direct application...\nerror: patch failed: .devcontainer.json:8\nerror: .devcontainer.json: patch does not apply\nerror: patch failed: .devcontainer/Dockerfile:8\nFalling back to direct application...\nerror: patch failed: .devcontainer/Dockerfile:8\nerror: .devcontainer/Dockerfile: patch does not apply\nerror: patch failed: .devcontainer/start-desktop.sh:4\nFalling back to direct application...\nerror: patch failed: .devcontainer/start-desktop.sh:4\nerror: .devcontainer/start-desktop.sh: patch does not apply\nerror: patch failed: .gitignore:75\nFalling back to direct application...\nerror: patch failed: .gitignore:75\nerror: .gitignore: patch does not apply\nerror: patch failed: scripts/windows/Start-AyuGram.ps1:43\nFalling back to direct application...\nerror: patch failed: scripts/windows/Start-AyuGram.ps1:43\nerror: scripts/windows/Start-AyuGram.ps1: patch does not apply"
+    },
+    {
+      "sha": "38436a9d34",
+      "subject": "Save uncommitted changes",
+      "status": "NEEDS_3WAY_RESOLVE",
+      "error": "Performing three-way merge...\nApplied patch to 'PRODUCT.md' with conflicts.\nerror: patch failed: Telegram/SourceFiles/boxes/about_box.cpp:66\nFalling back to direct application...\nerror: patch failed: Telegram/SourceFiles/boxes/about_box.cpp:66\nerror: Telegram/SourceFiles/boxes/about_box.cpp: patch does not apply\nerror: patch failed: Telegram/SourceFiles/boxes/boxes.style:348\nFalling back to direct application...\nerror: patch failed: Telegram/SourceFiles/boxes/boxes.style:348\nerror: Telegram/SourceFiles/boxes/boxes.style: patch does not apply"
+    },
+    {
+      "sha": "394cf20e88",
+      "subject": "Save uncommitted changes",
+      "status": "NEEDS_3WAY_RESOLVE",
+      "error": "error: patch failed: Telegram/Resources/export_html/css/style.css:1\nFalling back to direct application...\nerror: patch failed: Telegram/Resources/export_html/css/style.css:1\nerror: Telegram/Resources/export_html/css/style.css: patch does not apply\nerror: patch failed: Telegram/Resources/export_html/js/script.js:1\nFalling back to direct application...\nerror: patch failed: Telegram/Resources/export_html/js/script.js:1\nerror: Telegram/Resources/export_html/js/script.js: patch does not apply\nerror: patch failed: Telegram/Resources/iv_html/page.css:44\nFalling back to direct application...\nerror: patch failed: Telegram/Resources/iv_html/page.css:44\nerror: Telegram/Resources/iv_html/page.css: patch does not apply\nerror: patch failed: Telegram/Resources/iv_html/page.js:111\nFalling back to direct application...\nerror: patch failed: Telegram/Resources/iv_html/page.js:111\nerror: Telegram/Resources/iv_html/page.js: patch does not apply\nerror: patch failed: Telegram/Resources/picker_html/picker.css:55\nFalling back to direct application...\nerror: patch failed: Telegram/Resources/picker_html/picker.css:55\nerror: Telegram/Resources/picker_html/picker.css: patch does not apply\nerror: patch failed: Telegram/Resources/picker_html/picker.js:32\nFalling back to direct application...\nerror: patch failed: Telegram/Resources/picker_html/picker.js:32\nerror: Telegram/Resources/picker_html/picker.js: patch does not apply"
+    },
+    {
+      "sha": "c9030c4e2e",
+      "subject": "Save uncommitted changes",
+      "status": "NEEDS_3WAY_RESOLVE",
+      "error": "error: patch failed: Telegram/Resources/export_html/js/script.js:116\nFalling back to direct application...\nerror: patch failed: Telegram/Resources/export_html/js/script.js:116\nerror: Telegram/Resources/export_html/js/script.js: patch does not apply\nerror: patch failed: Telegram/Resources/iv_html/page.js:134\nFalling back to direct application...\nerror: patch failed: Telegram/Resources/iv_html/page.js:134\nerror: Telegram/Resources/iv_html/page.js: patch does not apply\nerror: patch failed: Telegram/Resources/picker_html/picker.js:180\nFalling back to direct application...\nerror: patch failed: Telegram/Resources/picker_html/picker.js:180\nerror: Telegram/Resources/picker_html/picker.js: patch does not apply"
+    },
+    {
+      "sha": "b3026f13d4",
+      "subject": "Save uncommitted changes",
+      "status": "NEEDS_3WAY_RESOLVE",
+      "error": "error: patch failed: Telegram/Resources/iv_html/page.js:200\nFalling back to direct application...\nerror: patch failed: Telegram/Resources/iv_html/page.js:200\nerror: Telegram/Resources/iv_html/page.js: patch does not apply\nerror: patch failed: Telegram/Resources/picker_html/picker.js:6\nFalling back to direct application...\nerror: patch failed: Telegram/Resources/picker_html/picker.js:6\nerror: Telegram/Resources/picker_html/picker.js: patch does not apply"
+    },
+    {
+      "sha": "e1f1a098c6",
+      "subject": "Save uncommitted changes",
+      "status": "NEEDS_3WAY_RESOLVE",
+      "error": "error: patch failed: Telegram/SourceFiles/ayu/data/ayu_database.cpp:10\nFalling back to direct application...\nerror: patch failed: Telegram/SourceFiles/ayu/data/ayu_database.cpp:10\nerror: Telegram/SourceFiles/ayu/data/ayu_database.cpp: patch does not apply"
+    },
+    {
+      "sha": "31852cc8ae",
+      "subject": "Save uncommitted changes",
+      "status": "NEEDS_3WAY_RESOLVE",
+      "error": "error: patch failed: Telegram/Resources/langs/lang.strings:1168\nFalling back to direct application...\nerror: patch failed: Telegram/Resources/langs/lang.strings:1168\nerror: Telegram/Resources/langs/lang.strings: patch does not apply\nerror: patch failed: Telegram/SourceFiles/boxes/passcode_box.cpp:637\nFalling back to direct application...\nerror: patch failed: Telegram/SourceFiles/boxes/passcode_box.cpp:637\nerror: Telegram/SourceFiles/boxes/passcode_box.cpp: patch does not apply\nerror: patch failed: Telegram/SourceFiles/settings.h:109\nFalling back to direct application...\nerror: patch failed: Telegram/SourceFiles/settings.h:109\nerror: Telegram/SourceFiles/settings.h: patch does not apply\nerror: patch failed: Telegram/SourceFiles/settings/sections/settings_local_passcode.cpp:221\nFalling back to direct application...\nerror: patch failed: Telegram/SourceFiles/settings/sections/settings_local_passcode.cpp:221\nerror: Telegram/SourceFiles/settings/sections/settings_local_passcode.cpp: patch does not apply\nerror: patch failed: Telegram/SourceFiles/window/window_lock_widgets.cpp:262\nFalling back to direct application...\nerror: patch failed: Telegram/SourceFiles/window/window_lock_widgets.cpp:262\nerror: Telegram/SourceFiles/window/window_lock_widgets.cpp: patch does not apply"
+    },
+    {
+      "sha": "de61507834",
+      "subject": "Save uncommitted changes",
+      "status": "NEEDS_3WAY_RESOLVE",
+      "error": "error: patch failed: Telegram/SourceFiles/boxes/passcode_box.cpp:8\nFalling back to direct application...\nerror: patch failed: Telegram/SourceFiles/boxes/passcode_box.cpp:8\nerror: Telegram/SourceFiles/boxes/passcode_box.cpp: patch does not apply\nerror: patch failed: Telegram/SourceFiles/settings/sections/settings_local_passcode.cpp:7\nFalling back to direct application...\nerror: patch failed: Telegram/SourceFiles/settings/sections/settings_local_passcode.cpp:7\nerror: Telegram/SourceFiles/settings/sections/settings_local_passcode.cpp: patch does not apply\nerror: patch failed: Telegram/SourceFiles/storage/details/storage_file_utilities.cpp:302\nFalling back to direct application...\nerror: patch failed: Telegram/SourceFiles/storage/details/storage_file_utilities.cpp:302\nerror: Telegram/SourceFiles/storage/details/storage_file_utilities.cpp: patch does not apply\nerror: patch failed: Telegram/SourceFiles/window/window_lock_widgets.cpp:7\nFalling back to direct application...\nerror: patch failed: Telegram/SourceFiles/window/window_lock_widgets.cpp:7\nerror: Telegram/SourceFiles/window/window_lock_widgets.cpp: patch does not apply"
+    },
+    {
+      "sha": "567cd18f9f",
+      "subject": "Save uncommitted changes",
+      "status": "NEEDS_3WAY_RESOLVE",
+      "error": "error: patch failed: Telegram/Resources/iv_html/page.js:132\nFalling back to direct application...\nerror: patch failed: Telegram/Resources/iv_html/page.js:132\nerror: Telegram/Resources/iv_html/page.js: patch does not apply\nerror: patch failed: Telegram/SourceFiles/boxes/passcode_box.cpp:729\nFalling back to direct application...\nerror: patch failed: Telegram/SourceFiles/boxes/passcode_box.cpp:729\nerror: Telegram/SourceFiles/boxes/passcode_box.cpp: patch does not apply\nerror: patch failed: Telegram/SourceFiles/settings.h:108\nFalling back to direct application...\nerror: patch failed: Telegram/SourceFiles/settings.h:108\nerror: Telegram/SourceFiles/settings.h: patch does not apply\nerror: patch failed: Telegram/SourceFiles/window/window_lock_widgets.cpp:263\nFalling back to direct application...\nerror: patch failed: Telegram/SourceFiles/window/window_lock_widgets.cpp:263\nerror: Telegram/SourceFiles/window/window_lock_widgets.cpp: patch does not apply"
+    },
+    {
+      "sha": "0dc4952f2e",
+      "subject": "security: WAL mode, AyuSecurity guards, memory zeroize, passcode hardening, UX metrics",
+      "status": "NEEDS_3WAY_RESOLVE",
+      "error": "error: patch failed: Telegram/SourceFiles/ayu/ayu_settings.cpp:18\nFalling back to direct application...\nerror: patch failed: Telegram/SourceFiles/ayu/ayu_settings.cpp:18\nerror: Telegram/SourceFiles/ayu/ayu_settings.cpp: patch does not apply\nerror: patch failed: Telegram/SourceFiles/ayu/ayu_settings.h:710\nFalling back to direct application...\nerror: patch failed: Telegram/SourceFiles/ayu/ayu_settings.h:710\nerror: Telegram/SourceFiles/ayu/ayu_settings.h: patch does not apply\nerror: patch failed: Telegram/SourceFiles/ayu/data/ayu_database.cpp:241\nFalling back to direct application...\nerror: patch failed: Telegram/SourceFiles/ayu/data/ayu_database.cpp:241\nerror: Telegram/SourceFiles/ayu/data/ayu_database.cpp: patch does not apply"
+    },
+    {
+      "sha": "6e03d40347",
+      "subject": "security: upgrade KDF to scrypt for new passcode keys (t24)",
+      "status": "NEEDS_3WAY_RESOLVE",
+      "error": "error: patch failed: Telegram/SourceFiles/storage/details/storage_file_utilities.cpp:13\nFalling back to direct application...\nerror: patch failed: Telegram/SourceFiles/storage/details/storage_file_utilities.cpp:13\nerror: Telegram/SourceFiles/storage/details/storage_file_utilities.cpp: patch does not apply\nerror: patch failed: Telegram/SourceFiles/storage/storage_domain.cpp:14\nFalling back to direct application...\nerror: patch failed: Telegram/SourceFiles/storage/storage_domain.cpp:14\nerror: Telegram/SourceFiles/storage/storage_domain.cpp: patch does not apply"
+    },
+    {
+      "sha": "34d285f3e1",
+      "subject": "Save uncommitted changes",
+      "status": "NEEDS_3WAY_RESOLVE",
+      "error": "Falling back to direct application...\nerror: patch failed: Telegram/ThirdParty/fcitx5-qt:1\nerror: Telegram/ThirdParty/fcitx5-qt: patch does not apply\nFalling back to direct application...\nerror: patch failed: Telegram/ThirdParty/hime:1\nerror: Telegram/ThirdParty/hime: patch does not apply\nFalling back to direct application...\nerror: patch failed: Telegram/ThirdParty/hunspell:1\nerror: Telegram/ThirdParty/hunspell: patch does not apply\nFalling back to direct application...\nerror: patch failed: Telegram/ThirdParty/kcoreaddons:1\nerror: Telegram/ThirdParty/kcoreaddons: patch does not apply\nFalling back to direct application...\nerror: patch failed: Telegram/ThirdParty/kimageformats:1\nerror: Telegram/ThirdParty/kimageformats: patch does not apply\nFalling back to direct application...\nerror: patch failed: Telegram/ThirdParty/lz4:1\nerror: Telegram/ThirdParty/lz4: patch does not apply\nFalling back to direct application...\nerror: patch failed: Telegram/ThirdParty/nimf:1\nerror: Telegram/ThirdParty/nimf: patch does not apply\nFalling back to direct application...\nerror: patch failed: Telegram/ThirdParty/range-v3:1\nerror: Telegram/ThirdParty/range-v3: patch does not apply\nFalling back to direct application...\nerror: patch failed: Telegram/ThirdParty/rlottie:1\nerror: Telegram/ThirdParty/rlottie: patch does not apply\nFalling back to direct application...\nerror: patch failed: Telegram/ThirdParty/tgcalls:1\nerror: Telegram/ThirdParty/tgcalls: patch does not apply\nFalling back to direct application...\nerror: patch failed: Telegram/ThirdParty/xdg-desktop-portal:1\nerror: Telegram/ThirdParty/xdg-desktop-portal: patch does not apply\nFalling back to direct application...\nerror: patch failed: Telegram/ThirdParty/xxHash:1\nerror: Telegram/ThirdParty/xxHash: patch does not apply\nFalling back to direct application...\nerror: patch failed: Telegram/lib_base:1\nerror: Telegram/lib_base: patch does not apply\nFalling back to direct application...\nerror: patch failed: Telegram/lib_crl:1\nerror: Telegram/lib_crl: patch does not apply\nFalling back to direct application...\nerror: patch failed: Telegram/lib_icu:1\nerror: Telegram/lib_icu: patch does not apply\nFalling back to direct application...\nerror: patch failed: Telegram/lib_spellcheck:1\nerror: Telegram/lib_spellcheck: patch does not apply\nFalling back to direct application...\nerror: patch failed: Telegram/lib_tl:1\nerror: Telegram/lib_tl: patch does not apply\nFalling back to direct application...\nerror: patch failed: Telegram/lib_ui:1\nerror: Telegram/lib_ui: patch does not apply\nFalling back to direct application...\nerror: patch failed: Telegram/lib_webview:1\nerror: Telegram/lib_webview: patch does not apply\nFalling back to direct application...\nerror: patch failed: cmake:1\nerror: cmake: patch does not apply"
+    },
+    {
+      "sha": "591fbe7498",
+      "subject": "Save uncommitted changes",
+      "status": "NEEDS_3WAY_RESOLVE",
+      "error": "Falling back to direct application...\nerror: patch failed: Telegram/lib_base:1\nerror: Telegram/lib_base: patch does not apply\nFalling back to direct application...\nerror: patch failed: Telegram/lib_crl:1\nerror: Telegram/lib_crl: patch does not apply\nFalling back to direct application...\nerror: patch failed: Telegram/lib_ui:1\nerror: Telegram/lib_ui: patch does not apply"
+    },
+    {
+      "sha": "28a9609b14",
+      "subject": "Save uncommitted changes",
+      "status": "NEEDS_3WAY_RESOLVE",
+      "error": "error: Telegram/ThirdParty/MicroTeX: patch does not apply\nerror: Telegram/ThirdParty/cmark-gfm: patch does not apply"
+    },
+    {
+      "sha": "1157db734c",
+      "subject": "chore: restore canonical pinned submodule revisions",
+      "status": "NEEDS_3WAY_RESOLVE",
+      "error": "Falling back to direct application...\nerror: patch failed: Telegram/ThirdParty/MicroTeX:1\nerror: Telegram/ThirdParty/MicroTeX: patch does not apply\nFalling back to direct application...\nerror: patch failed: Telegram/ThirdParty/cmark-gfm:1\nerror: Telegram/ThirdParty/cmark-gfm: patch does not apply\nFalling back to direct application...\nerror: patch failed: Telegram/ThirdParty/fcitx5-qt:1\nerror: Telegram/ThirdParty/fcitx5-qt: patch does not apply\nFalling back to direct application...\nerror: patch failed: Telegram/ThirdParty/hime:1\nerror: Telegram/ThirdParty/hime: patch does not apply\nFalling back to direct application...\nerror: patch failed: Telegram/ThirdParty/hunspell:1\nerror: Telegram/ThirdParty/hunspell: patch does not apply\nFalling back to direct application...\nerror: patch failed: Telegram/ThirdParty/kcoreaddons:1\nerror: Telegram/ThirdParty/kcoreaddons: patch does not apply\nFalling back to direct application...\nerror: patch failed: Telegram/ThirdParty/kimageformats:1\nerror: Telegram/ThirdParty/kimageformats: patch does not apply\nFalling back to direct application...\nerror: patch failed: Telegram/ThirdParty/lz4:1\nerror: Telegram/ThirdParty/lz4: patch does not apply\nFalling back to direct application...\nerror: patch failed: Telegram/ThirdParty/nimf:1\nerror: Telegram/ThirdParty/nimf: patch does not apply\nFalling back to direct application...\nerror: patch failed: Telegram/ThirdParty/range-v3:1\nerror: Telegram/ThirdParty/range-v3: patch does not apply\nFalling back to direct application...\nerror: patch failed: Telegram/ThirdParty/rlottie:1\nerror: Telegram/ThirdParty/rlottie: patch does not apply\nFalling back to direct application...\nerror: patch failed: Telegram/ThirdParty/tgcalls:1\nerror: Telegram/ThirdParty/tgcalls: patch does not apply\nFalling back to direct application...\nerror: patch failed: Telegram/ThirdParty/xdg-desktop-portal:1\nerror: Telegram/ThirdParty/xdg-desktop-portal: patch does not apply\nFalling back to direct application...\nerror: patch failed: Telegram/ThirdParty/xxHash:1\nerror: Telegram/ThirdParty/xxHash: patch does not apply\nFalling back to direct application...\nerror: patch failed: Telegram/lib_icu:1\nerror: Telegram/lib_icu: patch does not apply\nFalling back to direct application...\nerror: patch failed: Telegram/lib_spellcheck:1\nerror: Telegram/lib_spellcheck: patch does not apply\nFalling back to direct application...\nerror: patch failed: Telegram/lib_tl:1\nerror: Telegram/lib_tl: patch does not apply\nFalling back to direct application...\nerror: patch failed: Telegram/lib_webview:1\nerror: Telegram/lib_webview: patch does not apply\nFalling back to direct application...\nerror: patch failed: cmake:1\nerror: cmake: patch does not apply"
+    },
+    {
+      "sha": "3626841d13",
+      "subject": "Save uncommitted changes",
+      "status": "NEEDS_3WAY_RESOLVE",
+      "error": "Falling back to direct application...\nerror: patch failed: Telegram/ThirdParty/MicroTeX:1\nerror: Telegram/ThirdParty/MicroTeX: patch does not apply\nFalling back to direct application...\nerror: patch failed: Telegram/ThirdParty/cmark-gfm:1\nerror: Telegram/ThirdParty/cmark-gfm: patch does not apply"
+    },
+    {
+      "sha": "b956d50339",
+      "subject": "Merge pull request #1 from Fernadoteixeira/repair/dev-submodule-pins",
+      "status": "NEEDS_3WAY_RESOLVE",
+      "error": "Falling back to direct application...\nerror: patch failed: Telegram/ThirdParty/MicroTeX:1\nerror: Telegram/ThirdParty/MicroTeX: patch does not apply\nFalling back to direct application...\nerror: patch failed: Telegram/ThirdParty/cmark-gfm:1\nerror: Telegram/ThirdParty/cmark-gfm: patch does not apply"
+    },
+    {
+      "sha": "29e73a3958",
+      "subject": "Save uncommitted changes",
+      "status": "NEEDS_3WAY_RESOLVE",
+      "error": "Falling back to direct application...\nerror: patch failed: Telegram/ThirdParty/fcitx5-qt:1\nerror: Telegram/ThirdParty/fcitx5-qt: patch does not apply\nFalling back to direct application...\nerror: patch failed: Telegram/ThirdParty/hime:1\nerror: Telegram/ThirdParty/hime: patch does not apply\nFalling back to direct application...\nerror: patch failed: Telegram/ThirdParty/hunspell:1\nerror: Telegram/ThirdParty/hunspell: patch does not apply\nFalling back to direct application...\nerror: patch failed: Telegram/ThirdParty/kcoreaddons:1\nerror: Telegram/ThirdParty/kcoreaddons: patch does not apply\nFalling back to direct application...\nerror: patch failed: Telegram/ThirdParty/kimageformats:1\nerror: Telegram/ThirdParty/kimageformats: patch does not apply\nFalling back to direct application...\nerror: patch failed: Telegram/ThirdParty/lz4:1\nerror: Telegram/ThirdParty/lz4: patch does not apply\nFalling back to direct application...\nerror: patch failed: Telegram/ThirdParty/nimf:1\nerror: Telegram/ThirdParty/nimf: patch does not apply\nFalling back to direct application...\nerror: patch failed: Telegram/ThirdParty/range-v3:1\nerror: Telegram/ThirdParty/range-v3: patch does not apply\nFalling back to direct application...\nerror: patch failed: Telegram/ThirdParty/rlottie:1\nerror: Telegram/ThirdParty/rlottie: patch does not apply\nFalling back to direct application...\nerror: patch failed: Telegram/ThirdParty/tgcalls:1\nerror: Telegram/ThirdParty/tgcalls: patch does not apply\nFalling back to direct application...\nerror: patch failed: Telegram/ThirdParty/xdg-desktop-portal:1\nerror: Telegram/ThirdParty/xdg-desktop-portal: patch does not apply\nFalling back to direct application...\nerror: patch failed: Telegram/ThirdParty/xxHash:1\nerror: Telegram/ThirdParty/xxHash: patch does not apply\nFalling back to direct application...\nerror: patch failed: Telegram/lib_icu:1\nerror: Telegram/lib_icu: patch does not apply\nFalling back to direct application...\nerror: patch failed: Telegram/lib_spellcheck:1\nerror: Telegram/lib_spellcheck: patch does not apply\nFalling back to direct application...\nerror: patch failed: Telegram/lib_tl:1\nerror: Telegram/lib_tl: patch does not apply\nFalling back to direct application...\nerror: patch failed: Telegram/lib_webview:1\nerror: Telegram/lib_webview: patch does not apply\nFalling back to direct application...\nerror: patch failed: cmake:1\nerror: cmake: patch does not apply"
+    },
+    {
+      "sha": "4810a366ca",
+      "subject": "Save uncommitted changes",
+      "status": "NEEDS_3WAY_RESOLVE",
+      "error": "error: patch failed: .devcontainer/start-desktop.sh:8\nFalling back to direct application...\nerror: patch failed: .devcontainer/start-desktop.sh:8\nerror: .devcontainer/start-desktop.sh: patch does not apply\nerror: patch failed: Telegram/SourceFiles/ayu/ayu_lang.cpp:51\nFalling back to direct application...\nerror: patch failed: Telegram/SourceFiles/ayu/ayu_lang.cpp:51\nerror: Telegram/SourceFiles/ayu/ayu_lang.cpp: patch does not apply\nerror: patch failed: Telegram/SourceFiles/ayu/data/ayu_database.cpp:13\nFalling back to direct application...\nerror: patch failed: Telegram/SourceFiles/ayu/data/ayu_database.cpp:13\nerror: Telegram/SourceFiles/ayu/data/ayu_database.cpp: patch does not apply\nerror: patch failed: Telegram/SourceFiles/ayu/features/forward/ayu_sync.cpp:9\nFalling back to direct application...\nerror: patch failed: Telegram/SourceFiles/ayu/features/forward/ayu_sync.cpp:9\nerror: Telegram/SourceFiles/ayu/features/forward/ayu_sync.cpp: patch does not apply\nerror: patch failed: Telegram/SourceFiles/ayu/utils/telegram_helpers.cpp:718\nFalling back to direct application...\nerror: patch failed: Telegram/SourceFiles/ayu/utils/telegram_helpers.cpp:718\nerror: Telegram/SourceFiles/ayu/utils/telegram_helpers.cpp: patch does not apply\nerror: patch failed: Telegram/SourceFiles/data/data_session.cpp:2737\nFalling back to direct application...\nerror: patch failed: Telegram/SourceFiles/data/data_session.cpp:2737\nerror: Telegram/SourceFiles/data/data_session.cpp: patch does not apply\nerror: patch failed: Telegram/SourceFiles/storage/details/storage_file_utilities.cpp:26\nFalling back to direct application...\nerror: patch failed: Telegram/SourceFiles/storage/details/storage_file_utilities.cpp:26\nerror: Telegram/SourceFiles/storage/details/storage_file_utilities.cpp: patch does not apply\nerror: patch failed: Telegram/SourceFiles/storage/details/storage_file_utilities.h:11\nFalling back to direct application...\nerror: patch failed: Telegram/SourceFiles/storage/details/storage_file_utilities.h:11\nerror: Telegram/SourceFiles/storage/details/storage_file_utilities.h: patch does not apply\nerror: patch failed: Telegram/SourceFiles/storage/storage_domain.cpp:78\nFalling back to direct application...\nerror: patch failed: Telegram/SourceFiles/storage/storage_domain.cpp:78\nerror: Telegram/SourceFiles/storage/storage_domain.cpp: patch does not apply\nerror: patch failed: Telegram/SourceFiles/storage/storage_domain.h:60\nFalling back to direct application...\nerror: patch failed: Telegram/SourceFiles/storage/storage_domain.h:60\nerror: Telegram/SourceFiles/storage/storage_domain.h: patch does not apply\nerror: patch failed: Telegram/build/docker/centos_env/Dockerfile:777\nFalling back to direct application...\nerror: patch failed: Telegram/build/docker/centos_env/Dockerfile:777\nerror: Telegram/build/docker/centos_env/Dockerfile: patch does not apply\nerror: patch failed: Telegram/build/prepare/prepare.py:514\nFalling back to direct application...\nerror: patch failed: Telegram/build/prepare/prepare.py:514\nerror: Telegram/build/prepare/prepare.py: patch does not apply\nerror: patch failed: scripts/windows/Start-AyuGram.ps1:1\nFalling back to direct application...\nerror: patch failed: scripts/windows/Start-AyuGram.ps1:1\nerror: scripts/windows/Start-AyuGram.ps1: patch does not apply"
+    },
+    {
+      "sha": "952a7f5f84",
+      "subject": "Save uncommitted changes",
+      "status": "NEEDS_3WAY_RESOLVE",
+      "error": "Performing three-way merge...\nApplied patch to 'Telegram/SourceFiles/ayu/data/ayu_database_key.cpp' with conflicts.\nPerforming three-way merge...\nApplied patch to 'Telegram/SourceFiles/ayu/data/ayu_database_key.h' with conflicts.\nerror: patch failed: Telegram/SourceFiles/ayu/libs/sqlite/sqlite3.c:1\nFalling back to direct application...\nerror: patch failed: Telegram/SourceFiles/ayu/libs/sqlite/sqlite3.c:1\nerror: Telegram/SourceFiles/ayu/libs/sqlite/sqlite3.c: patch does not apply\nerror: patch failed: Telegram/SourceFiles/ayu/libs/sqlite/sqlite3.h:1\nFalling back to direct application...\nerror: patch failed: Telegram/SourceFiles/ayu/libs/sqlite/sqlite3.h:1\nerror: Telegram/SourceFiles/ayu/libs/sqlite/sqlite3.h: patch does not apply\nerror: patch failed: Telegram/build/docker/centos_env/Dockerfile:138\nFalling back to direct application...\nerror: patch failed: Telegram/build/docker/centos_env/Dockerfile:138\nerror: Telegram/build/docker/centos_env/Dockerfile: patch does not apply\nerror: patch failed: Telegram/build/prepare/prepare.py:592\nFalling back to direct application...\nerror: patch failed: Telegram/build/prepare/prepare.py:592\nerror: Telegram/build/prepare/prepare.py: patch does not apply\nerror: patch failed: Telegram/build/qt_version.py:2\nFalling back to direct application...\nerror: patch failed: Telegram/build/qt_version.py:2\nerror: Telegram/build/qt_version.py: patch does not apply"
+    },
+    {
+      "sha": "c5c3b9462d",
+      "subject": "Save uncommitted changes",
+      "status": "NEEDS_3WAY_RESOLVE",
+      "error": "error: git diff header lacks filename information when removing 1 leading pathname component at C:/Users/fjuni/AppData/Local/Temp/tmpt9780d5f.patch:1322"
+    },
+    {
+      "sha": "77b36aaa92",
+      "subject": "Save uncommitted changes",
+      "status": "NEEDS_3WAY_RESOLVE",
+      "error": "error: patch failed: .devcontainer/start-desktop.sh:47\nFalling back to direct application...\nerror: patch failed: .devcontainer/start-desktop.sh:47\nerror: .devcontainer/start-desktop.sh: patch does not apply\nerror: patch failed: .github/workflows/security-checks.yml:6\nFalling back to direct application...\nerror: patch failed: .github/workflows/security-checks.yml:6\nerror: .github/workflows/security-checks.yml: patch does not apply\nerror: patch failed: Telegram/build/prepare/prepare.py:663\nFalling back to direct application...\nerror: patch failed: Telegram/build/prepare/prepare.py:663\nerror: Telegram/build/prepare/prepare.py: patch does not apply\nerror: patch failed: scripts/check_mutable_refs.py:217\nFalling back to direct application...\nerror: patch failed: scripts/check_mutable_refs.py:217\nerror: scripts/check_mutable_refs.py: patch does not apply\nPerforming three-way merge...\nApplied patch to 'scripts/dependency_manifest.json' with conflicts.\nPerforming three-way merge...\nApplied patch to 'scripts/mutable_refs_allowlist.txt' with conflicts.\nPerforming three-way merge...\nApplied patch to 'scripts/mutable_refs_resolution.md' with conflicts.\nPerforming three-way merge...\nApplied patch to 'scripts/resolve_refs.py' with conflicts."
+    },
+    {
+      "sha": "6439677d2d",
+      "subject": "security(exec-assurance): redesign SQLCipher tests, fix poetry.lock, sync governance",
+      "status": "NEEDS_3WAY_RESOLVE",
+      "error": "error: patch failed: Telegram/SourceFiles/ayu/data/ayu_database.cpp:975\nFalling back to direct application...\nerror: patch failed: Telegram/SourceFiles/ayu/data/ayu_database.cpp:975\nerror: Telegram/SourceFiles/ayu/data/ayu_database.cpp: patch does not apply\nerror: patch failed: Telegram/SourceFiles/ayu/data/ayu_database_test.cpp:6\nFalling back to direct application...\nerror: patch failed: Telegram/SourceFiles/ayu/data/ayu_database_test.cpp:6\nerror: Telegram/SourceFiles/ayu/data/ayu_database_test.cpp: patch does not apply\nPerforming three-way merge...\nApplied patch to 'Telegram/SourceFiles/ayu/data/ayu_database_test_access.h' with conflicts.\nerror: patch failed: Telegram/build/docker/centos_env/poetry.lock:1\nFalling back to direct application...\nerror: patch failed: Telegram/build/docker/centos_env/poetry.lock:1\nerror: Telegram/build/docker/centos_env/poetry.lock: patch does not apply"
+    },
+    {
+      "sha": "ea53a56b5c",
+      "subject": "fix(ci): remove pip cache from dev container workflow, update poetry to 2.4.1",
+      "status": "NEEDS_3WAY_RESOLVE",
+      "error": "error: patch failed: .github/workflows/development-container.yml:51\nFalling back to direct application...\nerror: patch failed: .github/workflows/development-container.yml:51\nerror: .github/workflows/development-container.yml: patch does not apply"
+    },
+    {
+      "sha": "a05667d6b6",
+      "subject": "x",
+      "status": "CLEAN_APPLY",
+      "error": ""
+    },
+    {
+      "sha": "c07c57ac9e",
+      "subject": "chore: remove accidental temporary file",
+      "status": "NEEDS_3WAY_RESOLVE",
+      "error": "error: DO_NOT_CREATE: does not exist in index"
+    },
+    {
+      "sha": "1a6442e317",
+      "subject": "x",
+      "status": "CLEAN_APPLY",
+      "error": ""
+    },
+    {
+      "sha": "dec02cdb01",
+      "subject": "chore: remove accidental temporary file",
+      "status": "NEEDS_3WAY_RESOLVE",
+      "error": "error: DO_NOT_CREATE: does not exist in index"
+    },
+    {
+      "sha": "dca7a0a3ce",
+      "subject": "feat: add build infrastructure, CI scripts, and automation utilities for AyuGram Desktop",
+      "status": "NEEDS_3WAY_RESOLVE",
+      "error": "error: patch failed: .gitmodules:97\nFalling back to direct application...\nerror: patch failed: .gitmodules:97\nerror: .gitmodules: patch does not apply\nerror: Telegram/ThirdParty/MicroTeX: patch does not apply\nerror: Telegram/ThirdParty/cmark-gfm: patch does not apply"
+    },
+    {
+      "sha": "16bf51b56c",
+      "subject": "feat: implement comprehensive build pipeline, devcontainer environment, and automated test suite for AyuGram Desktop",
+      "status": "NEEDS_3WAY_RESOLVE",
+      "error": "error: patch failed: .devcontainer/Dockerfile:8\nFalling back to direct application...\nerror: patch failed: .devcontainer/Dockerfile:8\nerror: .devcontainer/Dockerfile: patch does not apply\nerror: patch failed: .gitattributes:1\nFalling back to direct application...\nerror: patch failed: .gitattributes:1\nerror: .gitattributes: patch does not apply\nerror: patch failed: SUBMODULES.md:2\nFalling back to direct application...\nerror: patch failed: SUBMODULES.md:2\nerror: SUBMODULES.md: patch does not apply\nFalling back to direct application...\nerror: patch failed: Telegram/ThirdParty/MicroTeX:1\nerror: Telegram/ThirdParty/MicroTeX: patch does not apply\nFalling back to direct application...\nerror: patch failed: Telegram/ThirdParty/cmark-gfm:1\nerror: Telegram/ThirdParty/cmark-gfm: patch does not apply\nerror: patch failed: tests/logic/test_ayugram_logic.py:143\nFalling back to direct application...\nerror: patch failed: tests/logic/test_ayugram_logic.py:143\nerror: tests/logic/test_ayugram_logic.py: patch does not apply"
+    },
+    {
+      "sha": "eec700b1a5",
+      "subject": "feat: add MicroTeX submodule to the documentation",
+      "status": "NEEDS_3WAY_RESOLVE",
+      "error": "error: patch failed: SUBMODULES.md:2\nFalling back to direct application...\nerror: patch failed: SUBMODULES.md:2\nerror: SUBMODULES.md: patch does not apply"
+    },
+    {
+      "sha": "5f49e508f6",
+      "subject": "fix(ayu): use dbStorage accessor for SQLCipher operations",
+      "status": "NEEDS_3WAY_RESOLVE",
+      "error": "error: patch failed: Telegram/SourceFiles/ayu/data/ayu_database.cpp:344\nFalling back to direct application...\nerror: patch failed: Telegram/SourceFiles/ayu/data/ayu_database.cpp:344\nerror: Telegram/SourceFiles/ayu/data/ayu_database.cpp: patch does not apply"
+    },
+    {
+      "sha": "b51c6be3db",
+      "subject": "fix(centos_env): add perl-Time-Piece dependency for OpenSSL 3.5.7",
+      "status": "NEEDS_3WAY_RESOLVE",
+      "error": "error: patch failed: Telegram/build/docker/centos_env/Dockerfile:14\nFalling back to direct application...\nerror: patch failed: Telegram/build/docker/centos_env/Dockerfile:14\nerror: Telegram/build/docker/centos_env/Dockerfile: patch does not apply"
+    },
+    {
+      "sha": "a03d364f06",
+      "subject": "fix(devcontainer): harden launch script and link libexec binaries",
+      "status": "NEEDS_3WAY_RESOLVE",
+      "error": "error: patch failed: .devcontainer/Dockerfile:10\nFalling back to direct application...\nerror: patch failed: .devcontainer/Dockerfile:10\nerror: .devcontainer/Dockerfile: patch does not apply\nerror: patch failed: .devcontainer/launch-ayugram.sh:33\nFalling back to direct application...\nerror: patch failed: .devcontainer/launch-ayugram.sh:33\nerror: .devcontainer/launch-ayugram.sh: patch does not apply"
+    },
+    {
+      "sha": "6131c580a5",
+      "subject": "chore(git): configure LF line endings for ignore files",
+      "status": "NEEDS_3WAY_RESOLVE",
+      "error": "error: patch failed: .gitattributes:4\nFalling back to direct application...\nerror: patch failed: .gitattributes:4\nerror: .gitattributes: patch does not apply"
+    },
+    {
+      "sha": "f60f34d3bb",
+      "subject": "test(logic): add full 8-table schema and ayu_database invariant tests",
+      "status": "NEEDS_3WAY_RESOLVE",
+      "error": "error: patch failed: tests/logic/test_ayugram_logic.py:3\nFalling back to direct application...\nerror: patch failed: tests/logic/test_ayugram_logic.py:3\nerror: tests/logic/test_ayugram_logic.py: patch does not apply"
+    },
+    {
+      "sha": "0c685ff856",
+      "subject": "feat(ci): add runner disk reclamation and 360 gate orchestrator suite",
+      "status": "NEEDS_3WAY_RESOLVE",
+      "error": "error: patch failed: .github/workflows/development-container.yml:85\nFalling back to direct application...\nerror: patch failed: .github/workflows/development-container.yml:85\nerror: .github/workflows/development-container.yml: patch does not apply\nPerforming three-way merge...\nApplied patch to 'scripts/run_all_360_gates.py' with conflicts.\nPerforming three-way merge...\nApplied patch to 'scripts/upstream_reconcile.py' with conflicts.\nerror: patch failed: tests/logic/test_ayugram_logic.py:2\nFalling back to direct application...\nerror: patch failed: tests/logic/test_ayugram_logic.py:2\nerror: tests/logic/test_ayugram_logic.py: patch does not apply"
+    }
+  ]
+}

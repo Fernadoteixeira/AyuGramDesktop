@@ -186,7 +186,7 @@ auto createStorage() {
 	return createStorageForPath(databaseFilePath().toStdString());
 }
 
-using Storage = decltype(createStorage());
+using AyuDbStorage = decltype(createStorage());
 
 namespace {
 
@@ -247,7 +247,7 @@ MTP::AuthKeyPtr currentLocalKey() {
 }
 
 template <typename T>
-void copyTable(Storage &source, Storage &target) {
+void copyTable(AyuDbStorage &source, AyuDbStorage &target) {
 	const auto rows = source.get_all<T>();
 	for (const auto &row : rows) {
 		target.replace(row);
@@ -258,31 +258,22 @@ void copyTable(Storage &source, Storage &target) {
 }
 
 [[nodiscard]] bool migratePlaintextDatabase() {
-	const auto path = databaseFilePath();
-	if (!hasPlaintextHeader(path)) {
-		return false;
-	}
-	const auto encPath = path + u".enc"_q;
-
-	for (const auto &suffix : { u""_q, u"-wal"_q, u"-shm"_q }) {
-		QFile::remove(encPath + suffix);
-	}
+	const auto plainPath = databaseFilePath();
+	const auto encryptedPath = plainPath + u".encrypted_migration"_q;
 
 	try {
-		{
-			auto source = createStorageForPath(path.toStdString());
-			source.pragma.synchronous(2);
-			source.pragma.journal_mode(journal_mode::DELETE);
-			source.sync_schema(true);
+		QFile::remove(encryptedPath);
 
-			auto target = createStorageForPath(encPath.toStdString());
+		{
+			auto source = createStorageForPath(plainPath.toStdString());
+			auto target = createStorageForPath(encryptedPath.toStdString());
+
 			target.on_open = [](sqlite3 *db) {
 				applyCodecKey(db);
-				sqlite3_exec(db, "PRAGMA synchronous = FULL;", nullptr, nullptr, nullptr);
 			};
+
 			target.sync_schema(true);
 
-			target.begin_transaction();
 			copyTable<SchemaVersion>(source, target);
 			copyTable<DeletedMessage>(source, target);
 			copyTable<EditedMessage>(source, target);
@@ -291,52 +282,42 @@ void copyTable(Storage &source, Storage &target) {
 			copyTable<RegexFilterGlobalExclusion>(source, target);
 			copyTable<SpyMessageRead>(source, target);
 			copyTable<SpyMessageContentsRead>(source, target);
-			target.commit();
-
-			const auto integrity = target.pragma.integrity_check();
-			if (integrity.size() != 1 || integrity.front() != "ok") {
-				throw std::runtime_error("integrity check failed");
-			}
 		}
 
-		const auto backup = cWorkingDir()
-			+ u"tdata/ayudata_pre_encryption_%1.db"_q.arg(base::unixtime::now());
-		QFile::remove(backup);
-		if (!QFile::rename(path, backup)) {
-			throw std::runtime_error("could not move plaintext DB aside");
+		const auto backupPath = cWorkingDir()
+			+ u"tdata/ayudata_plaintext_backup_%1.db"_q.arg(base::unixtime::now());
+		if (!QFile::rename(plainPath, backupPath)) {
+			LOG(("Database Error: could not rename plaintext DB to backup; aborting migration."));
+			QFile::remove(encryptedPath);
+			return false;
 		}
-		if (!QFile::rename(encPath, path)) {
-			QFile::rename(backup, path);
-			throw std::runtime_error("could not replace DB with encrypted copy");
+
+		for (const auto &suffix : { u"-shm"_q, u"-wal"_q }) {
+			QFile::remove(plainPath + suffix);
 		}
-		for (const auto &suffix : { u"-wal"_q, u"-shm"_q }) {
-			QFile::remove(path + suffix);
-			QFile::remove(backup + suffix);
+
+		if (!QFile::rename(encryptedPath, plainPath)) {
+			LOG(("Database FATAL: could not rename migrated DB into place!"));
+			QFile::rename(backupPath, plainPath);
+			return false;
 		}
-		LOG(("Database Info: migrated ayudata.db to encrypted storage, "
-			"plaintext backup kept at '%1'.").arg(backup));
+
+		LOG(("Database: successfully migrated plaintext DB to encrypted format."));
 		return true;
 	} catch (const std::exception &ex) {
-		LOG(("Database Error: migration to encrypted DB failed: %1"
-			).arg(ex.what()));
-		for (const auto &suffix : { u""_q, u"-wal"_q, u"-shm"_q }) {
-			QFile::remove(encPath + suffix);
-		}
+		LOG(("Database Error: plaintext migration failed: %1").arg(ex.what()));
+		QFile::remove(encryptedPath);
 		return false;
 	}
 }
 
 void reportPlaintextArtifacts() {
 	const auto dir = QDir(cWorkingDir() + u"tdata"_q);
-	const auto entries = dir.entryList(
-		{
-			u"ayudata_*.db"_q,
-			u"ayudata_*.db-wal"_q,
-			u"ayudata_*.db-shm"_q,
-		},
+	const auto list = dir.entryList(
+		{ u"ayudata_plaintext_backup_*.db"_q },
 		QDir::Files);
-	for (const auto &entry : entries) {
-		LOG(("Database Warning: unencrypted ayudata artifact in tdata: '%1' "
+	for (const auto &entry : list) {
+		LOG(("Database Warning: found plaintext backup '%1' "
 			"(kept for data safety; delete manually if not needed)."
 			).arg(entry));
 	}
@@ -346,7 +327,7 @@ void reportPlaintextArtifacts() {
 
 namespace AyuMigrations {
 
-void migrateToV1(Storage &db) {
+void migrateToV1(AyuDbStorage &db) {
 	// drop RegexFilter table as we've added primary_key()
 	try {
 		db.drop_table_if_exists("RegexFilter");
@@ -358,10 +339,10 @@ void migrateToV1(Storage &db) {
 
 }
 
-void runMigrations(Storage &db) {
+void runMigrations(AyuDbStorage &db) {
 	constexpr int kLatestVersion = 1;
 
-	const std::map<int, Fn<void(Storage &)>> migrations = {
+	const std::map<int, Fn<void(AyuDbStorage &)>> migrations = {
 		{1, AyuMigrations::migrateToV1},
 	};
 
@@ -408,12 +389,12 @@ void runMigrations(Storage &db) {
 
 namespace AyuDatabase {
 
-std::optional<Storage> &dbStorageInstance() {
-	static std::optional<Storage> instance;
+std::optional<AyuDbStorage> &dbStorageInstance() {
+	static std::optional<AyuDbStorage> instance;
 	return instance;
 }
 
-Storage &dbStorage() {
+AyuDbStorage &dbStorage() {
 	auto &instance = dbStorageInstance();
 	if (!instance.has_value()) {
 		instance.emplace(createStorage());
@@ -707,7 +688,7 @@ void clearDeletedMessages(ID userId, ID dialogId, ID topicId) {
 	}
 	try {
 		if (topicId == 0) {
-			dbStorage().template remove_all<DeletedMessage>(
+			dbStorage().remove_all<DeletedMessage>(
 				where(
 					column<DeletedMessage>(&DeletedMessage::userId) == userId and
 					column<DeletedMessage>(&DeletedMessage::dialogId) == dialogId
@@ -715,7 +696,7 @@ void clearDeletedMessages(ID userId, ID dialogId, ID topicId) {
 			);
 			return;
 		}
-		dbStorage().template remove_all<DeletedMessage>(
+		dbStorage().remove_all<DeletedMessage>(
 			where(
 				column<DeletedMessage>(&DeletedMessage::userId) == userId and
 				column<DeletedMessage>(&DeletedMessage::dialogId) == dialogId and
@@ -729,7 +710,7 @@ void clearDeletedMessages(ID userId, ID dialogId, ID topicId) {
 template<typename T>
 std::vector<T> getAllT() {
 	try {
-		return dbStorage().template get_all<T>();
+		return dbStorage().get_all<T>();
 	} catch (std::exception &ex) {
 		LOG(("Failed to get all: %1").arg(ex.what()));
 		return {};
@@ -755,7 +736,7 @@ std::vector<RegexFilter> getExcludedByDialogId(ID dialogId) {
 		return {};
 	}
 	try {
-		return dbStorage().template get_all<RegexFilter>(
+		return dbStorage().get_all<RegexFilter>(
 			where(in(&RegexFilter::id,
 					 dbStorage().select(columns(&RegexFilterGlobalExclusion::filterId),
 									where(is_equal(&RegexFilterGlobalExclusion::dialogId, dialogId))
@@ -773,7 +754,7 @@ int getCount() {
 		return 0;
 	}
 	try {
-		return dbStorage().template count<RegexFilter>();
+		return dbStorage().count<RegexFilter>();
 	} catch (std::exception &ex) {
 		LOG(("Failed to get count: %1").arg(ex.what()));
 		return 0;
@@ -785,7 +766,7 @@ RegexFilter getById(std::vector<char> id) {
 		return {};
 	}
 	try {
-		return dbStorage().template get<RegexFilter>(
+		return dbStorage().get<RegexFilter>(
 			where(column<RegexFilter>(&RegexFilter::id) == std::move(id))
 		);
 	} catch (std::exception &ex) {
@@ -799,7 +780,7 @@ std::vector<RegexFilter> getShared() {
 		return {};
 	}
 	try {
-		return dbStorage().template get_all<RegexFilter>(
+		return dbStorage().get_all<RegexFilter>(
 			where(is_null(column<RegexFilter>(&RegexFilter::dialogId)))
 		);
 	} catch (std::exception &ex) {
@@ -813,7 +794,7 @@ std::vector<RegexFilter> getByDialogId(ID dialogId) {
 		return {};
 	}
 	try {
-		return dbStorage().template get_all<RegexFilter>(
+		return dbStorage().get_all<RegexFilter>(
 			where(column<RegexFilter>(&RegexFilter::dialogId) == dialogId)
 		);
 	} catch (std::exception &ex) {
@@ -828,7 +809,7 @@ void addRegexFilter(const RegexFilter &filter) {
 	}
 	try {
 		dbStorage().begin_transaction();
-		dbStorage().replace(filter); // we're using replace as we set std::vector<char> as primary key
+		dbStorage().replace(filter);
 		dbStorage().commit();
 	} catch (std::exception &ex) {
 		try {
@@ -881,7 +862,7 @@ void deleteFilter(const std::vector<char> &id) {
 		return;
 	}
 	try {
-		dbStorage().template remove_all<RegexFilter>(
+		dbStorage().remove_all<RegexFilter>(
 			where(column<RegexFilter>(&RegexFilter::id) == id)
 		);
 	} catch (std::exception &ex) {
@@ -894,7 +875,7 @@ void deleteExclusionsByFilterId(const std::vector<char> &id) {
 		return;
 	}
 	try {
-		dbStorage().template remove_all<RegexFilterGlobalExclusion>(
+		dbStorage().remove_all<RegexFilterGlobalExclusion>(
 			where(column<RegexFilterGlobalExclusion>(&RegexFilterGlobalExclusion::filterId) == id)
 		);
 	} catch (std::exception &ex) {
@@ -907,7 +888,7 @@ void deleteExclusion(ID dialogId, std::vector<char> filterId) {
 		return;
 	}
 	try {
-		dbStorage().template remove_all<RegexFilterGlobalExclusion>(
+		dbStorage().remove_all<RegexFilterGlobalExclusion>(
 			where(column<RegexFilterGlobalExclusion>(&RegexFilterGlobalExclusion::filterId) == filterId and
 				column<RegexFilterGlobalExclusion>(&RegexFilterGlobalExclusion::dialogId) == dialogId
 			)
@@ -922,7 +903,7 @@ void deleteAllFilters() {
 		return;
 	}
 	try {
-		dbStorage().template remove_all<RegexFilter>();
+		dbStorage().remove_all<RegexFilter>();
 	} catch (std::exception &ex) {
 		LOG(("Failed to delete all regex filter for some reason: %1").arg(ex.what()));
 	}
@@ -933,7 +914,7 @@ void deleteAllExclusions() {
 		return;
 	}
 	try {
-		dbStorage().template remove_all<RegexFilterGlobalExclusion>();
+		dbStorage().remove_all<RegexFilterGlobalExclusion>();
 	} catch (std::exception &ex) {
 		LOG(("Failed to delete all regex filter exclusions for some reason: %1").arg(ex.what()));
 	}

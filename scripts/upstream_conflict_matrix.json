@@ -1,0 +1,306 @@
+{
+  "merge_base": "ba8c1a6b0f456c6a5601d675e765cd5fba10d54c",
+  "total_fork_files": 107,
+  "total_upstream_files": 1703,
+  "total_intersecting": 46,
+  "risk_summary": {
+    "HIGH": 5,
+    "MEDIUM": 9,
+    "LOW": 32
+  },
+  "matrix": [
+    {
+      "file": ".agents/skills/task-think/PROMPTS.md",
+      "domain": "General",
+      "risk": "LOW"
+    },
+    {
+      "file": ".claude/commands/planner.md",
+      "domain": "General",
+      "risk": "LOW"
+    },
+    {
+      "file": ".claude/commands/reflect.md",
+      "domain": "General",
+      "risk": "LOW"
+    },
+    {
+      "file": ".claude/commands/task.md",
+      "domain": "General",
+      "risk": "LOW"
+    },
+    {
+      "file": ".claude/commands/withtest.md",
+      "domain": "General",
+      "risk": "LOW"
+    },
+    {
+      "file": ".gitignore",
+      "domain": "General",
+      "risk": "LOW"
+    },
+    {
+      "file": ".gitmodules",
+      "domain": "General",
+      "risk": "LOW"
+    },
+    {
+      "file": "README-RU.md",
+      "domain": "General",
+      "risk": "LOW"
+    },
+    {
+      "file": "README.md",
+      "domain": "General",
+      "risk": "LOW"
+    },
+    {
+      "file": "REVIEW.md",
+      "domain": "General",
+      "risk": "LOW"
+    },
+    {
+      "file": "Telegram/Resources/export_html/css/style.css",
+      "domain": "General",
+      "risk": "LOW"
+    },
+    {
+      "file": "Telegram/Resources/iv_html/page.css",
+      "domain": "General",
+      "risk": "LOW"
+    },
+    {
+      "file": "Telegram/Resources/iv_html/page.js",
+      "domain": "General",
+      "risk": "LOW"
+    },
+    {
+      "file": "Telegram/Resources/langs/lang.strings",
+      "domain": "General",
+      "risk": "LOW"
+    },
+    {
+      "file": "Telegram/SourceFiles/ayu/ayu_settings.cpp",
+      "domain": "General",
+      "risk": "LOW"
+    },
+    {
+      "file": "Telegram/SourceFiles/ayu/ayu_settings.h",
+      "domain": "General",
+      "risk": "LOW"
+    },
+    {
+      "file": "Telegram/SourceFiles/ayu/data/ayu_database.cpp",
+      "domain": "General",
+      "risk": "LOW"
+    },
+    {
+      "file": "Telegram/SourceFiles/ayu/data/ayu_database.h",
+      "domain": "General",
+      "risk": "LOW"
+    },
+    {
+      "file": "Telegram/SourceFiles/ayu/data/messages_storage.cpp",
+      "domain": "General",
+      "risk": "LOW"
+    },
+    {
+      "file": "Telegram/SourceFiles/ayu/features/forward/ayu_sync.cpp",
+      "domain": "General",
+      "risk": "LOW"
+    },
+    {
+      "file": "Telegram/SourceFiles/ayu/libs/sqlite/sqlite3.c",
+      "domain": "General",
+      "risk": "LOW"
+    },
+    {
+      "file": "Telegram/SourceFiles/ayu/libs/sqlite/sqlite3.h",
+      "domain": "General",
+      "risk": "LOW"
+    },
+    {
+      "file": "Telegram/SourceFiles/ayu/utils/telegram_helpers.cpp",
+      "domain": "General",
+      "risk": "LOW"
+    },
+    {
+      "file": "Telegram/SourceFiles/boxes/about_box.cpp",
+      "domain": "General",
+      "risk": "LOW"
+    },
+    {
+      "file": "Telegram/SourceFiles/boxes/boxes.style",
+      "domain": "General",
+      "risk": "LOW"
+    },
+    {
+      "file": "Telegram/SourceFiles/boxes/passcode_box.cpp",
+      "domain": "General",
+      "risk": "LOW"
+    },
+    {
+      "file": "Telegram/SourceFiles/core/application.cpp",
+      "domain": "Telegram Core UI & Message Lifecycle",
+      "risk": "HIGH"
+    },
+    {
+      "file": "Telegram/SourceFiles/data/data_session.cpp",
+      "domain": "Data / Storage Engine",
+      "risk": "HIGH"
+    },
+    {
+      "file": "Telegram/SourceFiles/settings.h",
+      "domain": "General",
+      "risk": "LOW"
+    },
+    {
+      "file": "Telegram/SourceFiles/storage/details/storage_file_utilities.cpp",
+      "domain": "Data / Storage Engine",
+      "risk": "HIGH"
+    },
+    {
+      "file": "Telegram/SourceFiles/storage/storage_domain.cpp",
+      "domain": "Data / Storage Engine",
+      "risk": "HIGH"
+    },
+    {
+      "file": "Telegram/SourceFiles/window/window_lock_widgets.cpp",
+      "domain": "Telegram Core UI & Message Lifecycle",
+      "risk": "HIGH"
+    },
+    {
+      "file": "Telegram/ThirdParty/MicroTeX",
+      "domain": "ThirdParty Submodules",
+      "risk": "MEDIUM"
+    },
+    {
+      "file": "Telegram/ThirdParty/cmark-gfm",
+      "domain": "ThirdParty Submodules",
+      "risk": "MEDIUM"
+    },
+    {
+      "file": "Telegram/ThirdParty/tgcalls",
+      "domain": "ThirdParty Submodules",
+      "risk": "MEDIUM"
+    },
+    {
+      "file": "Telegram/build/docker/centos_env/Dockerfile",
+      "domain": "Build System & CMake",
+      "risk": "MEDIUM"
+    },
+    {
+      "file": "Telegram/build/docker/centos_env/run.sh",
+      "domain": "Build System & CMake",
+      "risk": "MEDIUM"
+    },
+    {
+      "file": "Telegram/build/prepare/prepare.py",
+      "domain": "Build System & CMake",
+      "risk": "MEDIUM"
+    },
+    {
+      "file": "Telegram/build/qt_version.py",
+      "domain": "Build System & CMake",
+      "risk": "MEDIUM"
+    },
+    {
+      "file": "Telegram/lib_icu",
+      "domain": "General",
+      "risk": "LOW"
+    },
+    {
+      "file": "Telegram/lib_spellcheck",
+      "domain": "General",
+      "risk": "LOW"
+    },
+    {
+      "file": "Telegram/lib_tl",
+      "domain": "General",
+      "risk": "LOW"
+    },
+    {
+      "file": "Telegram/lib_webview",
+      "domain": "General",
+      "risk": "LOW"
+    },
+    {
+      "file": "cmake",
+      "domain": "General",
+      "risk": "LOW"
+    },
+    {
+      "file": "docs/building-mac.md",
+      "domain": "Build System & CMake",
+      "risk": "MEDIUM"
+    },
+    {
+      "file": "docs/building-win-x64.md",
+      "domain": "Build System & CMake",
+      "risk": "MEDIUM"
+    }
+  ],
+  "fork_only_files": [
+    ".claude/commands/icon.md",
+    ".claude/commands/release.md",
+    ".devcontainer.json",
+    ".devcontainer/Dockerfile",
+    ".devcontainer/launch-ayugram.sh",
+    ".devcontainer/start-desktop.sh",
+    ".gitattributes",
+    ".github/dependabot.yml",
+    ".github/workflows/development-container.yml",
+    ".github/workflows/security-checks.yml",
+    ".vscode/extensions.json",
+    ".vscode/settings.json",
+    "PRODUCT.md",
+    "SECURITY_COMPLIANCE_MATRIX.md",
+    "SUBMODULES.md",
+    "Telegram/Resources/export_html/js/script.js",
+    "Telegram/Resources/picker_html/picker.css",
+    "Telegram/Resources/picker_html/picker.js",
+    "Telegram/SourceFiles/ayu/ayu_lang.cpp",
+    "Telegram/SourceFiles/ayu/data/ayu_database_key.cpp",
+    "Telegram/SourceFiles/ayu/data/ayu_database_key.h",
+    "Telegram/SourceFiles/ayu/data/ayu_database_test.cpp",
+    "Telegram/SourceFiles/ayu/data/ayu_database_test_access.h",
+    "Telegram/SourceFiles/settings/sections/settings_local_passcode.cpp",
+    "Telegram/SourceFiles/storage/details/storage_file_utilities.h",
+    "Telegram/SourceFiles/storage/details/storage_file_utilities_kdf_test.cpp",
+    "Telegram/SourceFiles/storage/storage_domain.h",
+    "Telegram/ThirdParty/fcitx5-qt",
+    "Telegram/ThirdParty/hime",
+    "Telegram/ThirdParty/hunspell",
+    "Telegram/ThirdParty/kcoreaddons",
+    "Telegram/ThirdParty/kimageformats",
+    "Telegram/ThirdParty/lz4",
+    "Telegram/ThirdParty/nimf",
+    "Telegram/ThirdParty/range-v3",
+    "Telegram/ThirdParty/rlottie",
+    "Telegram/ThirdParty/xdg-desktop-portal",
+    "Telegram/ThirdParty/xxHash",
+    "Telegram/build/docker/centos_env/poetry.lock",
+    "Telegram/build/docker/centos_env/pyproject.toml",
+    "Telegram/build/docker/centos_env/requirements-build.txt",
+    "Telegram/build/prepare/__pycache__/prepare.cpython-311.pyc",
+    "docs/api_credentials.md",
+    "docs/building-linux.md",
+    "docs/docker-development.md",
+    "libs.tar.gz",
+    "scripts/__pycache__/check_mutable_refs.cpython-311.pyc",
+    "scripts/__pycache__/verify_boost.cpython-311.pyc",
+    "scripts/__pycache__/verify_libiconv.cpython-311.pyc",
+    "scripts/check_mutable_refs.py",
+    "scripts/dependency_manifest.json",
+    "scripts/mutable_refs_allowlist.txt",
+    "scripts/mutable_refs_resolution.md",
+    "scripts/resolve_refs.py",
+    "scripts/run_all_360_gates.py",
+    "scripts/security_test_manifest.md",
+    "scripts/upstream_reconcile.py",
+    "scripts/verify_boost.py",
+    "scripts/verify_libiconv.py",
+    "scripts/windows/Start-AyuGram.ps1",
+    "tests/logic/test_ayugram_logic.py"
+  ]
+}

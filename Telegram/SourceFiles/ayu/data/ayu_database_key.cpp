@@ -16,7 +16,7 @@
 namespace AyuDatabase {
 namespace {
 
-constexpr auto kKeyFileName = u"ayudata_key"_q;
+const auto kKeyFileName = u"ayudata_key"_q;
 constexpr qint32 kKeyFileVersion = 1;
 
 [[nodiscard]] QString keyFileBasePath() {
