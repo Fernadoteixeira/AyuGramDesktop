@@ -74,7 +74,7 @@ jobs:
 
   publish:
     name: Publish container image
-    if: github.event_name == 'push' && github.ref == 'refs/heads/dev'
+    if: (github.event_name == 'push' || github.event_name == 'workflow_dispatch') && github.ref == 'refs/heads/dev'
     needs: validate
     runs-on: ubuntu-24.04
     timeout-minutes: 360

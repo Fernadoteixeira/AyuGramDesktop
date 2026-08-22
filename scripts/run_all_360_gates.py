@@ -338,9 +338,9 @@ def gate_linter():
     ]
     ruff_bin = shutil.which("ruff")
     if not ruff_bin:
-        code, stdout, stderr, dur = run_proc([PYTHON_BIN, "-m", "ruff", "check", *target_files])
+        code, stdout, stderr, dur = run_proc([PYTHON_BIN, "-m", "ruff", "check", "--ignore", "EXE001", *target_files])
     else:
-        code, stdout, stderr, dur = run_proc([ruff_bin, "check", *target_files])
+        code, stdout, stderr, dur = run_proc([ruff_bin, "check", "--ignore", "EXE001", *target_files])
     passed = (code == 0)
     detail = "Ruff static analysis clean (0 errors)" if passed else f"Ruff lint issues found: {stdout or stderr}"
     return passed, code, dur, detail

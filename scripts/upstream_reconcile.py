@@ -64,17 +64,27 @@ def analyze_upstream():
         sys.exit(1)
     validate_sha(local_head, "LOCAL_HEAD")
 
-    # Try resolving origin/dev
-    code, origin_head, err = run_git(["rev-parse", "origin/dev"])
-    if code != 0 or not origin_head:
+    # Try resolving origin_head
+    code, origin_head, _ = run_git(["rev-parse", "origin/dev"])
+    if code != 0 or not origin_head or not SHA40_RE.match(origin_head):
         origin_head = local_head
     validate_sha(origin_head, "ORIGIN_HEAD")
 
-    # Try resolving upstream/dev
-    code, upstream_head, err = run_git(["rev-parse", "upstream/dev"])
-    if code != 0 or not upstream_head:
-        print(f"[ERROR] Failed to resolve UPSTREAM_HEAD (upstream/dev): {err}", file=sys.stderr)
-        sys.exit(1)
+    # Resolve upstream_head via git rev-parse or live git ls-remote
+    upstream_url = "https://github.com/AyuGram/AyuGramDesktop.git"
+    upstream_head = None
+
+    code, up_parse, _ = run_git(["rev-parse", "upstream/dev"])
+    if code == 0 and up_parse and SHA40_RE.match(up_parse):
+        upstream_head = up_parse
+    else:
+        # Resolve via live ls-remote
+        code_ls, ls_out, ls_err = run_git(["ls-remote", upstream_url, "refs/heads/dev"])
+        if code_ls != 0 or not ls_out:
+            print(f"[ERROR] Failed to resolve upstream live ref via {upstream_url}: {ls_err}", file=sys.stderr)
+            sys.exit(1)
+        upstream_head = ls_out.split()[0]
+
     validate_sha(upstream_head, "UPSTREAM_HEAD")
 
     print("  [2/6] Heads:")
@@ -82,89 +92,106 @@ def analyze_upstream():
     print(f"    - ORIGIN_HEAD:   {origin_head}")
     print(f"    - UPSTREAM_HEAD: {upstream_head}")
 
-    # 3. Find merge base
-    code, merge_base, err = run_git(["merge-base", origin_head, upstream_head])
-    if code != 0 or not merge_base:
-        print(f"[ERROR] Failed to compute merge-base between {origin_head} and {upstream_head}: {err}", file=sys.stderr)
-        sys.exit(1)
-    validate_sha(merge_base, "MERGE_BASE")
-    print(f"  [3/6] Common Merge Base: {merge_base}")
+    # Ensure upstream_head object is available locally; if not, fetch to temporary agent ref
+    temp_ref = "refs/agents/autopilot/upstream-dev"
+    code_cat, _, _ = run_git(["cat-file", "-e", upstream_head])
+    need_temp_cleanup = False
 
-    # 4. Count fork ahead / behind
-    code_ahead, fork_ahead_str, err_ahead = run_git(["rev-list", "--count", f"{merge_base}..{origin_head}"])
-    if code_ahead != 0:
-        print(f"[ERROR] Failed to compute fork_ahead: {err_ahead}", file=sys.stderr)
-        sys.exit(1)
-
-    code_behind, fork_behind_str, err_behind = run_git(["rev-list", "--count", f"{merge_base}..{upstream_head}"])
-    if code_behind != 0:
-        print(f"[ERROR] Failed to compute fork_behind: {err_behind}", file=sys.stderr)
-        sys.exit(1)
+    if code_cat != 0:
+        print(f"  [*] Upstream object {upstream_head[:8]} not found in local db, fetching to {temp_ref}...")
+        code_fetch, _, fetch_err = run_git(["fetch", "--no-tags", upstream_url, f"dev:{temp_ref}"])
+        if code_fetch != 0:
+            print(f"[ERROR] Failed to fetch upstream commit into {temp_ref}: {fetch_err}", file=sys.stderr)
+            sys.exit(1)
+        need_temp_cleanup = True
 
     try:
-        fork_ahead = int(fork_ahead_str)
-        fork_behind = int(fork_behind_str)
-    except ValueError as val_err:
-        print(f"[ERROR] Non-integer divergence counts: ahead='{fork_ahead_str}', behind='{fork_behind_str}': {val_err}", file=sys.stderr)
-        sys.exit(1)
+        # 3. Find merge base
+        code, merge_base, err = run_git(["merge-base", origin_head, upstream_head])
+        if code != 0 or not merge_base:
+            print(f"[ERROR] Failed to compute merge-base between {origin_head} and {upstream_head}: {err}", file=sys.stderr)
+            sys.exit(1)
+        validate_sha(merge_base, "MERGE_BASE")
+        print(f"  [3/6] Common Merge Base: {merge_base}")
 
-    print("  [4/6] Divergence Metrics:")
-    print(f"    - Fork Ahead:  {fork_ahead} commits (AyuGram patches)")
-    print(f"    - Fork Behind: {fork_behind} commits (Upstream Telegram updates)")
+        # 4. Count fork ahead / behind
+        code_ahead, fork_ahead_str, err_ahead = run_git(["rev-list", "--count", f"{merge_base}..{origin_head}"])
+        if code_ahead != 0:
+            print(f"[ERROR] Failed to compute fork_ahead: {err_ahead}", file=sys.stderr)
+            sys.exit(1)
 
-    # 5. List Fork-only modified files
-    code_diff, fork_files_out, err_diff = run_git(["diff", "--name-only", f"{merge_base}..{origin_head}"])
-    if code_diff != 0:
-        print(f"[ERROR] Failed to list fork diff files: {err_diff}", file=sys.stderr)
-        sys.exit(1)
+        code_behind, fork_behind_str, err_behind = run_git(["rev-list", "--count", f"{merge_base}..{upstream_head}"])
+        if code_behind != 0:
+            print(f"[ERROR] Failed to compute fork_behind: {err_behind}", file=sys.stderr)
+            sys.exit(1)
 
-    fork_files = [f for f in fork_files_out.splitlines() if f.strip()]
+        try:
+            fork_ahead = int(fork_ahead_str)
+            fork_behind = int(fork_behind_str)
+        except ValueError as val_err:
+            print(f"[ERROR] Non-integer divergence counts: ahead='{fork_ahead_str}', behind='{fork_behind_str}': {val_err}", file=sys.stderr)
+            sys.exit(1)
 
-    categories = {
-        "AyuGram Core Logic / DB": [],
-        "AyuGram UI & Settings": [],
-        "Build & DevContainer": [],
-        "CI / Workflows": [],
-        "Submodules & Configs": [],
-    }
+        print("  [4/6] Divergence Metrics:")
+        print(f"    - Fork Ahead:  {fork_ahead} commits (AyuGram patches)")
+        print(f"    - Fork Behind: {fork_behind} commits (Upstream Telegram updates)")
 
-    for f in fork_files:
-        if "ayu/data" in f or "database" in f or "logic" in f:
-            categories["AyuGram Core Logic / DB"].append(f)
-        elif "ayu" in f or "window" in f or "menu" in f or "settings" in f:
-            categories["AyuGram UI & Settings"].append(f)
-        elif "docker" in f or "devcontainer" in f or "CMake" in f or "build" in f:
-            categories["Build & DevContainer"].append(f)
-        elif ".github" in f or "scripts" in f:
-            categories["CI / Workflows"].append(f)
-        else:
-            categories["Submodules & Configs"].append(f)
+        # 5. List Fork-only modified files
+        code_diff, fork_files_out, err_diff = run_git(["diff", "--name-only", f"{merge_base}..{origin_head}"])
+        if code_diff != 0:
+            print(f"[ERROR] Failed to list fork diff files: {err_diff}", file=sys.stderr)
+            sys.exit(1)
 
-    print(f"  [5/6] Fork Modified Files Inventory ({len(fork_files)} files):")
-    for cat, files in categories.items():
-        print(f"    * {cat}: {len(files)} files")
-        for file in files[:3]:
-            print(f"      - {file}")
-        if len(files) > 3:
-            print(f"      - ... (+{len(files) - 3} more)")
+        fork_files = [f for f in fork_files_out.splitlines() if f.strip()]
 
-    # 6. Status and Boundaries
-    print("  [6/6] Divergence Status & Operational Boundary:")
-    print("    - ANALYSIS_STATUS: ANALYSIS_PASS")
-    print("    - RECONCILIATION_STATUS: RECONCILIATION_NOT_ATTEMPTED (Engine is read-only)")
-    print("    - NOTE: Divergence analysis complete. No upstream sync commits were created.")
+        categories = {
+            "AyuGram Core Logic / DB": [],
+            "AyuGram UI & Settings": [],
+            "Build & DevContainer": [],
+            "CI / Workflows": [],
+            "Submodules & Configs": [],
+        }
 
-    return {
-        "local_head": local_head,
-        "origin_head": origin_head,
-        "upstream_head": upstream_head,
-        "merge_base": merge_base,
-        "fork_ahead": fork_ahead,
-        "fork_behind": fork_behind,
-        "categories": {k: len(v) for k, v in categories.items()},
-        "analysis_status": "ANALYSIS_PASS",
-        "reconciliation_status": "RECONCILIATION_NOT_ATTEMPTED",
-    }
+        for f in fork_files:
+            if "ayu/data" in f or "database" in f or "logic" in f:
+                categories["AyuGram Core Logic / DB"].append(f)
+            elif "ayu" in f or "window" in f or "menu" in f or "settings" in f:
+                categories["AyuGram UI & Settings"].append(f)
+            elif "docker" in f or "devcontainer" in f or "CMake" in f or "build" in f:
+                categories["Build & DevContainer"].append(f)
+            elif ".github" in f or "scripts" in f:
+                categories["CI / Workflows"].append(f)
+            else:
+                categories["Submodules & Configs"].append(f)
+
+        print(f"  [5/6] Fork Modified Files Inventory ({len(fork_files)} files):")
+        for cat, files in categories.items():
+            print(f"    * {cat}: {len(files)} files")
+            for file in files[:3]:
+                print(f"      - {file}")
+            if len(files) > 3:
+                print(f"      - ... (+{len(files) - 3} more)")
+
+        # 6. Status and Boundaries
+        print("  [6/6] Divergence Status & Operational Boundary:")
+        print("    - ANALYSIS_STATUS: ANALYSIS_PASS")
+        print("    - RECONCILIATION_STATUS: RECONCILIATION_NOT_ATTEMPTED (Engine is read-only)")
+        print("    - NOTE: Divergence analysis complete. No upstream sync commits were created.")
+
+        return {
+            "local_head": local_head,
+            "origin_head": origin_head,
+            "upstream_head": upstream_head,
+            "merge_base": merge_base,
+            "fork_ahead": fork_ahead,
+            "fork_behind": fork_behind,
+            "categories": {k: len(v) for k, v in categories.items()},
+            "analysis_status": "ANALYSIS_PASS",
+            "reconciliation_status": "RECONCILIATION_NOT_ATTEMPTED",
+        }
+    finally:
+        if need_temp_cleanup:
+            run_git(["update-ref", "-d", temp_ref])
 
 
 if __name__ == "__main__":
