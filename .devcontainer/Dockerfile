@@ -10,7 +10,8 @@ RUN dnf -y install epel-release \
 		x11vnc xorg-x11-server-Xvfb xterm mesa-dri-drivers xcb-util-cursor \
 		xdotool wmctrl xorg-x11-utils ImageMagick clang \
 	&& dnf clean all \
-	&& rm -rf /var/cache/dnf
+	&& rm -rf /var/cache/dnf \
+	&& ln -sf /usr/local/libexec/* /usr/local/bin/
 
 COPY --chmod=0755 .devcontainer/start-desktop.sh /usr/local/bin/start-ayugram-desktop
 COPY --chmod=0755 .devcontainer/launch-ayugram.sh /usr/local/bin/launch-ayugram

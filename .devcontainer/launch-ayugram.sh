@@ -33,7 +33,7 @@ Candidates=(
 )
 
 for Binary in "${Candidates[@]}"; do
-	if [ -x "$Binary" ]; then
+	if [ -f "$Binary" ] && [ -x "$Binary" ]; then
 		if [ -s "$StateDirectory/ayugram.pid" ] && kill -0 "$(cat "$StateDirectory/ayugram.pid")" 2>/dev/null; then
 			exit 0
 		fi
