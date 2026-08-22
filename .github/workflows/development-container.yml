@@ -85,6 +85,17 @@ jobs:
       packages: write
       security-events: write
     steps:
+      - name: Free disk space
+        run: |
+          sudo rm -rf /usr/local/lib/android
+          sudo rm -rf /usr/share/dotnet
+          sudo rm -rf /usr/local/share/boost
+          sudo rm -rf /opt/ghc
+          sudo rm -rf /usr/local/share/powershell
+          sudo rm -rf /usr/share/swift
+          sudo apt-get clean
+          df -h
+
       - name: Check out repository
         uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
         with:

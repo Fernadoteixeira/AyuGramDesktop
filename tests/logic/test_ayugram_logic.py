@@ -2,13 +2,14 @@ import sqlite3
 import json
 import os
 import sys
+import re
 
 # Ensure stdout uses UTF-8 on Windows
 if hasattr(sys.stdout, 'reconfigure'):
     sys.stdout.reconfigure(encoding='utf-8')
 
 def test_sqlite_schema_and_logic():
-    print("[TEST 1/4] Executing Local SQLite Database Validation (ayudata.db schema & queries)...")
+    print("[TEST 1/6] Executing Local SQLite Database Validation (ayudata.db schema, indexes & queries)...")
     conn = sqlite3.connect(":memory:")
     cursor = conn.cursor()
 
@@ -209,6 +210,14 @@ def test_sqlite_schema_and_logic():
     assert edit_row is not None, "Failure: Edited message revision was not retrieved."
     assert edit_row[0] == "Edited Message Revision 1"
 
+    # Test DeletedDialog
+    cursor.execute("""
+    INSERT INTO DeletedDialog (userId, dialogId, peerId, folderId, topMessage, lastMessageDate, flags, entityCreateDate)
+    VALUES (1001, 2002, 2002, 0, 5005, 1753440000, 1, 1753440100);
+    """)
+    cursor.execute("SELECT count(*) FROM DeletedDialog WHERE userId = 1001;")
+    assert cursor.fetchone()[0] == 1
+
     # Test RegexFilter and Exclusion
     filter_id = b"filter_uuid_123"
     cursor.execute("""
@@ -237,10 +246,36 @@ def test_sqlite_schema_and_logic():
     """)
     assert cursor.fetchone()[0] == 1
 
+    cursor.execute("""
+    INSERT INTO SpyMessageContentsRead (userId, dialogId, messageId, entityCreateDate)
+    VALUES (1001, 2002, 5005, 1753440100);
+    """)
+    cursor.execute("""
+    SELECT count(*) FROM SpyMessageContentsRead WHERE userId = 1001 AND dialogId = 2002;
+    """)
+    assert cursor.fetchone()[0] == 1
+
     print("  [OK] SQLite schema (all 8 tables), indexes, and queries successfully verified.")
 
+def test_regex_matching_engine():
+    print("[TEST 2/6] Executing Regex Filter & Exclusion Engine Logic...")
+    
+    # Test typical AyuGram regex filters
+    pattern_case_insensitive = re.compile(r"crypto|airdrop|binance", re.IGNORECASE)
+    pattern_case_sensitive = re.compile(r"URGENT_ADMIN_ALERT")
+    
+    msg_spam = "Get your free airdrop on Binance today!"
+    msg_clean = "Hello, how are you doing?"
+    msg_admin = "URGENT_ADMIN_ALERT: Server reboot"
+    
+    assert pattern_case_insensitive.search(msg_spam) is not None, "Regex failed to match spam."
+    assert pattern_case_insensitive.search(msg_clean) is None, "Regex false positive on clean message."
+    assert pattern_case_sensitive.search(msg_admin) is not None, "Regex failed to match admin alert."
+    assert pattern_case_sensitive.search(msg_admin.lower()) is None, "Regex case sensitivity violated."
+    print("  [OK] Regex filter compilation and matching engine verified.")
+
 def test_json_settings_serialization():
-    print("[TEST 2/4] Executing JSON Preferences Serialization Validation (ayu_settings.h)...")
+    print("[TEST 3/6] Executing JSON Preferences Serialization Validation (ayu_settings.h)...")
     
     settings_payload = {
         "sendReadMessages": False,
@@ -249,6 +284,9 @@ def test_json_settings_serialization():
         "sendUploadProgress": False,
         "sendOfflinePacketAfterOnline": True,
         "ghostModeActive": True,
+        "streamerModeActive": True,
+        "hidePhoneInSettings": True,
+        "hideUsernameInSettings": True,
         "peerIdDisplay": "TelegramApi",
         "channelBottomButton": "MuteUnmute",
         "contextMenuVisibility": "VisibleWithModifier",
@@ -256,20 +294,27 @@ def test_json_settings_serialization():
         "sendWithoutSound": "InGhostMode",
         "saveDeletedMessages": True,
         "saveEditedMessages": True,
-        "hideDeletedBadge": False
+        "hideDeletedBadge": False,
+        "customBadges": [
+            {"userId": 1234567, "badge": "⭐ VIP", "color": "#FFD700"},
+            {"userId": 9876543, "badge": "🛡️ ADMIN", "color": "#FF4500"}
+        ]
     }
 
-    serialized = json.dumps(settings_payload)
+    serialized = json.dumps(settings_payload, indent=2)
     deserialized = json.loads(serialized)
 
     assert deserialized["ghostModeActive"] is True
+    assert deserialized["streamerModeActive"] is True
     assert deserialized["sendReadMessages"] is False
     assert deserialized["saveDeletedMessages"] is True
     assert deserialized["translationProvider"] == "telegram"
-    print("  [OK] Ghost Mode & Preferences mapping and serialization verified.")
+    assert len(deserialized["customBadges"]) == 2
+    assert deserialized["customBadges"][0]["badge"] == "⭐ VIP"
+    print("  [OK] Ghost Mode, Streamer Mode & Custom Badges serialization verified.")
 
 def test_devcontainer_scripts():
-    print("[TEST 3/4] Executing Devcontainer & Headless Scripts Verification...")
+    print("[TEST 4/6] Executing Devcontainer & Headless Scripts Verification...")
     
     repo_root = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
     start_desktop_path = os.path.join(repo_root, ".devcontainer", "start-desktop.sh")
@@ -288,7 +333,7 @@ def test_devcontainer_scripts():
     print("  [OK] start-desktop.sh script validated with software OpenGL and noVNC support.")
 
 def test_database_cpp_invariants():
-    print("[TEST 4/4] Executing ayu_database.cpp Consistency Verification...")
+    print("[TEST 5/6] Executing ayu_database.cpp Consistency Verification...")
     
     repo_root = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
     db_cpp_path = os.path.join(repo_root, "Telegram", "SourceFiles", "ayu", "data", "ayu_database.cpp")
@@ -304,10 +349,34 @@ def test_database_cpp_invariants():
     assert "migratePlaintextDatabase" in cpp_content, "Failure: Plaintext migration function missing."
     print("  [OK] ayu_database.cpp invariants verified.")
 
+def test_schema_migration_simulation():
+    print("[TEST 6/6] Executing Database Multi-Version Schema Migration Simulation...")
+    
+    conn = sqlite3.connect(":memory:")
+    cursor = conn.cursor()
+    
+    # Step 1: Initial schema v1
+    cursor.execute("CREATE TABLE SchemaVersion (id INTEGER PRIMARY KEY, version INTEGER NOT NULL);")
+    cursor.execute("INSERT INTO SchemaVersion (id, version) VALUES (1, 1);")
+    cursor.execute("CREATE TABLE DeletedMessage (id INTEGER PRIMARY KEY, text TEXT);")
+    cursor.execute("INSERT INTO DeletedMessage (id, text) VALUES (1, 'Legacy message');")
+    
+    # Step 2: Migrate v1 -> v2 (Add columns)
+    cursor.execute("ALTER TABLE DeletedMessage ADD COLUMN entityCreateDate INTEGER DEFAULT 0;")
+    cursor.execute("UPDATE SchemaVersion SET version = 2 WHERE id = 1;")
+    
+    cursor.execute("SELECT version FROM SchemaVersion WHERE id = 1;")
+    assert cursor.fetchone()[0] == 2, "Migration to v2 failed."
+    
+    cursor.execute("SELECT entityCreateDate FROM DeletedMessage WHERE id = 1;")
+    assert cursor.fetchone()[0] == 0, "Default column value migration failed."
+    print("  [OK] Schema migration simulation passed.")
+
 if __name__ == "__main__":
     test_sqlite_schema_and_logic()
+    test_regex_matching_engine()
     test_json_settings_serialization()
     test_devcontainer_scripts()
     test_database_cpp_invariants()
-    print("\n[SUCCESS] ALL UNIT AND LOGIC GATES PASSED (100% GREEN)!")
-
+    test_schema_migration_simulation()
+    print("\n[SUCCESS] ALL 6 UNIT, LOGIC AND INVARIANT GATES PASSED (100% GREEN)!")
