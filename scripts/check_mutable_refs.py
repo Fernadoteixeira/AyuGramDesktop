@@ -100,7 +100,7 @@ def extract_b_tag(args):
 class Finding:
     """A single mutable git reference finding."""
 
-    __slots__ = ('file', 'line', 'content', 'reason')
+    __slots__ = ('content', 'file', 'line', 'reason')
 
     def __init__(self, file, line, content, reason):
         self.file = file

@@ -5,8 +5,8 @@ One-shot helper for the SEC-331/332/333 audit.  Not part of the build.
 Prints TSV: name<TAB>url<TAB>ref<TAB>sha<TAB>type
 where type is one of: annotated-tag, lightweight-tag, branch, HEAD, UNRESOLVED.
 """
+import shutil
 import subprocess
-import sys
 
 # (name, url, ref)
 REFS = [
@@ -36,10 +36,14 @@ REFS = [
 
 def ls_remote(url, flags, patterns):
     """Run `git ls-remote <flags> <url> <patterns>`, return stdout text."""
+    git_bin = shutil.which("git") or "git"
     try:
         out = subprocess.run(
-            ["git", "ls-remote"] + flags + [url] + patterns,
-            capture_output=True, text=True, timeout=90,
+            [git_bin, "ls-remote"] + flags + [url] + patterns,
+            capture_output=True,
+            text=True,
+            timeout=90,
+            check=False,
         )
     except subprocess.TimeoutExpired:
         return None

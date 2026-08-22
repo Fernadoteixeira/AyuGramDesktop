@@ -1,8 +1,8 @@
-import sqlite3
 import json
 import os
-import sys
 import re
+import sqlite3
+import sys
 
 # Ensure stdout uses UTF-8 on Windows
 if hasattr(sys.stdout, 'reconfigure'):

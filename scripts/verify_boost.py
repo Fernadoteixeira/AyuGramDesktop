@@ -143,8 +143,12 @@ def download_and_verify(url, expected_sha256):
         print("FAIL: urllib.request unavailable; cannot perform network check.")
         return False
 
+    if not url.startswith("https://"):
+        print(f"FAIL: unexpected non-HTTPS URL: {url}")
+        return False
+
     try:
-        with urllib.request.urlopen(url, timeout=60) as response:  # noqa: S310
+        with urllib.request.urlopen(url, timeout=60) as response:  # nosec B310
             data = response.read()
     except Exception as exc:  # noqa: BLE001 - network failures are user-facing
         print(f"FAIL: download failed for {url}: {exc}")
