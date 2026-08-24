@@ -2,7 +2,7 @@
 
 Este documento lista os submódulos definidos no repositório `AyuGramDesktop`, incluindo caminho e URL de origem.
 
-Total de submódulos: 35
+Total de submódulos: 38
 
 ## Submódulos
 
@@ -76,3 +76,9 @@ Total de submódulos: 35
     - URL: <https://github.com/github/cmark-gfm.git>
 35. **Telegram/ThirdParty/MicroTeX**
     - URL: <https://github.com/desktop-app/MicroTeX.git>
+36. **Telegram/ThirdParty/TooManyCooks**
+    - URL: <https://github.com/tzcnt/TooManyCooks.git>
+37. **Telegram/ThirdParty/libcbor**
+    - URL: <https://github.com/PJK/libcbor.git>
+38. **Telegram/ThirdParty/libfido2**
+    - URL: <https://github.com/Yubico/libfido2.git>

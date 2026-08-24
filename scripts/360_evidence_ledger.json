@@ -1,5 +1,5 @@
 {
-  "timestamp": "2026-08-22 05:44:29 UTC",
+  "timestamp": "2026-08-24 20:51:24 UTC",
   "metrics": {
     "REGISTERED_GATE_COUNT": 24,
     "APPLICABLE_GATE_COUNT": 14,
@@ -11,7 +11,7 @@
     "NOT_RUN_COUNT": 0,
     "COVERAGE_PERCENT_EXECUTED": 100.0,
     "CANONICAL_REGISTRY_COVERAGE": 58.333333333333336,
-    "TOTAL_DURATION_SECONDS": 10.014392852783203,
+    "TOTAL_DURATION_SECONDS": 8.148393154144287,
     "SUMMARY_LABEL": "ALL_REGISTERED_LOCAL_GATES_PASSED"
   },
   "gates": [
@@ -21,7 +21,7 @@
       "scope": "LOCAL",
       "result": "PASS",
       "exit_code": 0,
-      "duration": 0.06109952926635742,
+      "duration": 0.058287858963012695,
       "detail": "[TEST 1/6] Executing Local SQLite Database Validation (ayudata.db schema, indexes & queries)...\n  [OK] SQLite schema (all 8 tables), indexes, and queries successfully verified.\n[TEST 2/6] Executing Regex Filter & Exclusion Engine Logic...\n  [OK] Regex filter compilation and matching engine verified.\n[TEST 3/6] Executing JSON Preferences Serialization Validation (ayu_settings.h)...\n  [OK] Ghost Mode, Streamer Mode & Custom Badges serialization verified.\n[TEST 4/6] Executing Devcontainer & Headless Scripts Verification...\n  [OK] start-desktop.sh script validated with software OpenGL and noVNC support.\n[TEST 5/6] Executing ayu_database.cpp Consistency Verification...\n  [OK] ayu_database.cpp invariants verified.\n[TEST 6/6] Executing Database Multi-Version Schema Migration Simulation...\n  [OK] Schema migration simulation passed.\n\n[SUCCESS] ALL 6 UNIT, LOGIC AND INVARIANT GATES PASSED (100% GREEN)!"
     },
     {
@@ -30,7 +30,7 @@
       "scope": "LOCAL",
       "result": "PASS",
       "exit_code": 0,
-      "duration": 0.08219766616821289,
+      "duration": 0.06886553764343262,
       "detail": "No mutable git references found."
     },
     {
@@ -39,7 +39,7 @@
       "scope": "LOCAL",
       "result": "PASS",
       "exit_code": 0,
-      "duration": 0.0785226821899414,
+      "duration": 0.07457995414733887,
       "detail": "PASS: libiconv SHA-256 is pinned and valid: 3b08f5f4f9b4eb82f151a7040bfd6fe6c6fb922efe4b1659c66ea933276965e8"
     },
     {
@@ -48,7 +48,7 @@
       "scope": "LOCAL",
       "result": "PASS",
       "exit_code": 0,
-      "duration": 0.06580519676208496,
+      "duration": 0.06990456581115723,
       "detail": "PASS: Boost SHA-256 is pinned and valid: 5e93d582aff26868d581a52ae78c7d8edf3f3064742c6e77901a1f18a437eea9\nPASS: boost stage enforces the pin via `sha256sum -c`"
     },
     {
@@ -57,7 +57,7 @@
       "scope": "LOCAL",
       "result": "PASS",
       "exit_code": 0,
-      "duration": 1.9784879684448242,
+      "duration": 0.9401226043701172,
       "detail": "Buildx syntax check valid"
     },
     {
@@ -66,7 +66,7 @@
       "scope": "LOCAL",
       "result": "PASS",
       "exit_code": 0,
-      "duration": 0.767606258392334,
+      "duration": 0.6442334651947021,
       "detail": "Generated Dockerfile buildx check valid"
     },
     {
@@ -75,8 +75,8 @@
       "scope": "LOCAL",
       "result": "PASS",
       "exit_code": 0,
-      "duration": 0.0558621883392334,
-      "detail": "FILES_CHECKED=13 | TEMP_CACHE=C:\\Users\\fjuni\\AppData\\Local\\Temp\\tmpkpmnxp5s | REPOSITORY_BYTECODE_WRITES=0"
+      "duration": 0.02704620361328125,
+      "detail": "FILES_CHECKED=14 | TEMP_CACHE=C:\\Users\\fjuni\\AppData\\Local\\Temp\\tmpzxft1c7v | REPOSITORY_BYTECODE_WRITES=0"
     },
     {
       "id": "T08",
@@ -84,7 +84,7 @@
       "scope": "LOCAL",
       "result": "PASS",
       "exit_code": 0,
-      "duration": 0.08017468452453613,
+      "duration": 0.06955909729003906,
       "detail": "Deterministic HTML generated to TEMP (295,634 bytes)"
     },
     {
@@ -93,7 +93,7 @@
       "scope": "LOCAL",
       "result": "PASS",
       "exit_code": 0,
-      "duration": 2.093959331512451,
+      "duration": 1.8993918895721436,
       "detail": "SYMLINKS_CHECKED=48 (Read-only mode 120000 validated)"
     },
     {
@@ -102,8 +102,8 @@
       "scope": "LOCAL",
       "result": "PASS",
       "exit_code": 0,
-      "duration": 0.6478030681610107,
-      "detail": "DAY0_HASH=1bd01fc3.. | FINAL_HASH=1bd01fc3.. | STATUS_MATCH=True | INDEX_MATCH=True | UNINTENDED_MUTATIONS=0"
+      "duration": 0.6760954856872559,
+      "detail": "DAY0_HASH=3187cab8.. | FINAL_HASH=3187cab8.. | STATUS_MATCH=True | INDEX_MATCH=True | UNINTENDED_MUTATIONS=0"
     },
     {
       "id": "T11",
@@ -111,7 +111,7 @@
       "scope": "LOCAL",
       "result": "PASS",
       "exit_code": 0,
-      "duration": 0.03546619415283203,
+      "duration": 0.03652811050415039,
       "detail": "SUBMODULES_VERIFIED=35/35 (All mode 160000 gitlinks pinned & documented)"
     },
     {
@@ -120,8 +120,8 @@
       "scope": "LOCAL",
       "result": "PASS",
       "exit_code": 0,
-      "duration": 0.29738283157348633,
-      "detail": "[UPSTREAM RECONCILIATION ENGINE] Starting 360\u00b0 Divergence Analysis...\n  [1/6] Configured Git Remotes:\norigin\thttps://github.com/Fernadoteixeira/AyuGramDesktop.git (fetch)\norigin\thttps://github.com/Fernadoteixeira/AyuGramDesktop.git (push)\nupstream\thttps://github.com/AyuGram/AyuGramDesktop.git (fetch)\nupstream\thttps://github.com/AyuGram/AyuGramDesktop.git (push)\n  [2/6] Heads:\n    - LOCAL_HEAD:    1cf421ff3e08382b06d5d0d1cf27c38c16a554d6\n    - ORIGIN_HEAD:   1cf421ff3e08382b06d5d0d1cf27c38c16a554d6\n    - UPSTREAM_HEAD: db3b9891cb0b04ebb7d8c0e71ada3bcc669b910a\n  [3/6] Common Merge Base: ba8c1a6b0f456c6a5601d675e765cd5fba10d54c\n  [4/6] Divergence Metrics:\n    - Fork Ahead:  53 commits (AyuGram patches)\n    - Fork Behind: 2171 commits (Upstream Telegram updates)\n  [5/6] Fork Modified Files Inventory (108 files):\n    * AyuGram Core Logic / DB: 8 files\n      - Telegram/SourceFiles/ayu/data/ayu_database.cpp\n      - Telegram/SourceFiles/ayu/data/ayu_database.h\n      - Telegram/SourceFiles/ayu/data/ayu_database_key.cpp\n      - ... (+5 more)\n    * AyuGram UI & Settings: 13 files\n      - .devcontainer/launch-ayugram.sh\n      - .vscode/settings.json\n      - Telegram/SourceFiles/ayu/ayu_lang.cpp\n      - ... (+10 more)\n    * Build & DevContainer: 15 files\n      - .devcontainer.json\n      - .devcontainer/Dockerfile\n      - .devcontainer/start-desktop.sh\n      - ... (+12 more)\n    * CI / Workflows: 17 files\n      - .github/dependabot.yml\n      - .github/workflows/development-container.yml\n      - .github/workflows/quality-360.yml\n      - ... (+14 more)\n    * Submodules & Configs: 55 files\n      - .agents/skills/task-think/PROMPTS.md\n      - .claude/commands/icon.md\n      - .claude/commands/planner.md\n      - ... (+52 more)\n  [6/6] Divergence Status & Operational Boundary:\n    - ANALYSIS_STATUS: ANALYSIS_PASS\n    - RECONCILIATION_STATUS: RECONCILIATION_NOT_ATTEMPTED (Engine is read-only)\n    - NOTE: Divergence analysis complete. No upstream sync commits were created.\n\n[SUCCESS] Upstream Divergence Analysis Completed (ANALYSIS_PASS)!"
+      "duration": 0.3070237636566162,
+      "detail": "[UPSTREAM RECONCILIATION ENGINE] Starting 360\u00b0 Divergence Analysis...\n  [1/6] Configured Git Remotes:\norigin\thttps://github.com/Fernadoteixeira/AyuGramDesktop.git (fetch)\norigin\thttps://github.com/Fernadoteixeira/AyuGramDesktop.git (push)\nupstream\thttps://github.com/AyuGram/AyuGramDesktop.git (fetch)\nupstream\thttps://github.com/AyuGram/AyuGramDesktop.git (push)\n  [2/6] Heads:\n    - LOCAL_HEAD:    35751e64fe9805d96afa4fd6bb572cfabc421a63\n    - ORIGIN_HEAD:   2650828eb8e29469008456fad10920f31c344c28\n    - UPSTREAM_HEAD: db3b9891cb0b04ebb7d8c0e71ada3bcc669b910a\n  [3/6] Common Merge Base: ba8c1a6b0f456c6a5601d675e765cd5fba10d54c\n  [4/6] Divergence Metrics:\n    - Fork Ahead:  54 commits (AyuGram patches)\n    - Fork Behind: 2171 commits (Upstream Telegram updates)\n  [5/6] Fork Modified Files Inventory (108 files):\n    * AyuGram Core Logic / DB: 8 files\n      - Telegram/SourceFiles/ayu/data/ayu_database.cpp\n      - Telegram/SourceFiles/ayu/data/ayu_database.h\n      - Telegram/SourceFiles/ayu/data/ayu_database_key.cpp\n      - ... (+5 more)\n    * AyuGram UI & Settings: 13 files\n      - .devcontainer/launch-ayugram.sh\n      - .vscode/settings.json\n      - Telegram/SourceFiles/ayu/ayu_lang.cpp\n      - ... (+10 more)\n    * Build & DevContainer: 15 files\n      - .devcontainer.json\n      - .devcontainer/Dockerfile\n      - .devcontainer/start-desktop.sh\n      - ... (+12 more)\n    * CI / Workflows: 17 files\n      - .github/dependabot.yml\n      - .github/workflows/development-container.yml\n      - .github/workflows/quality-360.yml\n      - ... (+14 more)\n    * Submodules & Configs: 55 files\n      - .agents/skills/task-think/PROMPTS.md\n      - .claude/commands/icon.md\n      - .claude/commands/planner.md\n      - ... (+52 more)\n  [6/6] Divergence Status & Operational Boundary:\n    - ANALYSIS_STATUS: ANALYSIS_PASS\n    - RECONCILIATION_STATUS: RECONCILIATION_NOT_ATTEMPTED (Engine is read-only)\n    - NOTE: Divergence analysis complete. No upstream sync commits were created.\n\n[SUCCESS] Upstream Divergence Analysis Completed (ANALYSIS_PASS)!"
     },
     {
       "id": "LINTER",
@@ -129,7 +129,7 @@
       "scope": "LOCAL",
       "result": "PASS",
       "exit_code": 0,
-      "duration": 0.025131702423095703,
+      "duration": 0.020862817764282227,
       "detail": "Ruff static analysis clean (0 errors)"
     },
     {
@@ -228,7 +228,7 @@
       "scope": "LOCAL",
       "result": "PASS",
       "exit_code": 0,
-      "duration": 3.7448935508728027,
+      "duration": 3.255891799926758,
       "detail": "Clean disposable worktree validated without dirty leaks"
     }
   ]
