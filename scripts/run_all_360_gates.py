@@ -379,7 +379,7 @@ def gate_t22():
 CANONICAL_REGISTRY = [
     {
         "id": "T01",
-        "name": "AyuGram Logic & SQLCipher Schema (6 suites)",
+        "name": "AyuGram Logic, SQLCipher & AyuBackup Container (8 suites)",
         "scope": "LOCAL",
         "applicability": "APPLICABLE",
         "mutation_class": "READ_ONLY",

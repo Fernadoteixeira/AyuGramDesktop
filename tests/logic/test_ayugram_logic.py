@@ -9,7 +9,7 @@ if hasattr(sys.stdout, 'reconfigure'):
     sys.stdout.reconfigure(encoding='utf-8')
 
 def test_sqlite_schema_and_logic():
-    print("[TEST 1/6] Executing Local SQLite Database Validation (ayudata.db schema, indexes & queries)...")
+    print("[TEST 1/8] Executing Local SQLite Database Validation (ayudata.db schema, indexes & queries)...")
     conn = sqlite3.connect(":memory:")
     cursor = conn.cursor()
 
@@ -258,7 +258,7 @@ def test_sqlite_schema_and_logic():
     print("  [OK] SQLite schema (all 8 tables), indexes, and queries successfully verified.")
 
 def test_regex_matching_engine():
-    print("[TEST 2/6] Executing Regex Filter & Exclusion Engine Logic...")
+    print("[TEST 2/8] Executing Regex Filter & Exclusion Engine Logic...")
     
     # Test typical AyuGram regex filters
     pattern_case_insensitive = re.compile(r"crypto|airdrop|binance", re.IGNORECASE)
@@ -275,7 +275,7 @@ def test_regex_matching_engine():
     print("  [OK] Regex filter compilation and matching engine verified.")
 
 def test_json_settings_serialization():
-    print("[TEST 3/6] Executing JSON Preferences Serialization Validation (ayu_settings.h)...")
+    print("[TEST 3/8] Executing JSON Preferences Serialization Validation (ayu_settings.h)...")
     
     settings_payload = {
         "sendReadMessages": False,
@@ -314,7 +314,7 @@ def test_json_settings_serialization():
     print("  [OK] Ghost Mode, Streamer Mode & Custom Badges serialization verified.")
 
 def test_devcontainer_scripts():
-    print("[TEST 4/6] Executing Devcontainer & Headless Scripts Verification...")
+    print("[TEST 4/8] Executing Devcontainer & Headless Scripts Verification...")
     
     repo_root = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
     start_desktop_path = os.path.join(repo_root, ".devcontainer", "start-desktop.sh")
@@ -333,7 +333,7 @@ def test_devcontainer_scripts():
     print("  [OK] start-desktop.sh script validated with software OpenGL and noVNC support.")
 
 def test_database_cpp_invariants():
-    print("[TEST 5/6] Executing ayu_database.cpp Consistency Verification...")
+    print("[TEST 5/8] Executing ayu_database.cpp Consistency Verification...")
     
     repo_root = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
     db_cpp_path = os.path.join(repo_root, "Telegram", "SourceFiles", "ayu", "data", "ayu_database.cpp")
@@ -350,27 +350,197 @@ def test_database_cpp_invariants():
     print("  [OK] ayu_database.cpp invariants verified.")
 
 def test_schema_migration_simulation():
-    print("[TEST 6/6] Executing Database Multi-Version Schema Migration Simulation...")
-    
+    print("[TEST 6/8] Executing Database Multi-Version Schema Migration Simulation...")
     conn = sqlite3.connect(":memory:")
     cursor = conn.cursor()
-    
-    # Step 1: Initial schema v1
     cursor.execute("CREATE TABLE SchemaVersion (id INTEGER PRIMARY KEY, version INTEGER NOT NULL);")
     cursor.execute("INSERT INTO SchemaVersion (id, version) VALUES (1, 1);")
     cursor.execute("CREATE TABLE DeletedMessage (id INTEGER PRIMARY KEY, text TEXT);")
     cursor.execute("INSERT INTO DeletedMessage (id, text) VALUES (1, 'Legacy message');")
-    
-    # Step 2: Migrate v1 -> v2 (Add columns)
     cursor.execute("ALTER TABLE DeletedMessage ADD COLUMN entityCreateDate INTEGER DEFAULT 0;")
     cursor.execute("UPDATE SchemaVersion SET version = 2 WHERE id = 1;")
-    
     cursor.execute("SELECT version FROM SchemaVersion WHERE id = 1;")
     assert cursor.fetchone()[0] == 2, "Migration to v2 failed."
-    
     cursor.execute("SELECT entityCreateDate FROM DeletedMessage WHERE id = 1;")
     assert cursor.fetchone()[0] == 0, "Default column value migration failed."
     print("  [OK] Schema migration simulation passed.")
+
+def test_ayubackup_cryptographic_container():
+    print("[TEST 7/8] Executing AyuBackup Cryptographic Container (.ayubackup) Validation...")
+    import hashlib
+    import hmac
+    import struct
+
+    from cryptography.hazmat.primitives import padding
+    from cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes
+
+    MAGIC = b"AYUBACKUP\x01"
+    VERSION = 1
+    KDF_ALGO = 1
+    SALT_LEN = 16
+    IV_LEN = 16
+    HMAC_LEN = 32
+    HEADER_STRUCT_PREFIX = "<10sBB16s16sI"
+
+    def create_backup_container(passcode: str, payload_data: dict) -> bytes:
+        plain_bytes = json.dumps(payload_data).encode("utf-8")
+        salt = os.urandom(SALT_LEN)
+        iv = os.urandom(IV_LEN)
+
+        derived = hashlib.pbkdf2_hmac("sha256", passcode.encode("utf-8"), salt, 100000, 64)
+        aes_key = derived[:32]
+        hmac_key = derived[32:]
+
+        padder = padding.PKCS7(128).padder()
+        padded_plain = padder.update(plain_bytes) + padder.finalize()
+
+        cipher = Cipher(algorithms.AES(aes_key), modes.CBC(iv))
+        encryptor = cipher.encryptor()
+        ciphertext = encryptor.update(padded_plain) + encryptor.finalize()
+
+        header_prefix = struct.pack(HEADER_STRUCT_PREFIX, MAGIC, VERSION, KDF_ALGO, salt, iv, len(ciphertext))
+        auth_target = header_prefix + ciphertext
+        auth_tag = hmac.new(hmac_key, auth_target, hashlib.sha256).digest()
+
+        return header_prefix + auth_tag + ciphertext
+
+    def read_and_verify_backup(passcode: str, container_bytes: bytes) -> dict:
+        header_len = struct.calcsize(HEADER_STRUCT_PREFIX) + HMAC_LEN
+        assert len(container_bytes) >= header_len, "Container too small"
+
+        header_prefix_len = struct.calcsize(HEADER_STRUCT_PREFIX)
+        header_prefix = container_bytes[:header_prefix_len]
+        magic, ver, kdf, salt, iv, payload_len = struct.unpack(HEADER_STRUCT_PREFIX, header_prefix)
+
+        assert magic == MAGIC, f"Invalid magic header: {magic}"
+        assert ver == VERSION, f"Unsupported version: {ver}"
+        assert kdf == KDF_ALGO, f"Unsupported KDF: {kdf}"
+
+        received_hmac = container_bytes[header_prefix_len:header_prefix_len + HMAC_LEN]
+        ciphertext = container_bytes[header_prefix_len + HMAC_LEN:]
+        assert len(ciphertext) == payload_len, "Ciphertext length mismatch"
+
+        derived = hashlib.pbkdf2_hmac("sha256", passcode.encode("utf-8"), salt, 100000, 64)
+        aes_key = derived[:32]
+        hmac_key = derived[32:]
+
+        auth_target = header_prefix + ciphertext
+        computed_hmac = hmac.new(hmac_key, auth_target, hashlib.sha256).digest()
+
+        if not hmac.compare_digest(received_hmac, computed_hmac):
+            raise ValueError("Authentication error: Wrong password or tampered payload")
+
+        cipher = Cipher(algorithms.AES(aes_key), modes.CBC(iv))
+        decryptor = cipher.decryptor()
+        padded_plain = decryptor.update(ciphertext) + decryptor.finalize()
+
+        unpadder = padding.PKCS7(128).unpadder()
+        plain_bytes = unpadder.update(padded_plain) + unpadder.finalize()
+
+        return json.loads(plain_bytes.decode("utf-8"))
+
+    # 1. Test standard backup round-trip
+    test_data = {
+        "version": 1,
+        "timestamp": 1753440000,
+        "settings": {
+            "ghostModeActive": True,
+            "streamerModeActive": True,
+            "sendReadMessages": False,
+        },
+        "filters": [
+            {
+                "id": "aabbccddeeff00112233445566778899",
+                "text": "airdrop|scam",
+                "enabled": True,
+                "reversed": False,
+                "caseInsensitive": True,
+            }
+        ],
+        "deletedMessages": [
+            {
+                "userId": 1001,
+                "dialogId": 2002,
+                "messageId": 5005,
+                "text": "Anti-Recall Test Message in Backup",
+                "entityCreateDate": 1753440000,
+            }
+        ]
+    }
+
+    passcode = "AyuGramSecurePasscode2026!#"
+    container = create_backup_container(passcode, test_data)
+    recovered = read_and_verify_backup(passcode, container)
+
+    assert recovered["version"] == 1
+    assert recovered["settings"]["ghostModeActive"] is True
+    assert len(recovered["filters"]) == 1
+    assert recovered["deletedMessages"][0]["text"] == "Anti-Recall Test Message in Backup"
+
+    # 2. Test wrong password rejection
+    try:
+        read_and_verify_backup("WrongPassword!", container)
+        assert False, "Failed to reject incorrect password!"
+    except ValueError:
+        pass
+
+    # 3. Test tamper detection (bit flipping)
+    # Flipped byte in ciphertext
+    tampered_cipher = bytearray(container)
+    tampered_cipher[-5] ^= 0xFF
+    try:
+        read_and_verify_backup(passcode, bytes(tampered_cipher))
+        assert False, "Failed to detect tampered ciphertext!"
+    except ValueError:
+        pass
+
+    # Flipped byte in header
+    tampered_header = bytearray(container)
+    tampered_header[12] ^= 0xFF # salt mutation
+    try:
+        read_and_verify_backup(passcode, bytes(tampered_header))
+        assert False, "Failed to detect tampered header!"
+    except ValueError:
+        pass
+
+    # 4. Test database restore simulation from backup
+    conn = sqlite3.connect(":memory:")
+    cursor = conn.cursor()
+    cursor.execute("CREATE TABLE DeletedMessage (userId INTEGER, dialogId INTEGER, messageId INTEGER, text TEXT);")
+    for msg in recovered["deletedMessages"]:
+        cursor.execute("INSERT INTO DeletedMessage (userId, dialogId, messageId, text) VALUES (?, ?, ?, ?);",
+                       (msg["userId"], msg["dialogId"], msg["messageId"], msg["text"]))
+    cursor.execute("SELECT text FROM DeletedMessage WHERE userId = 1001 AND messageId = 5005;")
+    db_row = cursor.fetchone()
+    assert db_row is not None and db_row[0] == "Anti-Recall Test Message in Backup"
+
+    print("  [OK] AyuBackup container encryption, authentication, tamper-detection & restore verified.")
+
+def test_backup_cpp_invariants():
+    print("[TEST 8/8] Executing ayu_backup.cpp & ayu_backup.h Codebase Invariants Verification...")
+    repo_root = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
+    backup_h_path = os.path.join(repo_root, "Telegram", "SourceFiles", "ayu", "data", "ayu_backup.h")
+    backup_cpp_path = os.path.join(repo_root, "Telegram", "SourceFiles", "ayu", "data", "ayu_backup.cpp")
+
+    assert os.path.exists(backup_h_path), f"Failure: ayu_backup.h not found at {backup_h_path}"
+    assert os.path.exists(backup_cpp_path), f"Failure: ayu_backup.cpp not found at {backup_cpp_path}"
+
+    with open(backup_h_path, "r", encoding="utf-8") as f:
+        h_content = f.read()
+    with open(backup_cpp_path, "r", encoding="utf-8") as f:
+        cpp_content = f.read()
+
+    # Verify structural and security invariants
+    assert "kBackupMagic" in h_content, "Missing kBackupMagic constant"
+    assert "ExportToFile" in h_content, "Missing ExportToFile declaration"
+    assert "ImportFromFile" in h_content, "Missing ImportFromFile declaration"
+    assert "VerifyBackupFile" in h_content, "Missing VerifyBackupFile declaration"
+
+    assert "OPENSSL_cleanse" in cpp_content, "Missing OPENSSL_cleanse memory zeroization"
+    assert "PKCS5_PBKDF2_HMAC" in cpp_content, "Missing PKCS5_PBKDF2_HMAC derivation"
+    assert "EVP_aes_256_cbc" in cpp_content, "Missing AES-256 cipher routine"
+    assert "QSaveFile" in cpp_content, "Missing atomic QSaveFile persistence"
+    print("  [OK] ayu_backup.h and ayu_backup.cpp invariants verified.")
 
 if __name__ == "__main__":
     test_sqlite_schema_and_logic()
@@ -379,4 +549,6 @@ if __name__ == "__main__":
     test_devcontainer_scripts()
     test_database_cpp_invariants()
     test_schema_migration_simulation()
-    print("\n[SUCCESS] ALL 6 UNIT, LOGIC AND INVARIANT GATES PASSED (100% GREEN)!")
+    test_ayubackup_cryptographic_container()
+    test_backup_cpp_invariants()
+    print("\n[SUCCESS] ALL 8 UNIT, LOGIC AND INVARIANT GATES PASSED (100% GREEN)!")
