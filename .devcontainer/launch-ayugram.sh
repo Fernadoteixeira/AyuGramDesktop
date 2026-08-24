@@ -51,6 +51,26 @@ for Binary in "${Candidates[@]}"; do
 done
 
 if [ "$IfPresent" = true ]; then
+	for Browser in chromium-browser chromium google-chrome firefox; do
+		BrowserPath="$(command -v "$Browser" 2>/dev/null || true)"
+		if [ -n "$BrowserPath" ]; then
+			if [ -s "$StateDirectory/browser.pid" ] && kill -0 "$(cat "$StateDirectory/browser.pid")" 2>/dev/null; then
+				exit 0
+			fi
+			"$BrowserPath" \
+				--no-sandbox \
+				--disable-dev-shm-usage \
+				--no-first-run \
+				--disable-gpu \
+				--start-maximized \
+				--user-data-dir="$StateDirectory/browser-profile" \
+				'https://web.telegram.org/a/' \
+				>"$StateDirectory/browser.log" 2>&1 &
+			echo $! >"$StateDirectory/browser.pid"
+			printf 'Telegram Web started via %s\n' "$BrowserPath"
+			exit 0
+		fi
+	done
 	exit 0
 fi
 

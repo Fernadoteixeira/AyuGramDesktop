@@ -42,3 +42,52 @@ set_target_properties(test_text PROPERTIES RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINA
 add_dependencies(Telegram test_text)
 
 target_prepare_qrc(test_text)
+
+if (UNIX AND NOT APPLE)
+    add_executable(test_storage_kdf)
+    init_target(test_storage_kdf "(security tests)")
+    target_include_directories(test_storage_kdf PRIVATE ${src_loc})
+    nice_target_sources(test_storage_kdf ${src_loc}
+    PRIVATE
+        storage/details/storage_file_utilities.cpp
+        storage/details/storage_file_utilities_kdf_test.cpp
+    )
+    target_compile_options(test_storage_kdf PRIVATE -ffunction-sections -fdata-sections)
+    target_compile_definitions(test_storage_kdf PRIVATE STORAGE_FILE_UTILITIES_TEST_BUILD)
+    target_link_options(test_storage_kdf PRIVATE -Wl,--gc-sections -Wl,--wrap=EVP_PBE_scrypt)
+    target_link_libraries(test_storage_kdf
+    PRIVATE
+        tdesktop::td_mtproto
+        desktop-app::lib_base
+        desktop-app::lib_crl
+        desktop-app::lib_storage
+        desktop-app::external_openssl
+        desktop-app::external_qt
+        desktop-app::external_zlib
+    )
+    set_target_properties(test_storage_kdf PROPERTIES RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR})
+
+    add_executable(test_ayu_database)
+    init_target(test_ayu_database "(security tests)")
+    target_include_directories(test_ayu_database PRIVATE ${src_loc})
+    nice_target_sources(test_ayu_database ${src_loc}
+    PRIVATE
+        ayu/data/ayu_database.cpp
+        ayu/data/ayu_database_test.cpp
+        ayu/libs/sqlite/sqlite3.c
+    )
+    target_compile_options(test_ayu_database PRIVATE -ffunction-sections -fdata-sections)
+    target_compile_definitions(test_ayu_database PRIVATE AYU_DATABASE_TEST_BUILD)
+    target_link_options(test_ayu_database PRIVATE -Wl,--gc-sections)
+    target_link_libraries(test_ayu_database
+    PRIVATE
+        tdesktop::td_mtproto
+        desktop-app::lib_base
+        desktop-app::lib_crl
+        desktop-app::lib_storage
+        desktop-app::external_openssl
+        desktop-app::external_qt
+        desktop-app::external_zlib
+    )
+    set_target_properties(test_ayu_database PROPERTIES RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR})
+endif()
