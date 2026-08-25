@@ -11,6 +11,9 @@
 #include "base/random.h"
 #include "settings.h"
 
+#include <QtCore/QByteArray>
+#include <QtCore/QString>
+#include <QtCore/QDateTime>
 #include <QtCore/QFile>
 #include <QtCore/QSaveFile>
 #include <QtCore/QJsonDocument>
@@ -26,6 +29,7 @@ namespace {
 
 constexpr auto kDerivedKeySize = 64;
 constexpr auto kAesKeySize = 32;
+constexpr auto kPbkdf2Iterations = 100000;
 
 struct DerivedKeys {
 	uint8_t aesKey[kAesKeySize];
