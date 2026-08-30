@@ -1,4 +1,4 @@
-import { app, BrowserWindow, shell } from 'electron'
+import { app, BrowserWindow, shell, session } from 'electron'
 import { join } from 'path'
 import { DockerController } from './docker'
 import { setupIpc } from './ipc'
@@ -6,6 +6,20 @@ import { setupTray } from './tray'
 
 let mainWindow: BrowserWindow | null = null
 const docker = new DockerController()
+
+function setupSecurityPolicies(): void {
+  // Enforce runtime Content-Security-Policy (CSP) headers
+  session.defaultSession.webRequest.onHeadersReceived((details, callback) => {
+    callback({
+      responseHeaders: {
+        ...details.responseHeaders,
+        'Content-Security-Policy': [
+          "default-src 'self' 'unsafe-inline' 'unsafe-eval' http://127.0.0.1:6080 ws://127.0.0.1:6080 http://localhost:6080 ws://localhost:6080 data: blob:;"
+        ]
+      }
+    })
+  })
+}
 
 function createWindow(): void {
   mainWindow = new BrowserWindow({
@@ -15,14 +29,16 @@ function createWindow(): void {
     minHeight: 600,
     show: false,
     frame: false,
-    backgroundColor: '#0f172a',
+    backgroundColor: '#0a0e17',
     autoHideMenuBar: true,
     webPreferences: {
       preload: join(__dirname, '../preload/index.js'),
       sandbox: false,
       contextIsolation: true,
       nodeIntegration: false,
-      webviewTag: true
+      webviewTag: true,
+      webSecurity: true,
+      allowRunningInsecureContent: false
     }
   })
 
@@ -30,16 +46,32 @@ function createWindow(): void {
     mainWindow?.show()
   })
 
+  // Navigation Guard: Prevent arbitrary navigation inside the Electron main window
+  mainWindow.webContents.on('will-navigate', (event, url) => {
+    const isDevUrl = process.env['ELECTRON_RENDERER_URL'] && url.startsWith(process.env['ELECTRON_RENDERER_URL'])
+    const isLocalFile = url.startsWith('file://')
+    if (!isDevUrl && !isLocalFile) {
+      event.preventDefault()
+    }
+  })
+
+  // Secure External Link Handling: Only allow external opening of verified https:// schemes
   mainWindow.webContents.setWindowOpenHandler((details) => {
-    shell.openExternal(details.url)
+    try {
+      const parsedUrl = new URL(details.url)
+      if (parsedUrl.protocol === 'https:') {
+        shell.openExternal(details.url)
+      }
+    } catch {
+      // Ignore invalid URLs
+    }
     return { action: 'deny' }
   })
 
   setupIpc(docker)
   setupTray(mainWindow, docker)
 
-  // HMR for renderer base on electron-vite cli.
-  // Load the remote URL for development or the local html file for production.
+  // Load renderer
   if (process.env['ELECTRON_RENDERER_URL']) {
     mainWindow.loadURL(process.env['ELECTRON_RENDERER_URL'])
   } else {
@@ -48,6 +80,7 @@ function createWindow(): void {
 }
 
 app.whenReady().then(() => {
+  setupSecurityPolicies()
   createWindow()
 
   app.on('activate', function () {

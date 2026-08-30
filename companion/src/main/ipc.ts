@@ -14,8 +14,13 @@ export function setupIpc(docker: DockerController): void {
     return await docker.restartAyuGram()
   })
 
-  ipcMain.handle('docker:get-logs', async (_event, lines?: number) => {
-    return await docker.getLogs(lines)
+  ipcMain.handle('docker:get-logs', async (_event, lines?: unknown) => {
+    // Strict schema & boundary validation to prevent command injection or resource exhaustion
+    let safeLines = 100
+    if (typeof lines === 'number' && Number.isInteger(lines)) {
+      safeLines = Math.max(1, Math.min(lines, 500))
+    }
+    return await docker.getLogs(safeLines)
   })
 
   ipcMain.on('window:minimize', (event) => {

@@ -1,5 +1,5 @@
-import React from 'react'
-import { X, RotateCcw, Play, Terminal, Info, ShieldCheck, Activity } from 'lucide-react'
+import React, { useState } from 'react'
+import { X, RotateCcw, Play, Terminal, Info, ShieldCheck, Activity, Eye, EyeOff, Copy, Check } from 'lucide-react'
 
 interface DevDrawerProps {
   isOpen: boolean
@@ -22,6 +22,17 @@ export const DevDrawer: React.FC<DevDrawerProps> = ({
   onRestartAyuGram,
   onOpenLogs
 }) => {
+  const [showToken, setShowToken] = useState(false)
+  const [copied, setCopied] = useState(false)
+
+  const handleCopy = () => {
+    if (password) {
+      navigator.clipboard.writeText(password)
+      setCopied(true)
+      setTimeout(() => setCopied(false), 2000)
+    }
+  }
+
   return (
     <aside className={`dev-drawer ${isOpen ? 'open' : ''}`}>
       <div className="drawer-header">
@@ -29,7 +40,7 @@ export const DevDrawer: React.FC<DevDrawerProps> = ({
           <Activity size={18} color="#38bdf8" />
           <h3 style={{ fontSize: 14, fontWeight: 700, color: '#f8fafc' }}>Dev Control Center</h3>
         </div>
-        <button className="titlebar-btn" onClick={onClose}>
+        <button className="titlebar-btn" onClick={onClose} aria-label="Fechar painel">
           <X size={16} />
         </button>
       </div>
@@ -82,19 +93,41 @@ export const DevDrawer: React.FC<DevDrawerProps> = ({
           </button>
         </div>
 
-        {/* Security & Token Card */}
+        {/* Security & Token Card with Masking */}
         <div className="card">
           <span className="card-title">Credenciais & Acesso</span>
           <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 12, color: '#94a3b8' }}>
             <ShieldCheck size={14} color="#34d399" />
-            <span>Autenticação VNC Automática</span>
+            <span>Autenticação Local Automática</span>
           </div>
           {password && (
-            <div style={{ marginTop: 4 }}>
-              <div style={{ fontSize: 11, color: '#64748b', marginBottom: 4 }}>Token VNC:</div>
+            <div style={{ marginTop: 6 }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 4 }}>
+                <span style={{ fontSize: 11, color: '#64748b' }}>Token de Sessão:</span>
+                <div style={{ display: 'flex', gap: 4 }}>
+                  <button
+                    className="titlebar-btn"
+                    style={{ width: 22, height: 22 }}
+                    onClick={() => setShowToken((prev) => !prev)}
+                    title={showToken ? 'Ocultar' : 'Mostrar'}
+                  >
+                    {showToken ? <EyeOff size={12} /> : <Eye size={12} />}
+                  </button>
+                  <button
+                    className="titlebar-btn"
+                    style={{ width: 22, height: 22 }}
+                    onClick={handleCopy}
+                    title="Copiar token"
+                  >
+                    {copied ? <Check size={12} color="#34d399" /> : <Copy size={12} />}
+                  </button>
+                </div>
+              </div>
               <input
+                type={showToken ? 'text' : 'password'}
                 readOnly
                 value={password}
+                aria-label="VNC Session Token"
                 style={{
                   width: '100%',
                   background: '#05070e',
@@ -115,7 +148,7 @@ export const DevDrawer: React.FC<DevDrawerProps> = ({
           <div style={{ display: 'flex', gap: 8, alignItems: 'flex-start' }}>
             <Info size={16} color="#38bdf8" style={{ flexShrink: 0, marginTop: 2 }} />
             <p style={{ fontSize: 12, color: '#94a3b8', lineHeight: 1.5 }}>
-              O AyuGram Native Shell conecta diretamente ao servidor X11/noVNC interno da imagem Rocky Linux via socket seguro local.
+              O AyuGram Native Shell conecta diretamente ao display X11 interno via socket seguro com isolamento de contexto (ContextIsolation).
             </p>
           </div>
         </div>

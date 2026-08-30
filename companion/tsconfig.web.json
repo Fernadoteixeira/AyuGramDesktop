@@ -1,13 +1,16 @@
 {
   "compilerOptions": {
     "composite": true,
+    "target": "ESNext",
     "module": "ESNext",
     "moduleResolution": "bundler",
     "allowSyntheticDefaultImports": true,
     "jsx": "react-jsx",
+    "skipLibCheck": true,
     "strict": true
   },
   "include": [
-    "src/renderer/src/**/*"
+    "src/renderer/src/**/*",
+    "src/preload/index.d.ts"
   ]
 }

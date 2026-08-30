@@ -1,7 +1,9 @@
 import { exec } from 'child_process'
 import { promisify } from 'util'
 
-const execAsync = promisify(exec)
+const defaultExec = promisify(exec)
+
+export type ExecFunction = (cmd: string) => Promise<{ stdout: string; stderr: string }>
 
 export interface ContainerStatus {
   dockerAvailable: boolean
@@ -15,9 +17,11 @@ export interface ContainerStatus {
 export class DockerController {
   private containerName = 'ayugram-dev-ui'
 
+  constructor(private execFn: ExecFunction = defaultExec) {}
+
   async checkStatus(): Promise<ContainerStatus> {
     try {
-      await execAsync('docker --version')
+      await this.execFn('docker --version')
     } catch {
       return {
         dockerAvailable: false,
@@ -29,7 +33,7 @@ export class DockerController {
     }
 
     try {
-      const { stdout: containerList } = await execAsync(
+      const { stdout: containerList } = await this.execFn(
         `docker ps -a --filter "name=^/${this.containerName}$" --format "{{.Names}}"`
       )
 
@@ -44,7 +48,7 @@ export class DockerController {
         }
       }
 
-      const { stdout: runningCheck } = await execAsync(
+      const { stdout: runningCheck } = await this.execFn(
         `docker inspect --format "{{.State.Running}}" ${this.containerName}`
       )
       const running = runningCheck.trim() === 'true'
@@ -62,7 +66,7 @@ export class DockerController {
       let password = ''
 
       try {
-        const { stdout: pgrepOut } = await execAsync(
+        const { stdout: pgrepOut } = await this.execFn(
           `docker exec ${this.containerName} bash -lc "pgrep -x AyuGram || true"`
         )
         ayugramRunning = pgrepOut.trim().length > 0
@@ -71,7 +75,7 @@ export class DockerController {
       }
 
       try {
-        const { stdout: pwdOut } = await execAsync(
+        const { stdout: pwdOut } = await this.execFn(
           `docker exec ${this.containerName} cat /home/user/.local/state/ayugram-desktop/password`
         )
         password = pwdOut.trim()
@@ -99,7 +103,7 @@ export class DockerController {
 
   async startContainer(): Promise<{ success: boolean; message: string }> {
     try {
-      await execAsync(`docker start ${this.containerName}`)
+      await this.execFn(`docker start ${this.containerName}`)
       return { success: true, message: `Container ${this.containerName} started.` }
     } catch (err: unknown) {
       return {
@@ -111,7 +115,7 @@ export class DockerController {
 
   async restartAyuGram(): Promise<{ success: boolean; message: string }> {
     try {
-      await execAsync(
+      await this.execFn(
         `docker exec ${this.containerName} bash -lc "pkill -x AyuGram || true; sleep 1; DISPLAY=:1 /usr/local/bin/launch-ayugram >/tmp/ayugram-runtime.log 2>&1 &"`
       )
       return { success: true, message: 'AyuGram process restarted.' }
@@ -125,7 +129,7 @@ export class DockerController {
 
   async getLogs(lines = 100): Promise<string> {
     try {
-      const { stdout } = await execAsync(
+      const { stdout } = await this.execFn(
         `docker exec ${this.containerName} bash -lc "tail -n ${lines} /home/user/.local/state/ayugram-desktop/ayugram.log 2>/dev/null || tail -n ${lines} /tmp/ayugram-runtime.log 2>/dev/null || docker logs --tail ${lines} ${this.containerName} 2>&1"`
       )
       return stdout
