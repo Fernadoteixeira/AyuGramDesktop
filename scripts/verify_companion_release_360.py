@@ -50,7 +50,8 @@ def run_cmd(cmd, cwd=None, timeout=120):
             text=True,
             encoding="utf-8",
             errors="replace",
-            timeout=timeout
+            timeout=timeout,
+            check=False
         )
         duration = time.time() - start
         return {

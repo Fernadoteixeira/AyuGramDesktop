@@ -34,7 +34,8 @@ def run_cmd(cmd, cwd=None):
             text=True,
             encoding="utf-8",
             errors="replace",
-            timeout=120
+            timeout=120,
+            check=False
         )
         duration = time.time() - start
         return {
