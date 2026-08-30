@@ -1,0 +1,40 @@
+{
+  "schema": "canonical-dependency-audit/v1.2",
+  "generatedAt": "2026-08-30T09:35:22.222089+00:00",
+  "package": {
+    "name": "ayugram-companion",
+    "version": "1.0.0"
+  },
+  "declarations": {
+    "dependencies": 3,
+    "devDependencies": 15,
+    "optional": 0,
+    "peer": 0,
+    "total": 18
+  },
+  "inventory": {
+    "unique_name_version": 420,
+    "unresolved_upstreams": 1,
+    "unknown_licenses": 0,
+    "deprecated_packages": 0
+  },
+  "vulnerabilities": {
+    "info": 0,
+    "low": 0,
+    "moderate": 0,
+    "high": 2,
+    "critical": 0,
+    "total": 2
+  },
+  "outdated": {
+    "total": 6
+  },
+  "graph": {
+    "problems": 0
+  },
+  "sbom": {
+    "format": "CycloneDX",
+    "specVersion": "1.5",
+    "components": 419
+  }
+}

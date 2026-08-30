@@ -1,0 +1,51 @@
+[
+  {
+    "name": "@types/node",
+    "current": "22.20.1",
+    "wanted": "22.20.1",
+    "latest": "26.4.0",
+    "location": "C:\\Users\\fjuni\\OneDrive\\├ürea de Trabalho\\AyuGramDesktop\\companion\\node_modules\\@types\\node"
+  },
+  {
+    "name": "@vitejs/plugin-react",
+    "current": "4.7.0",
+    "wanted": "4.7.0",
+    "latest": "6.1.1",
+    "location": "C:\\Users\\fjuni\\OneDrive\\├ürea de Trabalho\\AyuGramDesktop\\companion\\node_modules\\@vitejs\\plugin-react"
+  },
+  {
+    "name": "electron",
+    "current": "35.7.5",
+    "wanted": "35.7.5",
+    "latest": "44.0.0",
+    "location": "C:\\Users\\fjuni\\OneDrive\\├ürea de Trabalho\\AyuGramDesktop\\companion\\node_modules\\electron"
+  },
+  {
+    "name": "electron-builder",
+    "current": "25.1.8",
+    "wanted": "25.1.8",
+    "latest": "26.15.3",
+    "location": "C:\\Users\\fjuni\\OneDrive\\├ürea de Trabalho\\AyuGramDesktop\\companion\\node_modules\\electron-builder"
+  },
+  {
+    "name": "electron-vite",
+    "current": "3.1.0",
+    "wanted": "3.1.0",
+    "latest": "5.0.0",
+    "location": "C:\\Users\\fjuni\\OneDrive\\├ürea de Trabalho\\AyuGramDesktop\\companion\\node_modules\\electron-vite"
+  },
+  {
+    "name": "typescript",
+    "current": "5.9.3",
+    "wanted": "5.9.3",
+    "latest": "7.0.2",
+    "location": "C:\\Users\\fjuni\\OneDrive\\├ürea de Trabalho\\AyuGramDesktop\\companion\\node_modules\\typescript"
+  },
+  {
+    "name": "vite",
+    "current": "6.4.3",
+    "wanted": "6.4.3",
+    "latest": "8.2.2",
+    "location": "C:\\Users\\fjuni\\OneDrive\\├ürea de Trabalho\\AyuGramDesktop\\companion\\node_modules\\vite"
+  }
+]

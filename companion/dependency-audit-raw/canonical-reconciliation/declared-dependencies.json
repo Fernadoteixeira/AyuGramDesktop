@@ -1,0 +1,92 @@
+[
+  {
+    "name": "clsx",
+    "range": "^2.1.1",
+    "type": "dependencies"
+  },
+  {
+    "name": "lucide-react",
+    "range": "^1.16.0",
+    "type": "dependencies"
+  },
+  {
+    "name": "tailwind-merge",
+    "range": "^3.5.0",
+    "type": "dependencies"
+  },
+  {
+    "name": "@testing-library/jest-dom",
+    "range": "^7.0.1",
+    "type": "devDependencies"
+  },
+  {
+    "name": "@testing-library/react",
+    "range": "^16.3.3",
+    "type": "devDependencies"
+  },
+  {
+    "name": "@types/node",
+    "range": "^22.13.9",
+    "type": "devDependencies"
+  },
+  {
+    "name": "@types/react",
+    "range": "^19.0.10",
+    "type": "devDependencies"
+  },
+  {
+    "name": "@types/react-dom",
+    "range": "^19.0.4",
+    "type": "devDependencies"
+  },
+  {
+    "name": "@vitejs/plugin-react",
+    "range": "^4.3.4",
+    "type": "devDependencies"
+  },
+  {
+    "name": "electron",
+    "range": "^35.0.0",
+    "type": "devDependencies"
+  },
+  {
+    "name": "electron-builder",
+    "range": "^26.15.3",
+    "type": "devDependencies"
+  },
+  {
+    "name": "electron-vite",
+    "range": "^3.1.0",
+    "type": "devDependencies"
+  },
+  {
+    "name": "jsdom",
+    "range": "^30.0.1",
+    "type": "devDependencies"
+  },
+  {
+    "name": "react",
+    "range": "^19.0.0",
+    "type": "devDependencies"
+  },
+  {
+    "name": "react-dom",
+    "range": "^19.0.0",
+    "type": "devDependencies"
+  },
+  {
+    "name": "typescript",
+    "range": "^5.8.2",
+    "type": "devDependencies"
+  },
+  {
+    "name": "vite",
+    "range": "^6.2.0",
+    "type": "devDependencies"
+  },
+  {
+    "name": "vitest",
+    "range": "^4.1.11",
+    "type": "devDependencies"
+  }
+]

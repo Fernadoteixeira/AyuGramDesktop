@@ -1,0 +1,27 @@
+[
+  {
+    "Algorithm": "SHA256",
+    "Hash": "2E584C1AEBBE28C7DB00D777760A38E6AE7A564D580EB5C5EC9D657ED1748495",
+    "Path": "C:\\Users\\fjuni\\OneDrive\\\u00c1rea de Trabalho\\AyuGramDesktop\\companion\\dependency-audit-raw\\canonical-reconciliation\\canonical-summary.json"
+  },
+  {
+    "Algorithm": "SHA256",
+    "Hash": "D170885F576492FE2E4547BB88AECD92FA723A2581CA9BCA0041B4692454ED54",
+    "Path": "C:\\Users\\fjuni\\OneDrive\\\u00c1rea de Trabalho\\AyuGramDesktop\\companion\\dependency-audit-raw\\canonical-reconciliation\\declared-dependencies.json"
+  },
+  {
+    "Algorithm": "SHA256",
+    "Hash": "3C6126E0D73A61FC77D86714224C4F39BD17A4FEC6D2BB905E94F608D4BEC3DD",
+    "Path": "C:\\Users\\fjuni\\OneDrive\\\u00c1rea de Trabalho\\AyuGramDesktop\\companion\\dependency-audit-raw\\canonical-reconciliation\\outdated-packages.json"
+  },
+  {
+    "Algorithm": "SHA256",
+    "Hash": "64063581CB6F25133BDDA872901CDE29898E8DB7CB6B76EF63664BAF85C9BB01",
+    "Path": "C:\\Users\\fjuni\\OneDrive\\\u00c1rea de Trabalho\\AyuGramDesktop\\companion\\dependency-audit-raw\\canonical-reconciliation\\unknown-licenses.json"
+  },
+  {
+    "Algorithm": "SHA256",
+    "Hash": "08EA15CD29A5488DF416C46A2FEBA6F3FE8A160954DCC6D676575D6C0D98D636",
+    "Path": "C:\\Users\\fjuni\\OneDrive\\\u00c1rea de Trabalho\\AyuGramDesktop\\companion\\dependency-audit-raw\\canonical-reconciliation\\unresolved-upstreams.json"
+  }
+]

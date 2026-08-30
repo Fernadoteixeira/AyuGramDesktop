@@ -1,0 +1,15 @@
+{
+  "timestamp": "2026-08-30T09:35:28Z",
+  "vncSocketLatencyMs": 3.94,
+  "noVncHttpLatencyMs": 6.49,
+  "bundle": {
+    "mainBundleKb": 10.3,
+    "preloadBundleKb": 0.99,
+    "rendererBundleTotalKb": 588.43
+  },
+  "container": {
+    "containerMemoryUsage": "590MiB / 23.47GiB",
+    "containerCpuUsage": "3.08%"
+  },
+  "performanceVerdict": "PASS"
+}
