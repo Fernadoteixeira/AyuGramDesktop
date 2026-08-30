@@ -1,9 +1,10 @@
 import { exec } from 'child_process'
 import { promisify } from 'util'
+import { join } from 'path'
 
 const defaultExec = promisify(exec)
 
-export type ExecFunction = (cmd: string) => Promise<{ stdout: string; stderr: string }>
+export type ExecFunction = (cmd: string, options?: { cwd?: string }) => Promise<{ stdout: string; stderr: string }>
 
 export interface ContainerStatus {
   dockerAvailable: boolean
@@ -16,8 +17,11 @@ export interface ContainerStatus {
 
 export class DockerController {
   private containerName = 'ayugram-dev-ui'
+  private repoRoot: string
 
-  constructor(private execFn: ExecFunction = defaultExec) {}
+  constructor(private execFn: ExecFunction = defaultExec) {
+    this.repoRoot = join(__dirname, '../../..')
+  }
 
   async checkStatus(): Promise<ContainerStatus> {
     try {
@@ -135,6 +139,36 @@ export class DockerController {
       return stdout
     } catch (err: unknown) {
       return `Error fetching logs: ${err instanceof Error ? err.message : String(err)}`
+    }
+  }
+
+  async executeScript(commandId: string): Promise<{ success: boolean; output: string }> {
+    const ALLOWED_SCRIPTS: Record<string, string> = {
+      'verify-release-360': 'python scripts/verify_companion_release_360.py',
+      'verify-360': 'python scripts/verify_companion_360.py',
+      'chaos-recovery': 'python scripts/test_chaos_recovery.py',
+      'restart-ayugram': `docker exec ${this.containerName} bash -lc "pkill -x AyuGram || true; sleep 1; DISPLAY=:1 /usr/local/bin/launch-ayugram >/tmp/ayugram-runtime.log 2>&1 &"`,
+      'restart-container': `docker restart ${this.containerName}`,
+      'git-status': 'git status --short'
+    }
+
+    const cmd = ALLOWED_SCRIPTS[commandId]
+    if (!cmd) {
+      return { success: false, output: `Comando não autorizado ou desconhecido: ${commandId}` }
+    }
+
+    try {
+      const { stdout, stderr } = await this.execFn(cmd, { cwd: this.repoRoot })
+      return {
+        success: true,
+        output: (stdout + '\n' + stderr).trim() || 'Comando executado com sucesso.'
+      }
+    } catch (err: unknown) {
+      const errorMsg = err instanceof Error ? err.message : String(err)
+      return {
+        success: false,
+        output: `Erro ao executar comando:\n${errorMsg}`
+      }
     }
   }
 }

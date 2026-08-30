@@ -14,11 +14,40 @@ export const App: React.FC = () => {
     error,
     startContainer,
     restartAyuGram,
-    fetchLogs
+    fetchLogs,
+    runScript
   } = useDocker()
 
   const [isDrawerOpen, setIsDrawerOpen] = useState(false)
   const [isLogViewerOpen, setIsLogViewerOpen] = useState(false)
+  const [scriptTitle, setScriptTitle] = useState<string | undefined>()
+  const [scriptOutput, setScriptOutput] = useState<string | undefined>()
+  const [isRunningScript, setIsRunningScript] = useState(false)
+  const [activeCommandId, setActiveCommandId] = useState<string | undefined>()
+
+  const handleRunScript = async (commandId: string, title: string) => {
+    setActiveCommandId(commandId)
+    setScriptTitle(title)
+    setScriptOutput('Iniciando execução do comando...\nAguarde o retorno da execução...\n')
+    setIsRunningScript(true)
+    setIsLogViewerOpen(true)
+
+    try {
+      const res = await runScript(commandId)
+      setScriptOutput(res.output)
+    } catch (err: unknown) {
+      setScriptOutput(`Erro na execução:\n${String(err)}`)
+    } finally {
+      setIsRunningScript(false)
+    }
+  }
+
+  const handleOpenStandardLogs = () => {
+    setScriptTitle(undefined)
+    setScriptOutput(undefined)
+    setActiveCommandId(undefined)
+    setIsLogViewerOpen(true)
+  }
 
   return (
     <div className="app-container">
@@ -27,7 +56,7 @@ export const App: React.FC = () => {
         ayugramRunning={ayugramRunning}
         loading={loading}
         onToggleDrawer={() => setIsDrawerOpen((prev) => !prev)}
-        onOpenLogs={() => setIsLogViewerOpen(true)}
+        onOpenLogs={handleOpenStandardLogs}
       />
 
       <DisplayView
@@ -48,13 +77,18 @@ export const App: React.FC = () => {
         password={password}
         onStartContainer={startContainer}
         onRestartAyuGram={restartAyuGram}
-        onOpenLogs={() => setIsLogViewerOpen(true)}
+        onOpenLogs={handleOpenStandardLogs}
+        onRunScript={handleRunScript}
       />
 
       <LogViewer
         isOpen={isLogViewerOpen}
         onClose={() => setIsLogViewerOpen(false)}
         fetchLogs={fetchLogs}
+        customTitle={scriptTitle}
+        customContent={scriptOutput}
+        isRunningScript={isRunningScript}
+        onRerun={activeCommandId ? () => handleRunScript(activeCommandId, scriptTitle || 'Comando') : undefined}
       />
     </div>
   )

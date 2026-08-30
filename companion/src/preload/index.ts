@@ -13,6 +13,7 @@ export interface AyuGramApi {
     startContainer: () => Promise<{ success: boolean; message: string }>
     restartAyuGram: () => Promise<{ success: boolean; message: string }>
     getLogs: (lines?: number) => Promise<string>
+    executeScript: (commandId: string) => Promise<{ success: boolean; output: string }>
   }
   window: {
     minimize: () => void
@@ -27,7 +28,8 @@ const api: AyuGramApi = {
     checkStatus: () => ipcRenderer.invoke('docker:check-status'),
     startContainer: () => ipcRenderer.invoke('docker:start-container'),
     restartAyuGram: () => ipcRenderer.invoke('docker:restart-ayugram'),
-    getLogs: (lines?: number) => ipcRenderer.invoke('docker:get-logs', lines)
+    getLogs: (lines?: number) => ipcRenderer.invoke('docker:get-logs', lines),
+    executeScript: (commandId: string) => ipcRenderer.invoke('companion:execute-script', commandId)
   },
   window: {
     minimize: () => ipcRenderer.send('window:minimize'),

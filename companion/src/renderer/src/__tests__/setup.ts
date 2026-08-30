@@ -14,7 +14,8 @@ Object.defineProperty(window, 'ayugramApi', {
       }),
       startContainer: vi.fn().mockResolvedValue({ success: true, message: 'Container started' }),
       restartAyuGram: vi.fn().mockResolvedValue({ success: true, message: 'AyuGram restarted' }),
-      getLogs: vi.fn().mockResolvedValue('Sample log output line 1\nSample log output line 2')
+      getLogs: vi.fn().mockResolvedValue('Sample log output line 1\nSample log output line 2'),
+      executeScript: vi.fn().mockResolvedValue({ success: true, output: 'Command output test' })
     },
     window: {
       minimize: vi.fn(),

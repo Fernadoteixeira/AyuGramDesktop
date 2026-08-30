@@ -56,4 +56,17 @@ describe('useDocker Hook', () => {
     expect(logs).toContain('Sample log output')
     expect(window.ayugramApi.docker.getLogs).toHaveBeenCalledWith(50)
   })
+
+  it('executes dev scripts via API', async () => {
+    const { result } = renderHook(() => useDocker())
+
+    let output = ''
+    await act(async () => {
+      const res = await result.current.runScript('verify-release-360')
+      output = res.output
+    })
+
+    expect(output).toBe('Command output test')
+    expect(window.ayugramApi.docker.executeScript).toHaveBeenCalledWith('verify-release-360')
+  })
 })

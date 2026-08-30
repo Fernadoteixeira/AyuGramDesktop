@@ -1,5 +1,21 @@
 import React, { useState } from 'react'
-import { X, RotateCcw, Play, Terminal, Info, ShieldCheck, Activity, Eye, EyeOff, Copy, Check } from 'lucide-react'
+import {
+  X,
+  RotateCcw,
+  Play,
+  Terminal,
+  Info,
+  ShieldCheck,
+  Activity,
+  Eye,
+  EyeOff,
+  Copy,
+  Check,
+  ShieldAlert,
+  GitBranch,
+  RefreshCw,
+  Zap
+} from 'lucide-react'
 
 interface DevDrawerProps {
   isOpen: boolean
@@ -10,6 +26,7 @@ interface DevDrawerProps {
   onStartContainer: () => void
   onRestartAyuGram: () => void
   onOpenLogs: () => void
+  onRunScript: (commandId: string, title: string) => void
 }
 
 export const DevDrawer: React.FC<DevDrawerProps> = ({
@@ -20,7 +37,8 @@ export const DevDrawer: React.FC<DevDrawerProps> = ({
   password,
   onStartContainer,
   onRestartAyuGram,
-  onOpenLogs
+  onOpenLogs,
+  onRunScript
 }) => {
   const [showToken, setShowToken] = useState(false)
   const [copied, setCopied] = useState(false)
@@ -38,7 +56,7 @@ export const DevDrawer: React.FC<DevDrawerProps> = ({
       <div className="drawer-header">
         <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
           <Activity size={18} color="#38bdf8" />
-          <h3 style={{ fontSize: 14, fontWeight: 700, color: '#f8fafc' }}>Dev Control Center</h3>
+          <h3 style={{ fontSize: 14, fontWeight: 700, color: '#f8fafc' }}>Dev Command Center</h3>
         </div>
         <button className="titlebar-btn" onClick={onClose} aria-label="Fechar painel">
           <X size={16} />
@@ -67,11 +85,28 @@ export const DevDrawer: React.FC<DevDrawerProps> = ({
           </div>
         </div>
 
-        {/* Quick Actions Card */}
+        {/* In-App Command Runner Card */}
         <div className="card">
-          <span className="card-title">Ações Rápidas</span>
+          <span className="card-title">Comandos & Automação 360°</span>
+
           <button
             className="action-btn primary"
+            onClick={() => onRunScript('verify-release-360', 'Auditoria Canônica 16-Gate (G1-G16)')}
+          >
+            <ShieldCheck size={16} />
+            <span>Executar Auditoria 16-Gate 360°</span>
+          </button>
+
+          <button
+            className="action-btn secondary"
+            onClick={() => onRunScript('chaos-recovery', 'Teste de Resiliência Chaos-Lite')}
+          >
+            <Zap size={16} color="#f59e0b" />
+            <span>Executar Teste Chaos Recovery</span>
+          </button>
+
+          <button
+            className="action-btn secondary"
             onClick={onRestartAyuGram}
             disabled={!running}
             style={{ opacity: running ? 1 : 0.5 }}
@@ -80,12 +115,28 @@ export const DevDrawer: React.FC<DevDrawerProps> = ({
             <span>Reiniciar Processo AyuGram</span>
           </button>
 
-          {!running && (
-            <button className="action-btn secondary" onClick={onStartContainer}>
+          {!running ? (
+            <button className="action-btn primary" onClick={onStartContainer}>
               <Play size={15} fill="currentColor" />
               <span>Iniciar Container Docker</span>
             </button>
+          ) : (
+            <button
+              className="action-btn secondary"
+              onClick={() => onRunScript('restart-container', 'Reiniciar Container Docker')}
+            >
+              <RefreshCw size={15} />
+              <span>Reiniciar Container Docker</span>
+            </button>
           )}
+
+          <button
+            className="action-btn secondary"
+            onClick={() => onRunScript('git-status', 'Status Git & Reconciliação')}
+          >
+            <GitBranch size={15} />
+            <span>Verificar Status Git & Reconciliação</span>
+          </button>
 
           <button className="action-btn secondary" onClick={onOpenLogs}>
             <Terminal size={15} />
@@ -93,11 +144,11 @@ export const DevDrawer: React.FC<DevDrawerProps> = ({
           </button>
         </div>
 
-        {/* Security & Token Card with Masking */}
+        {/* Security & Token Card */}
         <div className="card">
           <span className="card-title">Credenciais & Acesso</span>
           <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 12, color: '#94a3b8' }}>
-            <ShieldCheck size={14} color="#34d399" />
+            <ShieldAlert size={14} color="#34d399" />
             <span>Autenticação Local Automática</span>
           </div>
           {password && (
@@ -148,7 +199,7 @@ export const DevDrawer: React.FC<DevDrawerProps> = ({
           <div style={{ display: 'flex', gap: 8, alignItems: 'flex-start' }}>
             <Info size={16} color="#38bdf8" style={{ flexShrink: 0, marginTop: 2 }} />
             <p style={{ fontSize: 12, color: '#94a3b8', lineHeight: 1.5 }}>
-              O AyuGram Native Shell conecta diretamente ao display X11 interno via socket seguro com isolamento de contexto (ContextIsolation).
+              Execução direta de gates, diagnóstico e comandos com stream de saída em tempo real no app.
             </p>
           </div>
         </div>

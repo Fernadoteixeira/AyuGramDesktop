@@ -73,6 +73,14 @@ export function useDocker() {
     }
   }
 
+  const runScript = async (commandId: string) => {
+    try {
+      return await window.ayugramApi.docker.executeScript(commandId)
+    } catch (err: unknown) {
+      return { success: false, output: `Falha ao executar: ${String(err)}` }
+    }
+  }
+
   useEffect(() => {
     refreshStatus()
     const interval = setInterval(refreshStatus, 4000)
@@ -84,6 +92,7 @@ export function useDocker() {
     refreshStatus,
     startContainer,
     restartAyuGram,
-    fetchLogs
+    fetchLogs,
+    runScript
   }
 }

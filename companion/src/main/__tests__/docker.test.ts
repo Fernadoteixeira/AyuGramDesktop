@@ -84,4 +84,23 @@ describe('DockerController (Main Process)', () => {
       expect.stringContaining('launch-ayugram')
     )
   })
+
+  it('executes allowed script with correct path and arguments', async () => {
+    mockExec.mockResolvedValue({ stdout: 'Audit Passed', stderr: '' })
+
+    const res = await controller.executeScript('verify-release-360')
+    expect(res.success).toBe(true)
+    expect(res.output).toContain('Audit Passed')
+    expect(mockExec).toHaveBeenCalledWith(
+      'python scripts/verify_companion_release_360.py',
+      expect.objectContaining({ cwd: expect.any(String) })
+    )
+  })
+
+  it('rejects disallowed script identifier', async () => {
+    const res = await controller.executeScript('malicious-cmd; rm -rf /')
+    expect(res.success).toBe(false)
+    expect(res.output).toContain('Comando não autorizado')
+    expect(mockExec).not.toHaveBeenCalled()
+  })
 })

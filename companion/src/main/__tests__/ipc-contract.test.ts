@@ -41,6 +41,7 @@ describe('IPC Contract Verification', () => {
       'docker:start-container',
       'docker:restart-ayugram',
       'docker:get-logs',
+      'companion:execute-script',
       'window:is-maximized'
     ]
 
