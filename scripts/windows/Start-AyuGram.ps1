@@ -1,7 +1,8 @@
 param(
     [string]$ContainerName = "ayugram-dev-ui",
     [string]$NoVncUrl = "http://127.0.0.1:6080/vnc.html?autoconnect=true&resize=scale",
-    [int]$TimeoutSeconds = 90
+    [int]$TimeoutSeconds = 90,
+    [switch]$Web
 )
 
 $ErrorActionPreference = "Stop"
@@ -75,5 +76,21 @@ Wait-Until -TimeoutSeconds $TimeoutSeconds -FailureMessage "A porta 6080 não fi
 
 $VncPassword = (docker exec $ContainerName cat /home/user/.local/state/ayugram-desktop/password).Trim()
 
-Write-Host "Ambiente pronto! Abrindo navegador..."
-Start-Process "$NoVncUrl&password=$VncPassword"
+if ($Web) {
+    Write-Host "Ambiente pronto! Abrindo no navegador web..."
+    Start-Process "$NoVncUrl&password=$VncPassword"
+} else {
+    Write-Host "Ambiente pronto! Abrindo AyuGram Desktop Native App..."
+    $CompanionExe = Join-Path $PSScriptRoot "..\..\companion\dist\win-unpacked\AyuGram Companion.exe"
+    if (Test-Path $CompanionExe) {
+        Start-Process $CompanionExe
+    } else {
+        $CompanionDir = Join-Path $PSScriptRoot "..\..\companion"
+        Push-Location $CompanionDir
+        try {
+            npm run dev
+        } finally {
+            Pop-Location
+        }
+    }
+}
