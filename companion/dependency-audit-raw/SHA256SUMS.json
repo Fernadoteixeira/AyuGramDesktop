@@ -1,0 +1,47 @@
+[
+  {
+    "Algorithm": "SHA256",
+    "Hash": "00A6D146F28EF4FD2C583D993FAEA4C6976122CC73B31847984F56AC44F7F7DB",
+    "Path": "C:\\Users\\fjuni\\OneDrive\\Área de Trabalho\\AyuGramDesktop\\companion\\dependency-audit-raw\\installed-package-metadata.json"
+  },
+  {
+    "Algorithm": "SHA256",
+    "Hash": "D743E86514C8C3F3732D087632D2B34520F1ACAF378FA1BFB41B46DC803A5B9F",
+    "Path": "C:\\Users\\fjuni\\OneDrive\\Área de Trabalho\\AyuGramDesktop\\companion\\dependency-audit-raw\\npm-audit.json"
+  },
+  {
+    "Algorithm": "SHA256",
+    "Hash": "D8BC9CEF851C8EBCDDAB7C0E656E0DD8B93C652D64482210575FE1FDDFE047B0",
+    "Path": "C:\\Users\\fjuni\\OneDrive\\Área de Trabalho\\AyuGramDesktop\\companion\\dependency-audit-raw\\npm-ls-all.json"
+  },
+  {
+    "Algorithm": "SHA256",
+    "Hash": "1D9C5753D937C5000E4A9A1CBDD8070FD96392BE56F315743E63681CAB2AAA15",
+    "Path": "C:\\Users\\fjuni\\OneDrive\\Área de Trabalho\\AyuGramDesktop\\companion\\dependency-audit-raw\\npm-ls-direct.json"
+  },
+  {
+    "Algorithm": "SHA256",
+    "Hash": "72C5F3294EF35C4DEA4F4953F91FA6531222E5D2E8AA1DF06F9FABB6F36205B2",
+    "Path": "C:\\Users\\fjuni\\OneDrive\\Área de Trabalho\\AyuGramDesktop\\companion\\dependency-audit-raw\\npm-outdated.json"
+  },
+  {
+    "Algorithm": "SHA256",
+    "Hash": "B34D2B2D5ACCB15F88A60D407964A9AE6A6DD9727AD660E5C71A58D141EA62B5",
+    "Path": "C:\\Users\\fjuni\\OneDrive\\Área de Trabalho\\AyuGramDesktop\\companion\\dependency-audit-raw\\npm-query-all.json"
+  },
+  {
+    "Algorithm": "SHA256",
+    "Hash": "24368B3F85492DF99D7E5ECAC87B9B6CFCE83A9A03EA7D812B071C9C32BF0403",
+    "Path": "C:\\Users\\fjuni\\OneDrive\\Área de Trabalho\\AyuGramDesktop\\companion\\dependency-audit-raw\\package-lock.json"
+  },
+  {
+    "Algorithm": "SHA256",
+    "Hash": "ED28423091E29910E1088B4D0498B6B7AB38ED8FA59F0BFE7CCC4BB5F150227C",
+    "Path": "C:\\Users\\fjuni\\OneDrive\\Área de Trabalho\\AyuGramDesktop\\companion\\dependency-audit-raw\\package.json"
+  },
+  {
+    "Algorithm": "SHA256",
+    "Hash": "A2A0DE9DC70DE94A927EEDDC86D58A6A4F693C8190E26AE0668692D18EA173CF",
+    "Path": "C:\\Users\\fjuni\\OneDrive\\Área de Trabalho\\AyuGramDesktop\\companion\\dependency-audit-raw\\sbom.cdx.json"
+  }
+]
