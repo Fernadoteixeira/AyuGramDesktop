@@ -1,0 +1,25 @@
+{
+  appId: 'com.ayugram.companion',
+  productName: 'AyuGram Companion',
+  directories: {
+    output: 'dist'
+  },
+  files: [
+    'out/**/*',
+    'package.json'
+  ],
+  win: {
+    target: [
+      {
+        target: 'nsis',
+        arch: ['x64']
+      }
+    ]
+  },
+  nsis: {
+    oneClick: false,
+    perMachine: false,
+    allowToChangeInstallationDirectory: true,
+    deleteAppDataOnUninstall: false
+  }
+}
