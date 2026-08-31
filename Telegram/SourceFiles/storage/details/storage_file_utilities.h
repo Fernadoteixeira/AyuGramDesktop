@@ -7,7 +7,12 @@ https://github.com/telegramdesktop/tdesktop/blob/master/LEGAL
 */
 #pragma once
 
+#ifndef STORAGE_FILE_UTILITIES_TEST_BUILD
 #include "storage/storage_account.h"
+#else
+#include "mtproto/mtproto_auth_key.h"
+using FileKey = quint64;
+#endif
 
 #include <QtCore/QBuffer>
 

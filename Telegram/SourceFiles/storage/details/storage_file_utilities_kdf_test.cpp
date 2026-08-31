@@ -5,37 +5,15 @@ the official desktop application for the Telegram messaging service.
 For license and copyright information please follow this link:
 https://github.com/telegramdesktop/tdesktop/blob/master/LEGAL
 */
-/*
-VERIFIED_STATIC regression tests for the KDF fix in
-storage_file_utilities.cpp (CreateLocalKey scrypt/PBKDF2 branch).
-
-STATUS:
-  VERIFIED_STATIC — each test case is reviewed against the source logic at
-  Telegram/SourceFiles/storage/details/storage_file_utilities.cpp lines
-  306-386.  The scrypt branch (salt[0] == kKdfVersionScrypt, salt.size() > 32)
-  must return nullptr on failure and must NOT silently fall back to the
-  PBKDF2 branch below.  This was the original security bug: when scrypt failed
-  the code continued past the scrypt block into PBKDF2, producing a weak key
-  without any indication.
-
-  BLOCKED_RUNTIME_VALIDATION — cannot be compiled per AGENTS.md
-  ("Avoid building the project").  To unblock, add this translation unit to
-  the Telegram CMake build alongside storage_file_utilities.cpp, link
-  against mtproto_auth_key and OpenSSL, then run the resulting binary.
-
-COVERAGE:
-  1. ScryptSuccess      — 0x02 marker + non-empty passcode → valid key
-  2. ScryptFailure      — scrypt branch cannot derive → nullptr, no PBKDF2
-  3. UnknownMarker      — marker != 0x01 && != 0x02 → graceful PBKDF2 fallback
-  4. RestartUnlock      — same (passcode, salt) pair → identical key (deterministic)
-  5. LegacyUpgrade      — 0x01 marker → PBKDF2 path for backward compat
-  6. MixedState         — 0x02 marker + failure → nullptr, NOT a PBKDF2 key
-*/
 #include "storage/details/storage_file_utilities.h"
 
 #include "mtproto/mtproto_auth_key.h"
 
+#include <openssl/evp.h>
+
 #include <cassert>
+#include <cstddef>
+#include <cstdint>
 #include <cstring>
 #include <iostream>
 #include <vector>
@@ -46,6 +24,7 @@ namespace {
 
 int g_passCount = 0;
 int g_failCount = 0;
+bool g_forceScryptFailure = false;
 
 void recordResult(bool ok, const char *name) {
 	ok ? ++g_passCount : ++g_failCount;
@@ -83,7 +62,57 @@ bool keysEqual(const MTP::AuthKeyPtr &a, const MTP::AuthKeyPtr &b) {
 	return a->equals(b);
 }
 
+class ScopedScryptFailure final {
+public:
+	ScopedScryptFailure() {
+		g_forceScryptFailure = true;
+	}
+
+	~ScopedScryptFailure() {
+		g_forceScryptFailure = false;
+	}
+};
+
 } // namespace
+
+extern "C" int __real_EVP_PBE_scrypt(
+	const char *pass,
+	size_t passlen,
+	const unsigned char *salt,
+	size_t saltlen,
+	uint64_t n,
+	uint64_t r,
+	uint64_t p,
+	uint64_t maxmem,
+	unsigned char *key,
+	size_t keylen);
+
+extern "C" int __wrap_EVP_PBE_scrypt(
+		const char *pass,
+		size_t passlen,
+		const unsigned char *salt,
+		size_t saltlen,
+		uint64_t n,
+		uint64_t r,
+		uint64_t p,
+		uint64_t maxmem,
+		unsigned char *key,
+		size_t keylen) {
+	if (g_forceScryptFailure) {
+		return 0;
+	}
+	return __real_EVP_PBE_scrypt(
+		pass,
+		passlen,
+		salt,
+		saltlen,
+		n,
+		r,
+		p,
+		maxmem,
+		key,
+		keylen);
+}
 
 static void testScryptSuccess() {
 	const auto passcode = QByteArray("test-passcode");
@@ -95,11 +124,12 @@ static void testScryptSuccess() {
 }
 
 static void testScryptFailure() {
-	const auto passcode = QByteArray();
+	const auto passcode = QByteArray("forced-scrypt-failure");
 	const auto salt = makeSalt(kKdfVersionScrypt, 48);
+	auto guard = ScopedScryptFailure();
 	const auto key = CreateLocalKey(passcode, salt);
 	const auto ok = key == nullptr;
-	recordResult(ok, "ScryptFailure: scrypt-marked salt with empty passcode -> nullptr, no PBKDF2 fallback");
+	recordResult(ok, "ScryptFailure: forced EVP_PBE_scrypt failure -> nullptr, no PBKDF2 fallback");
 	assert(ok);
 }
 
@@ -108,7 +138,7 @@ static void testUnknownMarker() {
 	const auto salt = makeSalt(std::byte{0x03}, 48);
 	const auto key = CreateLocalKey(passcode, salt);
 	const auto ok = key != nullptr && keyIsNonZero(key);
-	recordResult(ok, "UnknownMarker: 0x03 marker -> graceful PBKDF2 fallback, non-null key");
+	recordResult(ok, "UnknownMarker: 0x03 marker -> PBKDF2 fallback, non-null key");
 	assert(ok);
 }
 
@@ -118,7 +148,7 @@ static void testRestartUnlock() {
 	const auto key1 = CreateLocalKey(passcode, salt);
 	const auto key2 = CreateLocalKey(passcode, salt);
 	const auto ok = keysEqual(key1, key2);
-	recordResult(ok, "RestartUnlock: same (passcode, salt) -> identical key (deterministic KDF)");
+	recordResult(ok, "RestartUnlock: same (passcode, salt) -> identical key");
 	assert(ok);
 }
 
@@ -127,20 +157,24 @@ static void testLegacyUpgrade() {
 	const auto salt = makeSalt(kKdfVersionPBKDF2, 48);
 	const auto key = CreateLocalKey(passcode, salt);
 	const auto ok = key != nullptr && keyIsNonZero(key);
-	recordResult(ok, "LegacyUpgrade: 0x01 marker -> PBKDF2 path, non-null key (backward compat)");
+	recordResult(ok, "LegacyUpgrade: 0x01 marker -> PBKDF2 path, non-null key");
 	assert(ok);
 }
 
 static void testMixedState() {
-	const auto passcode = QByteArray();
-	const auto salt = makeSalt(kKdfVersionScrypt, 48);
-	const auto scryptKey = CreateLocalKey(passcode, salt);
+	const auto passcode = QByteArray("mixed-state-passcode");
+	const auto scryptSalt = makeSalt(kKdfVersionScrypt, 48);
+	auto scryptKey = MTP::AuthKeyPtr();
+	{
+		auto guard = ScopedScryptFailure();
+		scryptKey = CreateLocalKey(passcode, scryptSalt);
+	}
 	const auto pbkdf2Salt = makeSalt(kKdfVersionPBKDF2, 48);
 	const auto pbkdf2Key = CreateLocalKey(passcode, pbkdf2Salt);
 	const auto ok = scryptKey == nullptr
 		&& pbkdf2Key != nullptr
-		&& !keysEqual(scryptKey, pbkdf2Key);
-	recordResult(ok, "MixedState: 0x02 marker + failure -> nullptr, NOT the PBKDF2 key (original bug regression)");
+		&& keyIsNonZero(pbkdf2Key);
+	recordResult(ok, "MixedState: forced 0x02 failure -> nullptr while PBKDF2 remains independently valid");
 	assert(ok);
 }
 

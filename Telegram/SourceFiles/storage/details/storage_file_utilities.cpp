@@ -11,6 +11,8 @@ https://github.com/telegramdesktop/tdesktop/blob/master/LEGAL
 #include "base/platform/base_platform_file_utilities.h"
 #include "base/openssl_help.h"
 #include "base/random.h"
+#include "base/debug_log.h"
+#include "core/utils.h"
 
 #include <crl/crl_object_on_thread.h>
 #include <openssl/opensslv.h>
